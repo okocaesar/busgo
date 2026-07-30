@@ -1,0 +1,11 @@
+.seat.booked {
+
+  background: #777;
+
+  color: white;
+
+  cursor: not-allowed;
+
+  border-color: #777;
+
+}

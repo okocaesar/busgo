@@ -1,0 +1,1 @@
+CREATE DATABASE busgo_database;

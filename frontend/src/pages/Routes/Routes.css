@@ -1,0 +1,213 @@
+.routes-hero{
+    width:100%;
+    height:320px;
+
+    background:linear-gradient(rgba(0,0,0,.45),
+    rgba(0,0,0,.45)),
+    url("../../assets/hero.jpg");
+
+    background-size:cover;
+    background-position:center;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    margin-top:0;
+}
+
+.hero-overlay{
+
+    text-align:center;
+
+    color:white;
+}
+
+.hero-overlay h1{
+
+    font-size:55px;
+
+    margin-bottom:15px;
+}
+
+.hero-overlay p{
+
+    font-size:20px;
+}
+
+.routes-container{
+
+    width:90%;
+
+    margin:70px auto;
+}
+
+.search-box{
+
+    display:flex;
+
+    justify-content:center;
+
+    margin-bottom:50px;
+}
+
+.search-box input{
+
+    width:650px;
+
+    max-width:100%;
+
+    padding:18px;
+
+    border-radius:50px;
+
+    border:1px solid #ddd;
+
+    outline:none;
+
+    font-size:17px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+}
+
+.route-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+
+    gap:35px;
+}
+
+.route-card{
+
+    background:white;
+
+    border-radius:20px;
+
+    overflow:hidden;
+
+    border:1px solid #eee;
+
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+
+    transition:.3s;
+}
+
+.route-card:hover{
+
+    transform:translateY(-10px);
+}
+
+.route-card img{
+
+    width:100%;
+
+    height:230px;
+
+    object-fit:cover;
+
+    transition:.4s;
+}
+
+.no-results{
+
+    text-align:center;
+
+    color:#666;
+
+    grid-column:1/-1;
+
+}
+
+.route-card:hover img{
+
+    transform:scale(1.05);
+
+}
+
+.route-content{
+
+    padding:25px;
+}
+
+.route-content h2{
+
+    margin-bottom:15px;
+
+    color:#222;
+}
+
+.route-details{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    color:#666;
+
+    margin-bottom:20px;
+
+    font-size:15px;
+}
+
+.route-content h3{
+
+    color:#0b7d45;
+
+    font-size:28px;
+
+    margin-bottom:20px;
+}
+
+.route-content button{
+
+    width:100%;
+
+    height:50px;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:#0b7d45;
+
+    color:white;
+
+    font-size:16px;
+
+    cursor:pointer;
+
+    transition:.3s;
+}
+
+.route-content button:hover{
+
+    background:#086237;
+}
+
+@media(max-width:768px){
+
+.hero-overlay h1{
+
+font-size:38px;
+}
+
+.hero-overlay p{
+
+font-size:16px;
+}
+
+.route-details{
+
+flex-direction:column;
+
+gap:10px;
+}
+
+.search-box input{
+
+width:100%;
+}
+
+}

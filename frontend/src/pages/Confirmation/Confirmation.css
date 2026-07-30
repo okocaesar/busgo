@@ -1,0 +1,299 @@
+.ticket-page{
+
+    min-height:90vh;
+
+    background:#f5f5f5;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:center;
+
+    padding:40px;
+
+}
+
+
+
+.ticket{
+
+
+    width:420px;
+
+    background:white;
+
+    border-radius:25px;
+
+    overflow:hidden;
+
+    box-shadow:
+    0 20px 50px rgba(0,0,0,.15);
+
+}
+
+
+
+.ticket-header{
+
+    background:#0b7d45;
+
+    color:white;
+
+    text-align:center;
+
+    padding:30px;
+
+}
+
+
+
+.ticket-header h1{
+
+    font-size:42px;
+
+    margin:0;
+
+}
+
+
+
+.ticket-header p{
+
+    margin-top:5px;
+
+    font-size:13px;
+
+}
+
+
+
+.ticket-number{
+
+    text-align:center;
+
+    padding:20px;
+
+    color:#555;
+
+}
+
+
+
+.ticket-number strong{
+
+    color:#0b7d45;
+
+    margin-left:8px;
+
+}
+
+
+
+.route-box{
+
+    display:flex;
+
+    justify-content:space-around;
+
+    align-items:center;
+
+    padding:25px;
+
+    background:#f1f1f1;
+
+}
+
+
+
+.route-box small{
+
+    color:#777;
+
+}
+
+
+
+.route-box h2{
+
+    color:#111;
+
+}
+
+
+
+.route-box span{
+
+    font-size:35px;
+
+    color:#0b7d45;
+
+}
+
+
+
+.details{
+
+    padding:25px;
+
+}
+
+
+
+.details p{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    border-bottom:1px solid #eee;
+
+    padding:12px 0;
+
+}
+
+
+
+.details span{
+
+    font-weight:bold;
+
+    color:#0b7d45;
+
+}
+
+
+
+.price-box{
+
+    background:#111;
+
+    color:white;
+
+    text-align:center;
+
+    padding:20px;
+
+}
+
+
+
+.price-box h2{
+
+    color:#0b7d45;
+
+    font-size:30px;
+
+}
+
+
+
+.qr-box{
+
+    margin:25px auto;
+
+    width:140px;
+
+    height:140px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:white;
+
+    padding:10px;
+
+    border-radius:15px;
+
+    border:2px solid #0b7d45;
+
+}
+
+
+
+.thank{
+
+    text-align:center;
+
+    color:#777;
+
+    padding-bottom:20px;
+
+}
+
+
+
+.download-btn,
+.print-btn{
+
+
+    margin-top:20px;
+
+    width:300px;
+
+    height:50px;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:#0b7d45;
+
+    color:white;
+
+    font-size:16px;
+
+    cursor:pointer;
+
+}
+
+
+
+.download-btn:hover,
+.print-btn:hover{
+
+    background:#086237;
+
+}
+
+.confirm-btn{
+
+    margin-top:20px;
+
+    width:300px;
+
+    height:50px;
+
+    border:none;
+
+    border-radius:10px;
+
+    background:#111;
+
+    color:white;
+
+    font-size:16px;
+
+    cursor:pointer;
+
+}
+
+
+.confirm-btn:hover{
+
+    background:#0b7d45;
+
+}
+
+.paid{
+
+color:#0b7d45;
+
+font-weight:bold;
+
+}

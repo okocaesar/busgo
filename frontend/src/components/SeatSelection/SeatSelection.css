@@ -1,0 +1,81 @@
+.seat-container {
+
+  background: #ffffff;
+
+  padding: 25px;
+
+  margin-top: 25px;
+
+  border-radius: 12px;
+
+  box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+
+}
+
+
+.seat-container h3 {
+
+  color: #0b1f3a;
+
+  margin-bottom: 20px;
+
+}
+
+
+.seat-layout {
+
+  display: grid;
+
+  grid-template-columns: repeat(5, 55px);
+
+  gap: 15px;
+
+}
+
+
+.seat {
+
+  height: 50px;
+
+  width: 50px;
+
+  border-radius: 8px;
+
+  border: 2px solid #0b1f3a;
+
+  background: white;
+
+  color: #0b1f3a;
+
+  cursor: pointer;
+
+  font-weight: bold;
+
+}
+
+
+.seat:hover {
+
+  background: #0b1f3a;
+
+  color:white;
+
+}
+
+
+.seat.active {
+
+  background:#0b1f3a;
+
+  color:white;
+
+}
+
+
+.seat-container p {
+
+  margin-top:20px;
+
+  color:#555;
+
+}
