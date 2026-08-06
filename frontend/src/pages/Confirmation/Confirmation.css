@@ -297,3 +297,127 @@ color:#0b7d45;
 font-weight:bold;
 
 }
+
+/* =========================================
+   TICKET PRICE BREAKDOWN
+========================================= */
+
+.ticket-price-breakdown {
+  margin-top: 25px;
+
+  padding: 20px;
+
+  border-radius: 12px;
+
+  background: #f7faf8;
+
+  border: 1px solid #e0e9e3;
+}
+
+
+.ticket-price-row {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 15px;
+
+  padding: 8px 0;
+
+  color: #69736d;
+
+  font-size: 13px;
+}
+
+
+.ticket-price-row strong {
+  color: #252c28;
+
+  font-size: 14px;
+}
+
+
+.ticket-discount {
+  color: #0b7d45;
+}
+
+
+.ticket-discount strong {
+  color: #0b7d45;
+}
+
+
+.ticket-price-divider {
+  height: 1px;
+
+  margin: 10px 0;
+
+  background: #dce5df;
+}
+
+
+.ticket-final-price {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 15px;
+}
+
+
+.ticket-final-price span {
+  color: #17221b;
+
+  font-size: 14px;
+
+  font-weight: 800;
+}
+
+
+.ticket-final-price h2 {
+  margin: 0;
+
+  color: #0b7d45;
+
+  font-size: 21px;
+
+  font-weight: 800;
+}
+
+
+/* =========================================
+   OFFER USED
+========================================= */
+
+.offer-used {
+  color: #0b7d45 !important;
+
+  font-weight: 700;
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 600px) {
+
+  .ticket-price-breakdown {
+    padding: 15px;
+  }
+
+
+  .ticket-final-price h2 {
+    font-size: 18px;
+  }
+
+
+  .ticket-price-row {
+    font-size: 12px;
+  }
+
+}

@@ -6,6 +6,7 @@ import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
 import Booking from "./pages/Booking/Booking";
 import Offers from "./pages/Offers/Offers";
+import About from "./pages/AboutUs/AboutUs";
 import Confirmation from "./pages/Confirmation/Confirmation";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Payment from "./pages/Payment/Payment";
@@ -20,6 +21,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/booking" element={<Booking />} />
         <Route path="/offers" element={<Offers />} />
+        <Route path="/about" element={<About />} />
         <Route path="*" element={<h1>Page Not Found</h1>} />
         <Route path="/confirmation" element={<Confirmation />}/>
         <Route path="/dashboard" element={<Dashboard />}/>

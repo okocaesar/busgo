@@ -1,120 +1,600 @@
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:'Poppins',sans-serif;
+/* =========================================
+   NAVBAR RESET
+========================================= */
+
+.navbar,
+.navbar * {
+
+  box-sizing: border-box;
+
 }
 
-.navbar{
-    width:100%;
-    height:80px;
-    background:#fff;
 
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+.navbar {
 
-    padding:0 70px;
+  width: 100%;
 
-    box-shadow:0 2px 12px rgba(0,0,0,.08);
+  min-height: 80px;
 
-    position:sticky;
-    top:0;
-    z-index:999;
+  background: #fff;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  padding: 0 70px;
+
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, .08);
+
+  position: sticky;
+
+  top: 0;
+
+  z-index: 9999;
+
 }
 
-.logo-img{
-    width:300px;
-    height:100%;
-    object-fit:contain;
+
+/* =========================================
+   LOGO
+========================================= */
+
+.logo {
+
+  display: flex;
+
+  align-items: center;
+
+  flex-shrink: 0;
+
+  text-decoration: none;
+
 }
 
-.logo-icon{
-    font-size:30px;
+
+.logo-img {
+
+  width: 300px;
+
+  height: 75px;
+
+  object-fit: contain;
+
+  display: block;
+
 }
 
-.nav-links{
-    display:flex;
-    gap:45px;
+
+/* =========================================
+   DESKTOP MENU
+========================================= */
+
+.navbar-menu {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: flex-end;
+
+  gap: 45px;
+
 }
 
-.nav-links a{
-    text-decoration:none;
-    color:#222;
-    font-size:16px;
-    font-weight:500;
-    transition:.3s;
-    position:relative;
+
+.nav-links {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 40px;
+
 }
 
-.nav-links a:hover{
-    color:#046c34;
+
+.nav-links a {
+
+  text-decoration: none;
+
+  color: #222;
+
+  font-size: 16px;
+
+  font-weight: 500;
+
+  position: relative;
+
+  transition: .3s ease;
+
+  white-space: nowrap;
+
 }
 
-.nav-links .active{
-    color:#046c34;
+
+.nav-links a:hover {
+
+  color: #046c34;
+
 }
 
-.nav-links .active::after{
 
-    content:'';
-    position:absolute;
+.nav-links a.active {
 
-    width:100%;
-    height:3px;
+  color: #046c34;
 
-    background:#046c34;
-
-    left:0;
-    bottom:-8px;
-    border-radius:10px;
 }
 
-.auth-buttons{
-    display:flex;
-    gap:15px;
+
+.nav-links a.active::after {
+
+  content: "";
+
+  position: absolute;
+
+  width: 100%;
+
+  height: 3px;
+
+  background: #046c34;
+
+  left: 0;
+
+  bottom: -9px;
+
+  border-radius: 10px;
+
 }
 
-.login-btn{
 
-    width:110px;
-    height:46px;
+/* =========================================
+   AUTH BUTTONS
+========================================= */
 
-    border:2px solid #046c34;
-    background:white;
+.auth-buttons {
 
-    border-radius:10px;
+  display: flex;
 
-    font-size:16px;
-    cursor:pointer;
+  align-items: center;
 
-    color:#046c34;
-    font-weight:600;
+  gap: 12px;
+
 }
 
-.signup-btn{
 
-    width:120px;
-    height:46px;
+.auth-buttons a {
 
-    border:none;
+  text-decoration: none;
 
-    background:#046c34;
-    color:white;
-
-    border-radius:10px;
-
-    cursor:pointer;
-
-    font-size:16px;
-    font-weight:600;
 }
 
-.signup-btn:hover{
-    background:#03562b;
+
+.login-btn,
+.signup-btn {
+
+  height: 44px;
+
+  border-radius: 9px;
+
+  font-size: 15px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: .3s ease;
+
 }
 
-.login-btn:hover{
-    background:#046c34;
-    color:white;
+
+.login-btn {
+
+  width: 105px;
+
+  border: 2px solid #046c34;
+
+  background: #fff;
+
+  color: #046c34;
+
+}
+
+
+.signup-btn {
+
+  width: 115px;
+
+  border: 2px solid #046c34;
+
+  background: #046c34;
+
+  color: #fff;
+
+}
+
+
+.login-btn:hover {
+
+  background: #046c34;
+
+  color: #fff;
+
+}
+
+
+.signup-btn:hover {
+
+  background: #03562b;
+
+  border-color: #03562b;
+
+}
+
+
+/* =========================================
+   HAMBURGER
+========================================= */
+
+.menu-toggle {
+
+  display: none;
+
+  width: 45px;
+
+  height: 42px;
+
+  padding: 8px;
+
+  border: none;
+
+  background: transparent;
+
+  cursor: pointer;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 5px;
+
+}
+
+
+.menu-toggle span {
+
+  display: block;
+
+  width: 26px;
+
+  height: 3px;
+
+  background: #046c34;
+
+  border-radius: 5px;
+
+  transition: .3s ease;
+
+}
+
+
+/* =========================================
+   HAMBURGER ANIMATION
+========================================= */
+
+.menu-toggle.open span:nth-child(1) {
+
+  transform:
+    translateY(8px)
+    rotate(45deg);
+
+}
+
+
+.menu-toggle.open span:nth-child(2) {
+
+  opacity: 0;
+
+  transform: translateX(-10px);
+
+}
+
+
+.menu-toggle.open span:nth-child(3) {
+
+  transform:
+    translateY(-8px)
+    rotate(-45deg);
+
+}
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 1100px) {
+
+  .navbar {
+
+    padding: 0 35px;
+
+  }
+
+
+  .logo-img {
+
+    width: 220px;
+
+  }
+
+
+  .navbar-menu {
+
+    gap: 25px;
+
+  }
+
+
+  .nav-links {
+
+    gap: 25px;
+
+  }
+
+
+  .nav-links a {
+
+    font-size: 14px;
+
+  }
+
+
+  .login-btn {
+
+    width: 90px;
+
+  }
+
+
+  .signup-btn {
+
+    width: 100px;
+
+  }
+
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 800px) {
+
+  .navbar {
+
+    min-height: 72px;
+
+    padding: 0 20px;
+
+  }
+
+
+  .logo-img {
+
+    width: 190px;
+
+    height: 65px;
+
+  }
+
+
+  /* SHOW HAMBURGER */
+
+  .menu-toggle {
+
+    display: flex;
+
+    position: relative;
+
+    z-index: 10001;
+
+  }
+
+
+  /* HIDDEN MENU */
+
+  .navbar-menu {
+
+    position: absolute;
+
+    top: 72px;
+
+    left: 0;
+
+    width: 100%;
+
+    padding: 25px 20px 30px;
+
+    background: #fff;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: stretch;
+
+    justify-content: flex-start;
+
+    gap: 25px;
+
+    box-shadow:
+      0 12px 25px rgba(0,0,0,.10);
+
+    border-top: 1px solid #eee;
+
+    transform:
+      translateY(-20px);
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    pointer-events: none;
+
+    transition:
+      opacity .3s ease,
+      transform .3s ease,
+      visibility .3s ease;
+
+  }
+
+
+  /* OPEN MENU */
+
+  .navbar-menu.menu-open {
+
+    transform:
+      translateY(0);
+
+    opacity: 1;
+
+    visibility: visible;
+
+    pointer-events: auto;
+
+  }
+
+
+  /* NAV LINKS */
+
+  .nav-links {
+
+    width: 100%;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: stretch;
+
+    gap: 0;
+
+  }
+
+
+  .nav-links a {
+
+    width: 100%;
+
+    padding: 15px 5px;
+
+    border-bottom: 1px solid #eee;
+
+    font-size: 15px;
+
+  }
+
+
+  .nav-links a:last-child {
+
+    border-bottom: none;
+
+  }
+
+
+  .nav-links a.active::after {
+
+    display: none;
+
+  }
+
+
+  .nav-links a.active {
+
+    background: #f0f8f3;
+
+    padding-left: 12px;
+
+    border-radius: 7px;
+
+  }
+
+
+  /* AUTH */
+
+  .auth-buttons {
+
+    width: 100%;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+  }
+
+
+  .auth-buttons a {
+
+    width: 100%;
+
+  }
+
+
+  .login-btn,
+  .signup-btn {
+
+    width: 100%;
+
+    height: 48px;
+
+  }
+
+}
+
+
+/* =========================================
+   SMALL PHONES
+========================================= */
+
+@media (max-width: 480px) {
+
+  .navbar {
+
+    min-height: 65px;
+
+    padding: 0 15px;
+
+  }
+
+
+  .logo-img {
+
+    width: 155px;
+
+    height: 60px;
+
+  }
+
+
+  .menu-toggle {
+
+    width: 42px;
+
+  }
+
+
+  .navbar-menu {
+
+    top: 65px;
+
+  }
+
 }

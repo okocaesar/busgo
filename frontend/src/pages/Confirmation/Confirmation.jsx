@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { useLocation, NavLink, useNavigate } from "react-router-dom";import html2canvas from "html2canvas";
+import { useLocation, NavLink, useNavigate } from "react-router-dom";
+
+import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { QRCodeCanvas } from "qrcode.react";
 
@@ -12,19 +14,40 @@ import "./Confirmation.css";
 function Confirmation() {
 
   const navigate = useNavigate();
-
   const location = useLocation();
 
-const booking = location.state;
+  const booking = location.state;
 
 
-const [ticketNumber] = useState(
-  "BG-" + Math.floor(100000 + Math.random() * 900000)
-);
+  // =========================================
+  // TICKET NUMBER
+  // =========================================
+
+  const [ticketNumber] = useState(
+    "BG-" + Math.floor(100000 + Math.random() * 900000)
+  );
 
 
+  // =========================================
+  // PRICE VALUES
+  // =========================================
 
-const qrData = `
+  const totalPrice = booking?.total ?? 0;
+
+  const discount = booking?.discount ?? 0;
+
+  const discountPercentage =
+    booking?.discountPercentage ?? 0;
+
+  const totalPayment =
+    booking?.totalPayment ?? totalPrice;
+
+
+  // =========================================
+  // QR CODE DATA
+  // =========================================
+
+  const qrData = `
 BUSGO TICKET
 
 Ticket: ${ticketNumber}
@@ -45,433 +68,511 @@ ${booking?.seats?.join(", ")}
 Date:
 ${booking?.date}
 
-Total:
-XAF ${booking?.total?.toLocaleString("en-GB")}
+Total Price:
+XAF ${totalPrice.toLocaleString("en-GB")}
+
+Discount:
+XAF ${discount.toLocaleString("en-GB")}
+
+Total Payment:
+XAF ${totalPayment.toLocaleString("en-GB")}
 `;
 
-const confirmBooking = () => {
+
+  // =========================================
+  // CONFIRM BOOKING
+  // =========================================
+
+  const confirmBooking = () => {
+
+    const currentUser =
+      JSON.parse(
+        localStorage.getItem("currentUser")
+      );
 
 
-  const savedTicket = {
+    const savedTicket = {
 
-    ticketNumber,
+      ticketNumber,
 
-    email: JSON.parse(
-  localStorage.getItem("currentUser")
-)?.email,
+      email: currentUser?.email,
 
-    name: booking.name,
+      name: booking.name,
 
-    phone: booking.phone,
+      phone: booking.phone,
 
-    from: booking.from,
+      from: booking.from,
 
-    to: booking.to,
+      to: booking.to,
 
-    busType: booking.busType,
+      busType: booking.busType,
 
-    seats: booking.seats,
+      seats: booking.seats,
 
-    date: booking.date,
+      date: booking.date,
 
-    total: booking.total,
 
-    paymentStatus: booking.paymentStatus,
+      // Original price
+      total: totalPrice,
 
-    paymentMethod: booking.paymentMethod,
+      totalPrice: totalPrice,
 
-    paymentDate: booking.paymentDate,
 
-    createdAt: new Date().toLocaleDateString("en-GB")
+      // Offer
+      offerTitle:
+        booking.offerTitle || "No Offer",
+
+      discountPercentage:
+        discountPercentage,
+
+      discount:
+        discount,
+
+
+      // Final amount
+      totalPayment:
+        totalPayment,
+
+
+      paymentStatus:
+        booking.paymentStatus,
+
+      paymentMethod:
+        booking.paymentMethod,
+
+      paymentDate:
+        booking.paymentDate,
+
+      createdAt:
+        new Date().toLocaleDateString("en-GB")
+
+    };
+
+
+    const existingTickets =
+      JSON.parse(
+        localStorage.getItem("bookings")
+      ) || [];
+
+
+    localStorage.setItem(
+      "bookings",
+      JSON.stringify([
+        ...existingTickets,
+        savedTicket
+      ])
+    );
+
+
+    alert(
+      "Booking confirmed successfully!"
+    );
+
+
+    navigate("/dashboard");
 
   };
 
 
-
-  const existingTickets =
-
-    JSON.parse(
-      localStorage.getItem("bookings")
-    ) || [];
-
-
-
-  localStorage.setItem(
-
-    "bookings",
-
-    JSON.stringify(
-      [
-        ...existingTickets,
-        savedTicket
-      ]
-    )
-
-  );
-
-
-
-  alert(
-    "Booking confirmed successfully!"
-  );
-
-
-  navigate("/dashboard");
-
-
-};
+  // =========================================
+  // DOWNLOAD TICKET
+  // =========================================
 
   const downloadTicket = () => {
 
-
-    const ticket = document.getElementById("ticket");
+    const ticket =
+      document.getElementById("ticket");
 
 
     html2canvas(ticket)
-    .then((canvas)=>{
+      .then((canvas) => {
+
+        const imgData =
+          canvas.toDataURL("image/png");
 
 
-      const imgData =
-      canvas.toDataURL("image/png");
+        const pdf =
+          new jsPDF(
+            "p",
+            "mm",
+            "a4"
+          );
 
 
-      const pdf =
-      new jsPDF(
-        "p",
-        "mm",
-        "a4"
-      );
+        const width = 190;
 
 
-      const width = 190;
-
-      const height =
-      (canvas.height * width)
-      / canvas.width;
+        const height =
+          (canvas.height * width)
+          / canvas.width;
 
 
-
-      pdf.addImage(
-        imgData,
-        "PNG",
-        10,
-        10,
-        width,
-        height
-      );
-
-
-      pdf.save(
-        `BusGo-${ticketNumber}.pdf`
-      );
+        pdf.addImage(
+          imgData,
+          "PNG",
+          10,
+          10,
+          width,
+          height
+        );
 
 
-    });
+        pdf.save(
+          `BusGo-${ticketNumber}.pdf`
+        );
 
+      });
 
   };
 
 
+  // =========================================
+  // NO BOOKING
+  // =========================================
 
-  if(!booking){
+  if (!booking) {
 
-    return(
-
+    return (
       <>
 
-      <Navbar />
+        <Navbar />
 
-      <div className="empty-booking">
+        <div className="empty-booking">
 
-        <h2>
-          No booking found
-        </h2>
+          <h2>
+            No booking found
+          </h2>
 
 
-        <NavLink to="/booking">
-          Make Booking
-        </NavLink>
+          <NavLink to="/booking">
+            Make Booking
+          </NavLink>
 
-      </div>
+        </div>
 
-      <Footer />
+        <Footer />
 
       </>
-
     );
 
   }
 
 
+  // =========================================
+  // PAGE
+  // =========================================
 
   return (
-
     <>
 
-
-    <Navbar />
-
-
-    <section className="ticket-page">
+      <Navbar />
 
 
-      <div 
-        className="ticket"
-        id="ticket"
-      >
+      <section className="ticket-page">
 
 
+        {/* =====================================
+            TICKET
+        ===================================== */}
 
-        <div className="ticket-header">
-
-
-          <h1>
-            BUSGO
-          </h1>
-
-
-          <p>
-            BUS TRANSPORT RESERVATION
-          </p>
+        <div
+          className="ticket"
+          id="ticket"
+        >
 
 
-        </div>
+          {/* HEADER */}
 
+          <div className="ticket-header">
 
+            <h1>
+              BUSGO
+            </h1>
 
-        <div className="ticket-number">
-
-          Ticket No:
-          <strong>
-            {ticketNumber}
-          </strong>
-
-        </div>
-
-
-
-        <div className="route-box">
-
-
-          <div>
-
-            <small>
-              FROM
-            </small>
-
-            <h2>
-              {booking.from}
-            </h2>
+            <p>
+              BUS TRANSPORT RESERVATION
+            </p>
 
           </div>
 
 
+          {/* TICKET NUMBER */}
 
-          <span>
-            →
-          </span>
+          <div className="ticket-number">
 
+            Ticket No:
 
-
-          <div>
-
-            <small>
-              TO
-            </small>
-
-            <h2>
-              {booking.to}
-            </h2>
+            <strong>
+              {ticketNumber}
+            </strong>
 
           </div>
 
 
+          {/* ROUTE */}
+
+          <div className="route-box">
+
+            <div>
+
+              <small>
+                FROM
+              </small>
+
+              <h2>
+                {booking.from}
+              </h2>
+
+            </div>
+
+
+            <span>
+              →
+            </span>
+
+
+            <div>
+
+              <small>
+                TO
+              </small>
+
+              <h2>
+                {booking.to}
+              </h2>
+
+            </div>
+
+          </div>
+
+
+          {/* DETAILS */}
+
+          <div className="details">
+
+
+            <p>
+
+              <span>
+                Passenger
+              </span>
+
+              {booking.name}
+
+            </p>
+
+
+            <p>
+
+              <span>
+                Phone
+              </span>
+
+              {booking.phone}
+
+            </p>
+
+
+            <p>
+
+              <span>
+                Bus Type
+              </span>
+
+              {booking.busType}
+
+            </p>
+
+
+            <p>
+
+              <span>
+                Seats
+              </span>
+
+              {booking.seats?.join(", ") ||
+                "Not selected"}
+
+            </p>
+
+
+            <p>
+
+              <span>
+                Travel Date
+              </span>
+
+              {booking.date}
+
+            </p>
+
+
+            <p>
+
+              <span>
+                Payment
+              </span>
+
+              {booking.paymentMethod}
+
+            </p>
+
+
+            {/* OFFER */}
+
+            {booking.offerTitle &&
+              booking.offerTitle !== "No Offer" && (
+
+              <p>
+
+                <span>
+                  Offer
+                </span>
+
+                <strong className="offer-used">
+
+                  {booking.offerTitle}
+
+                  {discountPercentage > 0 &&
+                    ` (${discountPercentage}% OFF)`}
+
+                </strong>
+
+              </p>
+
+            )}
+
+
+            {/* STATUS */}
+
+            <p>
+
+              <span>
+                Status
+              </span>
+
+              <span className="paid">
+                Paid ✓
+              </span>
+
+            </p>
+
+
+          </div>
+
+
+          {/* =====================================
+              PRICE BREAKDOWN
+          ===================================== */}
+
+          <div className="ticket-price-breakdown">
+
+
+            <div className="ticket-price-row">
+
+              <span>
+                Total Price
+              </span>
+
+              <strong>
+                XAF {totalPrice.toLocaleString("en-GB")}
+              </strong>
+
+            </div>
+
+
+            <div className="ticket-price-row ticket-discount">
+
+              <span>
+                Discount
+                {discountPercentage > 0 &&
+                  ` (${discountPercentage}%)`}
+              </span>
+
+              <strong>
+                - XAF {discount.toLocaleString("en-GB")}
+              </strong>
+
+            </div>
+
+
+            <div className="ticket-price-divider"></div>
+
+
+            <div className="ticket-final-price">
+
+              <span>
+                TOTAL PAYMENT
+              </span>
+
+              <h2>
+                XAF {totalPayment.toLocaleString("en-GB")}
+              </h2>
+
+            </div>
+
+          </div>
+
+
+          {/* QR CODE */}
+
+          <div className="qr-box">
+
+            <QRCodeCanvas
+              value={qrData}
+              size={120}
+              bgColor="#ffffff"
+              fgColor="#0b7d45"
+            />
+
+          </div>
+
+
+          <p className="thank">
+
+            Thank you for travelling with BusGo
+
+          </p>
+
+
         </div>
 
 
+        {/* =====================================
+            ACTION BUTTONS
+        ===================================== */}
 
+        <button
+          className="download-btn"
+          onClick={downloadTicket}
+        >
+          Download Ticket PDF
+        </button>
 
-        <div className="details">
 
+        <button
+          className="print-btn"
+          onClick={() => window.print()}
+        >
+          Print Ticket
+        </button>
 
-          <p>
-            <span>
-              Passenger
-            </span>
 
-            {booking.name}
+        <button
+          className="confirm-btn"
+          onClick={confirmBooking}
+        >
+          Confirm Booking
+        </button>
 
-          </p>
 
+      </section>
 
 
-          <p>
-
-            <span>
-              Phone
-            </span>
-
-            {booking.phone}
-
-          </p>
-
-
-
-          <p>
-
-            <span>
-              Bus Type
-            </span>
-
-            {booking.busType}
-
-          </p>
-
-
-
-          <p>
-
-            <span>
-              Seats
-            </span>
-
-            {booking.seats.join(", ")}
-
-          </p>
-
-
-
-          <p>
-
-            <span>
-              Travel Date
-            </span>
-
-            {booking.date}
-
-          </p>
-
-          <p>
-
-<span>
-Payment
-</span>
-
-{booking.paymentMethod}
-
-</p>
-
-
-<p>
-
-<span>
-Status
-</span>
-
-<span className="paid">
-
-Paid ✓
-
-</span>
-
-</p>
-
-
-
-        </div>
-
-
-
-
-        <div className="price-box">
-
-          TOTAL
-
-          <h2>
-            XAF {booking.total.toLocaleString("en-GB")}
-          </h2>
-
-        </div>
-
-
-
-        <div className="qr-box">
-
-  <QRCodeCanvas
-
-    value={qrData}
-
-    size={120}
-
-    bgColor="#ffffff"
-
-    fgColor="#0b7d45"
-
-  />
-
-</div>
-
-
-
-        <p className="thank">
-
-          Thank you for travelling with BusGo
-
-        </p>
-
-
-
-      </div>
-
-
-
-      <button
-  className="download-btn"
-  onClick={downloadTicket}
->
-
-  Download Ticket PDF
-
-</button>
-
-
-
-<button
-  className="print-btn"
-  onClick={()=>window.print()}
->
-
-  Print Ticket
-
-</button>
-
-
-
-<button
-
-  className="confirm-btn"
-
-  onClick={confirmBooking}
-
->
-
-  Confirm Booking
-
-</button>
-
-
-
-    </section>
-
-
-
-    <Footer />
-
+      <Footer />
 
     </>
-
   );
-
 }
 
 

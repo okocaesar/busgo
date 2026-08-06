@@ -6,7 +6,6 @@ import "./Navbar.css";
 
 function Navbar() {
 
-
   const navigate = useNavigate();
 
 
@@ -15,22 +14,27 @@ function Navbar() {
   );
 
 
+  const [menuOpen, setMenuOpen] = useState(false);
+
 
   const logout = () => {
-
 
     localStorage.removeItem("loggedIn");
 
     localStorage.removeItem("currentUser");
 
-
     setLoggedIn(false);
 
+    setMenuOpen(false);
 
     navigate("/login");
 
   };
 
+
+  const closeMenu = () => {
+    setMenuOpen(false);
+  };
 
 
   return (
@@ -38,105 +42,150 @@ function Navbar() {
     <nav className="navbar">
 
 
-      <div className="logo">
-  <img src={logo} alt="BusGo Logo" className="logo-img" />
-</div>
+      {/* LOGO */}
+
+      <NavLink
+        to="/"
+        className="logo"
+        onClick={closeMenu}
+      >
+
+        <img
+          src={logo}
+          alt="BusGo Logo"
+          className="logo-img"
+        />
+
+      </NavLink>
 
 
 
+      {/* HAMBURGER */}
 
-      <div className="nav-links">
+      <button
+        className={`menu-toggle ${
+          menuOpen ? "open" : ""
+        }`}
+        onClick={() =>
+          setMenuOpen(!menuOpen)
+        }
+        aria-label="Toggle navigation menu"
+        aria-expanded={menuOpen}
+      >
+
+        <span></span>
+        <span></span>
+        <span></span>
+
+      </button>
 
 
-        <NavLink to="/">
-          Home
-        </NavLink>
+
+      {/* NAVIGATION */}
+
+      <div
+        className={`navbar-menu ${
+          menuOpen ? "menu-open" : ""
+        }`}
+      >
 
 
-        <NavLink to="/routes">
-          Routes
-        </NavLink>
+        <div className="nav-links">
 
 
-        <NavLink to="/offers">
-          Offers
-        </NavLink>
+          <NavLink
+            to="/"
+            onClick={closeMenu}
+          >
+            Home
+          </NavLink>
 
 
+          <NavLink
+            to="/routes"
+            onClick={closeMenu}
+          >
+            Routes
+          </NavLink>
 
-        {
-          loggedIn && (
 
-            <NavLink to="/dashboard">
+          <NavLink
+            to="/offers"
+            onClick={closeMenu}
+          >
+            Offers
+          </NavLink>
+
+          <NavLink
+            to="/about"
+            onClick={closeMenu}
+          >
+            About Us
+          </NavLink>
+
+
+          {loggedIn && (
+
+            <NavLink
+              to="/dashboard"
+              onClick={closeMenu}
+            >
               Dashboard
             </NavLink>
 
-          )
-        }
+          )}
 
 
-      </div>
-
-
+        </div>
 
 
 
-      <div className="auth-buttons">
+        {/* AUTH BUTTONS */}
+
+        <div className="auth-buttons">
 
 
-        {
-          loggedIn ? (
-
+          {loggedIn ? (
 
             <button
-
               className="signup-btn"
-
               onClick={logout}
-
             >
-
               Logout
-
             </button>
-
 
           ) : (
 
-
             <>
 
-
-              <NavLink to="/login">
+              <NavLink
+                to="/login"
+                onClick={closeMenu}
+              >
 
                 <button className="login-btn">
-
                   Login
-
                 </button>
 
               </NavLink>
 
 
-
-              <NavLink to="/register">
+              <NavLink
+                to="/register"
+                onClick={closeMenu}
+              >
 
                 <button className="signup-btn">
-
                   Register
-
                 </button>
 
               </NavLink>
-
-
 
             </>
 
+          )}
 
-          )
-
-        }
+        </div>
 
 
       </div>

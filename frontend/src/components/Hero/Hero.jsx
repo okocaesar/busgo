@@ -1,44 +1,119 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import "./Hero.css";
 
-import hero from "../../assets/hero.jpg";
-// import bus from "../../assets/bus.jpg";
+import hero1 from "../../assets/hero.jpg";
+import hero2 from "../../assets/hero2.jpg";
+import hero3 from "../../assets/hero3.jpg";
+import hero4 from "../../assets/hero4.jpg";
+import hero5 from "../../assets/hero5.jpg";
+
 
 function Hero() {
+
+  const images = [
+    hero1,
+    hero2,
+    hero3,
+    hero4,
+    hero5
+  ];
+
+
+  const [currentImage, setCurrentImage] = useState(0);
+
+
+  useEffect(() => {
+
+    const interval = setInterval(() => {
+
+      setCurrentImage((prev) =>
+        (prev + 1) % images.length
+      );
+
+    }, 5000);
+
+
+    return () => clearInterval(interval);
+
+  }, [images.length]);
+
+
   return (
+
     <section
       className="hero"
-      style={{ backgroundImage: `url(${hero})` }}
+      style={{
+        backgroundImage:
+          `url(${images[currentImage]})`
+      }}
     >
+
       <div className="overlay">
+
         <div className="hero-content">
 
+
           <div className="hero-text">
+
             <h1>
               Travel Easy.
               <br />
               <span>Book Smart.</span>
             </h1>
 
+
             <p>
               Book your bus tickets online in minutes.
               Safe, reliable and comfortable journeys.
             </p>
 
+
             <NavLink to="/booking">
-            <button>Book Now</button>
+
+              <button>
+                Book Now
+              </button>
+
             </NavLink>
+
           </div>
 
-          {/* { <div className="hero-image">
-            <img src={bus} alt="Bus" />
-          </div> } */}
 
         </div>
+
+
+        {/* SLIDER DOTS */}
+
+        <div className="hero-dots">
+
+          {images.map((_, index) => (
+
+            <button
+              key={index}
+              className={
+                currentImage === index
+                  ? "dot active"
+                  : "dot"
+              }
+              onClick={() =>
+                setCurrentImage(index)
+              }
+              aria-label={`Go to slide ${index + 1}`}
+            />
+
+          ))}
+
+        </div>
+
+
       </div>
+
     </section>
+
   );
+
 }
+
 
 export default Hero;

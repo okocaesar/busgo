@@ -1,77 +1,62 @@
 import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import axios from "axios";
+import { NavLink, useNavigate } from "react-router-dom";
 import "./Login.css";
 
 import background from "../../assets/1010.jpg";
 
 function Login() {
+
+  const navigate = useNavigate();
+
   const [loginData, setLoginData] = useState({
+    email: "",
+    password: "",
+  });
 
-  email:"",
-  password:""
+  const handleChange = (e) => {
+    setLoginData({
+      ...loginData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
-});
+  const handleLogin = async (e) => {
 
-const handleLogin = (e)=>{
+    e.preventDefault();
 
-  e.preventDefault();
+    try {
 
+      const response = await axios.post(
+        "http://localhost:5000/api/auth/login",
+        loginData
+      );
 
-  const savedUser = JSON.parse(
-    localStorage.getItem("user")
-  );
+      localStorage.setItem(
+        "currentUser",
+        JSON.stringify(response.data.user)
+      );
 
+      localStorage.setItem(
+        "loggedIn",
+        "true"
+      );
 
-  if(!savedUser){
+      navigate("/");
 
-    alert(
-      "No account found. Please register first."
-    );
+    } catch (error) {
 
-    return;
+      alert(
+        error.response?.data?.message ||
+        "Login failed."
+      );
 
-  }
+    }
 
+  };
 
-
-  if(
-    loginData.email === savedUser.email &&
-    loginData.password === savedUser.password
-  ){
-
-    localStorage.setItem(
-      "loggedIn",
-      "true"
-    );
-
-
-    localStorage.setItem(
-      "currentUser",
-      JSON.stringify(savedUser)
-    );
-
-
-    // alert(
-    //   "Login successful!"
-    // );
-
-
-    window.location.href="/";
-
-
-  }else{
-
-
-    alert(
-      "Invalid email or password"
-    );
-
-
-  }
-
-
-};
   return (
+
     <section
       className="auth-page"
       style={{ backgroundImage: `url(${background})` }}
@@ -81,14 +66,9 @@ const handleLogin = (e)=>{
 
         <div className="auth-card">
 
-          <h1>
-            Welcome Back
-          </h1>
+          <h1>Welcome Back</h1>
 
-          <p>
-            Login to continue your journey with BusGo
-          </p>
-
+          <p>Login to continue your journey with BusGo</p>
 
           <form onSubmit={handleLogin}>
 
@@ -97,67 +77,34 @@ const handleLogin = (e)=>{
               <label>Email</label>
 
               <input
-
-type="email"
-
-name="email"
-
-value={loginData.email}
-
-onChange={(e)=>
-setLoginData({
-
-...loginData,
-
-email:e.target.value
-
-})
-
-}
-
-placeholder="Enter your email"
-
-/>
+                type="email"
+                name="email"
+                value={loginData.email}
+                onChange={handleChange}
+                placeholder="Enter your email"
+              />
 
             </div>
-
 
             <div className="input-box">
 
               <label>Password</label>
 
               <input
-
-type="password"
-
-name="password"
-
-value={loginData.password}
-
-onChange={(e)=>
-setLoginData({
-
-...loginData,
-
-password:e.target.value
-
-})
-
-}
-
-placeholder="Enter your password"
-
-/>
+                type="password"
+                name="password"
+                value={loginData.password}
+                onChange={handleChange}
+                placeholder="Enter your password"
+              />
 
             </div>
-
 
             <button type="submit">
               Login
             </button>
 
           </form>
-
 
           <div className="auth-link">
 
@@ -169,13 +116,14 @@ placeholder="Enter your password"
 
           </div>
 
-
         </div>
 
       </div>
 
     </section>
+
   );
+
 }
 
 export default Login;
