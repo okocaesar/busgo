@@ -116,6 +116,12 @@ exports.login = (req, res) => {
         });
       }
 
+      console.log("LOGIN: creating JWT");
+console.log(
+  "LOGIN: JWT_SECRET available:",
+  process.env.JWT_SECRET ? "YES" : "NO"
+);
+
       // CREATE TOKEN
       const jwtSecret = process.env.JWT_SECRET;
 
