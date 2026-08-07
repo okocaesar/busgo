@@ -1,16 +1,31 @@
 const db = require("../config/database");
 
 const Booking = {
+
+  // =========================================
+  // FIND ROUTE
+  // =========================================
+
   findRouteId: (from, to, callback) => {
     const sql = `
       SELECT id
       FROM routes
-      WHERE departure = ? AND destination = ?
+      WHERE departure = ?
+        AND destination = ?
       LIMIT 1
     `;
 
-    db.query(sql, [from, to], callback);
+    db.query(
+      sql,
+      [from, to],
+      callback
+    );
   },
+
+
+  // =========================================
+  // FIND BUS
+  // =========================================
 
   findBusId: (busType, callback) => {
     const sql = `
@@ -20,8 +35,17 @@ const Booking = {
       LIMIT 1
     `;
 
-    db.query(sql, [busType], callback);
+    db.query(
+      sql,
+      [busType],
+      callback
+    );
   },
+
+
+  // =========================================
+  // FIND OFFER
+  // =========================================
 
   findOfferId: (offerTitle, callback) => {
     const sql = `
@@ -31,10 +55,20 @@ const Booking = {
       LIMIT 1
     `;
 
-    db.query(sql, [offerTitle], callback);
+    db.query(
+      sql,
+      [offerTitle],
+      callback
+    );
   },
 
+
+  // =========================================
+  // CREATE BOOKING
+  // =========================================
+
   create: (booking, callback) => {
+
     const sql = `
       INSERT INTO bookings (
         ticket_number,
@@ -55,7 +89,11 @@ const Booking = {
         booking_status,
         payment_date
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+
+      VALUES (
+        ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?
+      )
     `;
 
     db.query(
@@ -83,39 +121,107 @@ const Booking = {
     );
   },
 
+
+  // =========================================
+  // GET USER BOOKINGS
+  // =========================================
+
   findByUserId: (userId, callback) => {
+
     const sql = `
       SELECT
         bookings.*,
+
         routes.departure,
         routes.destination,
+
         buses.name AS bus_name,
+
         offers.title AS offer_title,
         offers.discount_percent
+
       FROM bookings
+
       LEFT JOIN routes
         ON bookings.route_id = routes.id
+
       LEFT JOIN buses
         ON bookings.bus_id = buses.id
+
       LEFT JOIN offers
         ON bookings.offer_id = offers.id
+
       WHERE bookings.user_id = ?
-        AND bookings.booking_status <> "Cancelled"
+
       ORDER BY bookings.created_at DESC
     `;
 
-    db.query(sql, [userId], callback);
+    console.log(
+      "Loading bookings for user:",
+      userId
+    );
+
+    db.query(
+      sql,
+      [userId],
+      (err, results) => {
+
+        if (err) {
+          console.error(
+            "Booking SQL error:",
+            err
+          );
+
+          return callback(
+            err,
+            null
+          );
+        }
+
+        console.log(
+          "Bookings found:",
+          results.length
+        );
+
+        callback(
+          null,
+          results
+        );
+      }
+    );
   },
 
-  cancelByIdAndUserId: (bookingId, userId, callback) => {
+
+  // =========================================
+  // CANCEL BOOKING
+  // =========================================
+
+  cancelByIdAndUserId: (
+    bookingId,
+    userId,
+    callback
+  ) => {
+
     const sql = `
       UPDATE bookings
-      SET booking_status = "Cancelled"
-      WHERE id = ? AND user_id = ?
+
+      SET booking_status = ?
+
+      WHERE id = ?
+        AND user_id = ?
     `;
 
-    db.query(sql, [bookingId, userId], callback);
+    db.query(
+      sql,
+      [
+        "Cancelled",
+        bookingId,
+        userId
+      ],
+      callback
+    );
   }
+
 };
 
 module.exports = Booking;

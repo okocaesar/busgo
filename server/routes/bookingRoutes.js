@@ -6,6 +6,7 @@ const bookingController = require("../controllers/bookingController");
 
 // =========================================
 // TEST BOOKING ROUTE
+// GET /api/bookings/test
 // =========================================
 
 router.get("/test", (req, res) => {
@@ -36,11 +37,11 @@ router.get(
 
 // =========================================
 // CANCEL BOOKING
-// PATCH /api/bookings/:bookingId/status
+// PATCH /api/bookings/:bookingId/cancel/user/:userId
 // =========================================
 
 router.patch(
-  "/:bookingId/status",
+  "/:bookingId/cancel/user/:userId",
   bookingController.cancelBooking
 );
 
