@@ -4,7 +4,12 @@ const dotenv = require("dotenv");
 
 
 dotenv.config();
-console.log(process.env.PORT);
+
+console.log("PORT:", process.env.PORT);
+console.log(
+  "JWT_SECRET loaded:",
+  process.env.JWT_SECRET ? "YES" : "NO"
+);
 
 
 require("./config/database");
