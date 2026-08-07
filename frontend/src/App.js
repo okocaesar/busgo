@@ -10,6 +10,7 @@ import About from "./pages/AboutUs/AboutUs";
 import Confirmation from "./pages/Confirmation/Confirmation";
 import Dashboard from "./pages/Dashboard/Dashboard";
 import Payment from "./pages/Payment/Payment";
+import AdminDashboard from "./pages/AdminDashboard/AdminDashboard";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         <Route path="/confirmation" element={<Confirmation />}/>
         <Route path="/dashboard" element={<Dashboard />}/>
         <Route path="/payment" element={<Payment />}/>
+        <Route path="/admin" element={<AdminDashboard />} />
       </Routes>
     </BrowserRouter>
   );

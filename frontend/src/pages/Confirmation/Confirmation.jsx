@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 import { useLocation, NavLink, useNavigate } from "react-router-dom";
 
 import html2canvas from "html2canvas";
@@ -7,6 +8,7 @@ import { QRCodeCanvas } from "qrcode.react";
 
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
+import { API_URL } from "../../api";
 
 import "./Confirmation.css";
 
@@ -28,23 +30,38 @@ function Confirmation() {
   );
 
 
+  const [saving, setSaving] = useState(false);
+
+
   // =========================================
   // PRICE VALUES
   // =========================================
 
-  const totalPrice = booking?.total ?? 0;
+  const totalPrice = Number(
+    booking?.totalPrice ??
+    booking?.total ??
+    0
+  );
 
-  const discount = booking?.discount ?? 0;
 
-  const discountPercentage =
-    booking?.discountPercentage ?? 0;
+  const discount = Number(
+    booking?.discount ?? 0
+  );
 
-  const totalPayment =
-    booking?.totalPayment ?? totalPrice;
+
+  const discountPercentage = Number(
+    booking?.discountPercentage ?? 0
+  );
+
+
+  const totalPayment = Number(
+    booking?.totalPayment ??
+    Math.max(0, totalPrice - discount)
+  );
 
 
   // =========================================
-  // QR CODE DATA
+  // QR CODE
   // =========================================
 
   const qrData = `
@@ -83,93 +100,165 @@ XAF ${totalPayment.toLocaleString("en-GB")}
   // CONFIRM BOOKING
   // =========================================
 
-  const confirmBooking = () => {
+  const confirmBooking = async () => {
 
-    const currentUser =
-      JSON.parse(
-        localStorage.getItem("currentUser")
+    if (saving) {
+      return;
+    }
+
+
+    const currentUser = JSON.parse(
+      localStorage.getItem("currentUser")
+    );
+
+
+    if (!currentUser) {
+
+      alert(
+        "Please login before confirming your booking."
+      );
+
+      navigate("/login");
+
+      return;
+
+    }
+
+
+    try {
+
+      setSaving(true);
+
+
+      /*
+        Send booking to Express backend.
+
+        Backend endpoint:
+        POST /api/bookings
+      */
+
+      const response = await axios.post(
+        `${API_URL}/api/bookings`,
+        {
+
+          ticketNumber,
+
+          userId:
+            currentUser.id,
+
+          email:
+            currentUser.email,
+
+          name:
+            booking.name,
+
+          phone:
+            booking.phone,
+
+          from:
+            booking.from,
+
+          to:
+            booking.to,
+
+          busType:
+            booking.busType,
+
+          seats:
+            booking.seats,
+
+          date:
+            booking.date,
+
+
+          // Price information
+
+          totalPrice:
+            totalPrice,
+
+          discountPercentage:
+            discountPercentage,
+
+          discount:
+            discount,
+
+          totalPayment:
+            totalPayment,
+
+
+          // Offer
+
+          offerTitle:
+            booking.offerTitle ||
+            "No Offer",
+
+
+          // Payment
+
+          paymentStatus:
+            booking.paymentStatus ||
+            "Paid",
+
+          paymentMethod:
+            booking.paymentMethod,
+
+          paymentDate:
+            booking.paymentDate,
+
+        }
       );
 
 
-    const savedTicket = {
-
-      ticketNumber,
-
-      email: currentUser?.email,
-
-      name: booking.name,
-
-      phone: booking.phone,
-
-      from: booking.from,
-
-      to: booking.to,
-
-      busType: booking.busType,
-
-      seats: booking.seats,
-
-      date: booking.date,
+      console.log(
+        "Booking saved:",
+        response.data
+      );
 
 
-      // Original price
-      total: totalPrice,
-
-      totalPrice: totalPrice,
-
-
-      // Offer
-      offerTitle:
-        booking.offerTitle || "No Offer",
-
-      discountPercentage:
-        discountPercentage,
-
-      discount:
-        discount,
+      alert(
+        "Booking confirmed successfully!"
+      );
 
 
-      // Final amount
-      totalPayment:
-        totalPayment,
+      /*
+        Go to dashboard.
+
+        Dashboard will later load
+        bookings directly from MySQL.
+      */
+
+      navigate("/dashboard");
 
 
-      paymentStatus:
-        booking.paymentStatus,
+    } catch (error) {
 
-      paymentMethod:
-        booking.paymentMethod,
-
-      paymentDate:
-        booking.paymentDate,
-
-      createdAt:
-        new Date().toLocaleDateString("en-GB")
-
-    };
+      console.error(
+        "Booking save error:",
+        error
+      );
 
 
-    const existingTickets =
-      JSON.parse(
-        localStorage.getItem("bookings")
-      ) || [];
+      if (error.response) {
+
+        alert(
+          error.response.data?.message ||
+          "Unable to save booking."
+        );
+
+      } else {
+
+        alert(
+          "Unable to connect to BusGo server."
+        );
+
+      }
 
 
-    localStorage.setItem(
-      "bookings",
-      JSON.stringify([
-        ...existingTickets,
-        savedTicket
-      ])
-    );
+    } finally {
 
+      setSaving(false);
 
-    alert(
-      "Booking confirmed successfully!"
-    );
-
-
-    navigate("/dashboard");
+    }
 
   };
 
@@ -182,6 +271,11 @@ XAF ${totalPayment.toLocaleString("en-GB")}
 
     const ticket =
       document.getElementById("ticket");
+
+
+    if (!ticket) {
+      return;
+    }
 
 
     html2canvas(ticket)
@@ -233,9 +327,11 @@ XAF ${totalPayment.toLocaleString("en-GB")}
   if (!booking) {
 
     return (
+
       <>
 
         <Navbar />
+
 
         <div className="empty-booking">
 
@@ -250,9 +346,11 @@ XAF ${totalPayment.toLocaleString("en-GB")}
 
         </div>
 
+
         <Footer />
 
       </>
+
     );
 
   }
@@ -263,6 +361,7 @@ XAF ${totalPayment.toLocaleString("en-GB")}
   // =========================================
 
   return (
+
     <>
 
       <Navbar />
@@ -475,7 +574,13 @@ XAF ${totalPayment.toLocaleString("en-GB")}
               </span>
 
               <strong>
-                XAF {totalPrice.toLocaleString("en-GB")}
+
+                XAF{" "}
+
+                {totalPrice.toLocaleString(
+                  "en-GB"
+                )}
+
               </strong>
 
             </div>
@@ -484,13 +589,23 @@ XAF ${totalPayment.toLocaleString("en-GB")}
             <div className="ticket-price-row ticket-discount">
 
               <span>
+
                 Discount
+
                 {discountPercentage > 0 &&
                   ` (${discountPercentage}%)`}
+
               </span>
 
+
               <strong>
-                - XAF {discount.toLocaleString("en-GB")}
+
+                - XAF{" "}
+
+                {discount.toLocaleString(
+                  "en-GB"
+                )}
+
               </strong>
 
             </div>
@@ -505,11 +620,19 @@ XAF ${totalPayment.toLocaleString("en-GB")}
                 TOTAL PAYMENT
               </span>
 
+
               <h2>
-                XAF {totalPayment.toLocaleString("en-GB")}
+
+                XAF{" "}
+
+                {totalPayment.toLocaleString(
+                  "en-GB"
+                )}
+
               </h2>
 
             </div>
+
 
           </div>
 
@@ -519,10 +642,15 @@ XAF ${totalPayment.toLocaleString("en-GB")}
           <div className="qr-box">
 
             <QRCodeCanvas
+
               value={qrData}
+
               size={120}
+
               bgColor="#ffffff"
+
               fgColor="#0b7d45"
+
             />
 
           </div>
@@ -542,27 +670,49 @@ XAF ${totalPayment.toLocaleString("en-GB")}
             ACTION BUTTONS
         ===================================== */}
 
+
         <button
+
           className="download-btn"
+
           onClick={downloadTicket}
+
         >
+
           Download Ticket PDF
+
         </button>
 
 
         <button
+
           className="print-btn"
-          onClick={() => window.print()}
+
+          onClick={() =>
+            window.print()
+          }
+
         >
+
           Print Ticket
+
         </button>
 
 
         <button
+
           className="confirm-btn"
+
           onClick={confirmBooking}
+
+          disabled={saving}
+
         >
-          Confirm Booking
+
+          {saving
+            ? "Saving Booking..."
+            : "Confirm Booking"}
+
         </button>
 
 
@@ -572,7 +722,9 @@ XAF ${totalPayment.toLocaleString("en-GB")}
       <Footer />
 
     </>
+
   );
+
 }
 
 

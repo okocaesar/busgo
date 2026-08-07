@@ -26,6 +26,20 @@ app.use(
 require("./routes/authRoutes")
 );
 
+// Booking routes
+
+app.use(
+    "/api/bookings",
+    require("./routes/bookingRoutes")
+);
+
+// Admin route
+
+app.use(
+  "/api/admin",
+  require("./routes/adminRoutes")
+);
+
 
 
 app.get("/",(req,res)=>{

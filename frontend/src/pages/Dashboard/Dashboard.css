@@ -1246,3 +1246,95 @@
   }
 
 }
+
+.new-booking-btn,
+.view-ticket-btn,
+.download-ticket-btn,
+.print-ticket-btn,
+.cancel-ticket-btn,
+.modal-ticket-actions button,
+.empty-dashboard button {
+  border: none;
+  border-radius: 9px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.new-booking-btn,
+.view-ticket-btn,
+.empty-dashboard button {
+  background: linear-gradient(135deg, #0b7d45, #119657);
+  color: #ffffff;
+  box-shadow: 0 5px 12px rgba(11, 125, 69, 0.22);
+}
+
+.download-ticket-btn {
+  background: #e7f5ed;
+  color: #08743e;
+}
+
+.print-ticket-btn {
+  background: #eaf1ff;
+  color: #2457a6;
+}
+
+.cancel-ticket-btn {
+  background: #fff0f0;
+  color: #c13232;
+}
+
+.modal-ticket-actions button:first-child {
+  background: #0b7d45;
+  color: #ffffff;
+}
+
+.modal-ticket-actions button:last-child {
+  background: #eaf1ff;
+  color: #2457a6;
+}
+
+.new-booking-btn:hover,
+.view-ticket-btn:hover,
+.download-ticket-btn:hover,
+.print-ticket-btn:hover,
+.cancel-ticket-btn:hover,
+.modal-ticket-actions button:hover,
+.empty-dashboard button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(20, 45, 30, 0.16);
+}
+
+.new-booking-btn:active,
+.view-ticket-btn:active,
+.download-ticket-btn:active,
+.print-ticket-btn:active,
+.cancel-ticket-btn:active,
+.modal-ticket-actions button:active,
+.empty-dashboard button:active {
+  transform: translateY(0);
+}
+
+.booking-actions,
+.modal-ticket-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+@media (max-width: 600px) {
+  .booking-actions,
+  .modal-ticket-actions {
+    flex-direction: column;
+  }
+
+  .booking-actions button,
+  .modal-ticket-actions button,
+  .new-booking-btn {
+    width: 100%;
+  }
+}

@@ -1,35 +1,33 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { NavLink, useNavigate } from "react-router-dom";
-import "./Login.css";
 
+import "./Login.css";
 import background from "../../assets/1010.jpg";
+import { API_URL } from "../../api";
 
 function Login() {
-
   const navigate = useNavigate();
 
   const [loginData, setLoginData] = useState({
     email: "",
-    password: "",
+    password: ""
   });
 
-  const handleChange = (e) => {
+  const handleChange = (event) => {
     setLoginData({
       ...loginData,
-      [e.target.name]: e.target.value,
+      [event.target.name]: event.target.value
     });
   };
 
-  const handleLogin = async (e) => {
-
-    e.preventDefault();
+  const handleLogin = async (event) => {
+    event.preventDefault();
 
     try {
-
       const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        loginData
+        `${API_URL}/api/auth/login`,
+                loginData
       );
 
       localStorage.setItem(
@@ -38,42 +36,40 @@ function Login() {
       );
 
       localStorage.setItem(
-        "loggedIn",
-        "true"
+        "authToken",
+        response.data.token
       );
 
-      navigate("/");
+      localStorage.setItem("loggedIn", "true");
 
+      if (response.data.user.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     } catch (error) {
-
       alert(
         error.response?.data?.message ||
         "Login failed."
       );
-
     }
-
   };
 
   return (
-
     <section
       className="auth-page"
-      style={{ backgroundImage: `url(${background})` }}
+      style={{
+        backgroundImage: `url(${background})`
+      }}
     >
-
       <div className="auth-overlay">
-
         <div className="auth-card">
-
           <h1>Welcome Back</h1>
 
           <p>Login to continue your journey with BusGo</p>
 
           <form onSubmit={handleLogin}>
-
             <div className="input-box">
-
               <label>Email</label>
 
               <input
@@ -82,12 +78,11 @@ function Login() {
                 value={loginData.email}
                 onChange={handleChange}
                 placeholder="Enter your email"
+                required
               />
-
             </div>
 
             <div className="input-box">
-
               <label>Password</label>
 
               <input
@@ -96,34 +91,26 @@ function Login() {
                 value={loginData.password}
                 onChange={handleChange}
                 placeholder="Enter your password"
+                required
               />
-
             </div>
 
             <button type="submit">
               Login
             </button>
-
           </form>
 
           <div className="auth-link">
-
             Don't have an account?
 
             <NavLink to="/register">
               Register
             </NavLink>
-
           </div>
-
         </div>
-
       </div>
-
     </section>
-
   );
-
 }
 
 export default Login;

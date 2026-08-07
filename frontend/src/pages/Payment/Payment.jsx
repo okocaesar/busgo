@@ -6,72 +6,33 @@ import Footer from "../../components/Footer/Footer";
 
 import "./Payment.css";
 
+
 function Payment() {
+
   const location = useLocation();
+
   const navigate = useNavigate();
 
+
   const booking = location.state;
+
 
   const [method, setMethod] = useState("");
 
 
-  // =========================================
-  // PAYMENT
-  // =========================================
-
-  const handlePayment = () => {
-
-    if (!method) {
-      alert("Please select a payment method");
-      return;
-    }
-
-
-    const paymentData = {
-
-      ...booking,
-
-      // Keep the original price
-      totalPrice: booking.total,
-
-      // Keep discount
-      discount: booking.discount || 0,
-
-      discountPercentage:
-        booking.discountPercentage || 0,
-
-      offerTitle:
-        booking.offerTitle || "No Offer",
-
-      // Final amount customer actually pays
-      totalPayment:
-        booking.totalPayment ?? booking.total,
-
-      paymentStatus: "Paid",
-
-      paymentMethod: method,
-
-      paymentDate:
-        new Date().toLocaleDateString("en-GB"),
-    };
-
-
-    navigate("/confirmation", {
-      state: paymentData,
-    });
-
-  };
-
 
   // =========================================
-  // NO BOOKING
+  // NO BOOKING INFORMATION
   // =========================================
 
   if (!booking) {
 
     return (
+
       <>
+
         <Navbar />
+
 
         <section className="payment-page">
 
@@ -81,8 +42,11 @@ function Payment() {
               No booking information found
             </h2>
 
+
             <button
-              onClick={() => navigate("/booking")}
+              onClick={() =>
+                navigate("/booking")
+              }
             >
               Return to Booking
             </button>
@@ -91,11 +55,15 @@ function Payment() {
 
         </section>
 
+
         <Footer />
+
       </>
+
     );
 
   }
+
 
 
   // =========================================
@@ -103,36 +71,169 @@ function Payment() {
   // =========================================
 
   const totalPrice =
-    booking.total ?? 0;
+
+    Number(
+      booking.totalPrice ??
+      booking.total ??
+      0
+    );
+
 
   const discount =
-    booking.discount ?? 0;
+
+    Number(
+      booking.discount ?? 0
+    );
+
 
   const discountPercentage =
-    booking.discountPercentage ?? 0;
+
+    Number(
+      booking.discountPercentage ?? 0
+    );
+
 
   const totalPayment =
-    booking.totalPayment ?? totalPrice;
+
+    Number(
+      booking.totalPayment ??
+      Math.max(
+        0,
+        totalPrice - discount
+      )
+    );
+
+
+
+  // =========================================
+  // PAYMENT
+  // =========================================
+
+  const handlePayment = () => {
+
+
+    if (!method) {
+
+      alert(
+        "Please select a payment method"
+      );
+
+      return;
+
+    }
+
+
+
+    /*
+      Payment information is added
+      to the booking object.
+
+      We will save this information
+      into MySQL from Confirmation.jsx.
+    */
+
+    const paymentData = {
+
+      ...booking,
+
+
+      // Original price
+
+      totalPrice:
+        totalPrice,
+
+
+      // Discount
+
+      discount:
+        discount,
+
+
+      discountPercentage:
+        discountPercentage,
+
+
+      offerTitle:
+        booking.offerTitle ||
+        "No Offer",
+
+
+      // Final amount paid
+
+      totalPayment:
+        totalPayment,
+
+
+      /*
+        Keep total for compatibility
+        with older components.
+      */
+
+      total:
+        totalPayment,
+
+
+      // Payment information
+
+      paymentStatus:
+        "Paid",
+
+
+      paymentMethod:
+        method,
+
+
+      paymentDate:
+        new Date()
+          .toLocaleDateString("en-GB"),
+
+    };
+
+
+
+    navigate(
+
+      "/confirmation",
+
+      {
+
+        state:
+          paymentData
+
+      }
+
+    );
+
+  };
+
 
 
   return (
+
     <>
 
       <Navbar />
 
 
+
       <section className="payment-page">
+
 
         <div className="payment-card">
 
 
-          {/* HEADER */}
+
+          {/* =========================================
+              HEADER
+          ========================================= */}
 
           <div className="payment-header">
+
 
             <div className="payment-icon">
               💳
             </div>
+
 
             <div>
 
@@ -140,25 +241,114 @@ function Payment() {
                 Complete Payment
               </h1>
 
+
               <p>
-                Review your booking before payment.
+                Review your booking
+                before payment.
               </p>
 
             </div>
 
+
           </div>
 
 
-          {/* OFFER */}
+
+          {/* =========================================
+              BOOKING INFORMATION
+          ========================================= */}
+
+          <div className="payment-booking-info">
+
+
+            <div>
+
+              <span>
+                Route
+              </span>
+
+
+              <strong>
+
+                {booking.from}
+
+                {" → "}
+
+                {booking.to}
+
+              </strong>
+
+            </div>
+
+
+
+            <div>
+
+              <span>
+                Bus
+              </span>
+
+
+              <strong>
+                {booking.busType}
+              </strong>
+
+            </div>
+
+
+
+            <div>
+
+              <span>
+                Seats
+              </span>
+
+
+              <strong>
+
+                {booking.seats?.join(", ") ||
+                  "Not selected"}
+
+              </strong>
+
+            </div>
+
+
+
+            <div>
+
+              <span>
+                Travel Date
+              </span>
+
+
+              <strong>
+                {booking.date}
+              </strong>
+
+            </div>
+
+
+          </div>
+
+
+
+          {/* =========================================
+              OFFER
+          ========================================= */}
 
           {booking.offerTitle &&
-            booking.offerTitle !== "No Offer" && (
+
+            booking.offerTitle !==
+              "No Offer" && (
 
             <div className="payment-offer">
+
 
               <span>
                 🎉
               </span>
+
 
               <div>
 
@@ -166,9 +356,11 @@ function Payment() {
                   OFFER APPLIED
                 </small>
 
+
                 <strong>
                   {booking.offerTitle}
                 </strong>
+
 
                 <b>
                   {discountPercentage}% OFF
@@ -176,92 +368,152 @@ function Payment() {
 
               </div>
 
+
             </div>
 
           )}
 
 
-          {/* PRICE BREAKDOWN */}
+
+          {/* =========================================
+              PAYMENT SUMMARY
+          ========================================= */}
 
           <div className="payment-summary">
+
 
             <h3>
               Payment Summary
             </h3>
 
 
+
+            {/* ORIGINAL PRICE */}
+
             <div className="payment-row">
+
 
               <span>
                 Total Price
               </span>
 
+
               <strong>
-                XAF {totalPrice.toLocaleString("en-GB")}
+
+                XAF{" "}
+
+                {totalPrice.toLocaleString(
+                  "en-GB"
+                )}
+
               </strong>
+
 
             </div>
 
+
+
+            {/* DISCOUNT */}
 
             <div className="payment-row discount-payment-row">
 
+
               <span>
+
                 Discount
+
                 {discountPercentage > 0 &&
-                  ` (${discountPercentage}%)`}
+
+                  ` (${discountPercentage}%)`
+
+                }
+
               </span>
 
+
               <strong>
-                - XAF {discount.toLocaleString("en-GB")}
+
+                - XAF{" "}
+
+                {discount.toLocaleString(
+                  "en-GB"
+                )}
+
               </strong>
 
+
             </div>
+
 
 
             <div className="payment-divider"></div>
 
 
+
+            {/* FINAL PAYMENT */}
+
             <div className="payment-total">
+
 
               <span>
                 Total Payment
               </span>
 
+
               <strong>
-                XAF {totalPayment.toLocaleString("en-GB")}
+
+                XAF{" "}
+
+                {totalPayment.toLocaleString(
+                  "en-GB"
+                )}
+
               </strong>
 
+
             </div>
+
 
           </div>
 
 
-          {/* PAYMENT METHOD */}
+
+          {/* =========================================
+              PAYMENT METHOD
+          ========================================= */}
 
           <div className="payment-method-section">
+
 
             <label>
               Select Payment Method
             </label>
 
+
             <select
+
               value={method}
+
               onChange={(e) =>
                 setMethod(e.target.value)
               }
+
             >
 
               <option value="">
                 Choose method
               </option>
 
+
               <option value="MTN Mobile Money">
                 MTN Mobile Money
               </option>
 
+
               <option value="Orange Money">
                 Orange Money
               </option>
+
 
               <option value="Bank Card">
                 Bank Card
@@ -269,33 +521,55 @@ function Payment() {
 
             </select>
 
+
           </div>
 
 
-          {/* PAY BUTTON */}
+
+          {/* =========================================
+              PAY BUTTON
+          ========================================= */}
 
           <button
+
             className="payment-btn"
+
             onClick={handlePayment}
+
           >
-            Pay XAF {totalPayment.toLocaleString("en-GB")}
+
+            Pay XAF{" "}
+
+            {totalPayment.toLocaleString(
+              "en-GB"
+            )}
+
           </button>
 
 
+
           <p className="payment-note">
-            🔒 Your booking information is securely processed.
+
+            🔒 Your booking information
+            is securely processed.
+
           </p>
 
 
         </div>
 
+
       </section>
+
 
 
       <Footer />
 
     </>
+
   );
+
 }
+
 
 export default Payment;

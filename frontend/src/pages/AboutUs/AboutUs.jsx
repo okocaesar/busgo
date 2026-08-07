@@ -131,6 +131,7 @@ return (
     <button>Book Your Ticket Now</button>
   </section>
 
+  <Navbar />
   <Footer />
 </>
 
