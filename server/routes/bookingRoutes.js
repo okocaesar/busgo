@@ -2,8 +2,11 @@ const express = require("express");
 
 const router = express.Router();
 
-const bookingController =
-  require("../controllers/bookingController");
+const bookingController = require("../controllers/bookingController");
+
+// =========================================
+// TEST BOOKING ROUTE
+// =========================================
 
 router.get("/test", (req, res) => {
   res.json({
@@ -11,19 +14,34 @@ router.get("/test", (req, res) => {
   });
 });
 
+// =========================================
+// CREATE BOOKING
+// POST /api/bookings
+// =========================================
+
 router.post(
   "/",
   bookingController.createBooking
 );
 
-router.patch(
-  "/:bookingId/cancel/user/:userId",
-  bookingController.cancelBooking
-);
+// =========================================
+// GET USER BOOKINGS
+// GET /api/bookings/user/:userId
+// =========================================
 
 router.get(
-  "/:userId",
+  "/user/:userId",
   bookingController.getUserBookings
+);
+
+// =========================================
+// CANCEL BOOKING
+// PATCH /api/bookings/:bookingId/status
+// =========================================
+
+router.patch(
+  "/:bookingId/status",
+  bookingController.cancelBooking
 );
 
 module.exports = router;
