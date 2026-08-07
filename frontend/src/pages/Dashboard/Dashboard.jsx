@@ -656,60 +656,47 @@ function Dashboard() {
   // CANCEL TICKET
   // =========================================
 
-  const cancelTicket = async (
-    ticket
-  ) => {
-    const confirmed =
-      window.confirm(
-        `Cancel ticket ${ticket.ticketNumber}?`
-      );
+  const cancelTicket = async (ticket) => {
+  const confirmed = window.confirm(
+    `Cancel ticket ${ticket.ticketNumber}?`
+  );
 
-    if (!confirmed) {
-      return;
-    }
+  if (!confirmed) {
+    return;
+  }
 
-    try {
-      await axios.patch(
-        `${API_URL}/api/bookings/${ticket.id}/status`,
-        {
-          bookingStatus:
-            "Cancelled"
-        }
-      );
+  if (!user?.id) {
+    alert("Your login session has expired. Please login again.");
+    navigate("/login");
+    return;
+  }
 
-      setBookings(
-        (currentBookings) =>
-          currentBookings.map(
-            (booking) =>
-              booking.id ===
-              ticket.id
-                ? {
-                    ...booking,
-                    bookingStatus:
-                      "Cancelled"
-                  }
-                : booking
-          )
-      );
+  try {
+    await axios.patch(
+      `${API_URL}/api/bookings/${ticket.id}/cancel/user/${user.id}`
+    );
 
-      setSelectedTicket(null);
+    setBookings((currentBookings) =>
+      currentBookings.filter(
+        (booking) => booking.id !== ticket.id
+      )
+    );
 
-      alert(
-        "Booking cancelled successfully."
-      );
-    } catch (cancelError) {
-      console.error(
-        "Cancel booking error:",
-        cancelError
-      );
+    setSelectedTicket(null);
 
-      alert(
-        cancelError.response?.data
-          ?.message ||
-        "Unable to cancel this booking."
-      );
-    }
-  };
+    alert("Booking cancelled successfully.");
+  } catch (cancelError) {
+    console.error(
+      "Cancel booking error:",
+      cancelError
+    );
+
+    alert(
+      cancelError.response?.data?.message ||
+      "Unable to cancel this booking."
+    );
+  }
+};
 
   // =========================================
   // PAGE
