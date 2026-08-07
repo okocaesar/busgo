@@ -1,5 +1,9 @@
+import React, {
+  useCallback,
+  useEffect,
+  useState
+} from "react";
 
-import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -9,6 +13,7 @@ import jsPDF from "jspdf";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 import { API_URL } from "../../api";
+
 import "./Dashboard.css";
 
 function Dashboard() {
@@ -19,6 +24,10 @@ function Dashboard() {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // =========================================
+  // NORMALISE SEATS
+  // =========================================
 
   const parseSeats = (seats) => {
     if (Array.isArray(seats)) {
@@ -40,105 +49,123 @@ function Dashboard() {
     return [];
   };
 
-  const normaliseBooking = (booking) => ({
-  ...booking,
+  // =========================================
+  // NORMALISE BOOKING
+  // =========================================
 
-  ticketNumber:
-    booking.ticketNumber ||
-    booking.ticket_number ||
-    `BG-${booking.id}`,
+  const normaliseBooking = useCallback(
+    (booking) => {
+      return {
+        ...booking,
 
-  name:
-    booking.name ||
-    booking.passenger_name ||
-    "",
+        ticketNumber:
+          booking.ticketNumber ||
+          booking.ticket_number ||
+          `BG-${booking.id}`,
 
-  phone:
-    booking.phone ||
-    booking.passenger_phone ||
-    "",
+        name:
+          booking.name ||
+          booking.passenger_name ||
+          "",
 
-  from:
-    booking.from ||
-    booking.departure ||
-    "",
+        phone:
+          booking.phone ||
+          booking.passenger_phone ||
+          "",
 
-  to:
-    booking.to ||
-    booking.destination ||
-    "",
+        from:
+          booking.from ||
+          booking.departure ||
+          "",
 
-  busType:
-    booking.busType ||
-    booking.bus_type ||
-    booking.bus_name ||
-    "",
+        to:
+          booking.to ||
+          booking.destination ||
+          "",
 
-  totalPrice: Number(
-    booking.totalPrice ??
-    booking.total_price ??
-    0
-  ),
+        busType:
+          booking.busType ||
+          booking.bus_type ||
+          booking.bus_name ||
+          "",
 
-  discountPercentage: Number(
-    booking.discountPercentage ??
-    booking.discount_percentage ??
-    booking.discount_percent ??
-    0
-  ),
+        totalPrice: Number(
+          booking.totalPrice ??
+          booking.total_price ??
+          0
+        ),
 
-  discount: Number(booking.discount ?? 0),
+        discountPercentage: Number(
+          booking.discountPercentage ??
+          booking.discount_percentage ??
+          booking.discount_percent ??
+          0
+        ),
 
-  totalPayment: Number(
-    booking.totalPayment ??
-    booking.total_payment ??
-    booking.total_price ??
-    0
-  ),
+        discount: Number(
+          booking.discount ?? 0
+        ),
 
-  offerTitle:
-    booking.offerTitle ||
-    booking.offer_title ||
-    "No Offer",
+        totalPayment: Number(
+          booking.totalPayment ??
+          booking.total_payment ??
+          booking.total_price ??
+          0
+        ),
 
-  paymentMethod:
-    booking.paymentMethod ||
-    booking.payment_method ||
-    "N/A",
+        offerTitle:
+          booking.offerTitle ||
+          booking.offer_title ||
+          "No Offer",
 
-  paymentStatus:
-    booking.paymentStatus ||
-    booking.payment_status ||
-    "Paid",
+        paymentMethod:
+          booking.paymentMethod ||
+          booking.payment_method ||
+          "N/A",
 
-  bookingStatus:
-    booking.bookingStatus ||
-    booking.booking_status ||
-    "Confirmed",
+        paymentStatus:
+          booking.paymentStatus ||
+          booking.payment_status ||
+          "Paid",
 
-  paymentDate:
-    booking.paymentDate ||
-    booking.payment_date ||
-    booking.created_at ||
-    "",
+        bookingStatus:
+          booking.bookingStatus ||
+          booking.booking_status ||
+          "Confirmed",
 
-  date:
-    booking.date ||
-    booking.travel_date ||
-    "",
+        paymentDate:
+          booking.paymentDate ||
+          booking.payment_date ||
+          booking.created_at ||
+          "",
 
-  seats: parseSeats(booking.seats),
-});
+        date:
+          booking.date ||
+          booking.travel_date ||
+          "",
+
+        seats: parseSeats(booking.seats)
+      };
+    },
+    []
+  );
+
+  // =========================================
+  // LOAD BOOKINGS
+  // =========================================
 
   useEffect(() => {
     const loadBookings = async () => {
-      const loggedIn = localStorage.getItem("loggedIn");
+      const loggedIn =
+        localStorage.getItem("loggedIn");
 
       let currentUser;
 
       try {
         currentUser = JSON.parse(
-          localStorage.getItem("currentUser")
+          localStorage.getItem(
+            "currentUser"
+          )
         );
       } catch {
         currentUser = null;
@@ -156,13 +183,16 @@ function Dashboard() {
         setError("");
 
         const response = await axios.get(
-          `${API_URL}/api/bookings/user/${currentUser.id}`      );
+          `${API_URL}/api/bookings/user/${currentUser.id}`
+        );
 
         const databaseBookings =
           response.data?.bookings || [];
 
         setBookings(
-          databaseBookings.map(normaliseBooking)
+          databaseBookings.map(
+            normaliseBooking
+          )
         );
       } catch (requestError) {
         console.error(
@@ -180,30 +210,64 @@ function Dashboard() {
     };
 
     loadBookings();
-  }, [navigate]);
+  }, [navigate, normaliseBooking]);
 
-  const totalBookings = bookings.length;
+  // =========================================
+  // STATISTICS
+  // =========================================
 
-  const totalSpent = bookings.reduce(
-    (sum, ticket) => sum + Number(ticket.totalPayment || 0),
-    0
-  );
+  const totalBookings =
+    bookings.length;
 
-  const totalDiscount = bookings.reduce(
-    (sum, ticket) => sum + Number(ticket.discount || 0),
-    0
-  );
+  const totalSpent =
+    bookings.reduce(
+      (sum, ticket) =>
+        sum +
+        Number(
+          ticket.totalPayment || 0
+        ),
+      0
+    );
+
+  const totalDiscount =
+    bookings.reduce(
+      (sum, ticket) =>
+        sum +
+        Number(
+          ticket.discount || 0
+        ),
+      0
+    );
+
+  // =========================================
+  // FORMAT MONEY
+  // =========================================
 
   const formatMoney = (amount) =>
-    `XAF ${Number(amount || 0).toLocaleString("en-GB")}`;
+    `XAF ${Number(
+      amount || 0
+    ).toLocaleString("en-GB")}`;
+
+  // =========================================
+  // FORMAT DATE
+  // =========================================
 
   const formatDate = (date) => {
     if (!date) {
       return "N/A";
     }
 
-    if (typeof date === "string" && /^\d{4}-\d{2}-\d{2}/.test(date)) {
-      const [year, month, day] = date.slice(0, 10).split("-");
+    if (
+      typeof date === "string" &&
+      /^\d{4}-\d{2}-\d{2}/.test(date)
+    ) {
+      const [
+        year,
+        month,
+        day
+      ] = date
+        .slice(0, 10)
+        .split("-");
 
       return `${day}/${month}/${year}`;
     }
@@ -211,13 +275,24 @@ function Dashboard() {
     return date;
   };
 
+  // =========================================
+  // ESCAPE HTML
+  // =========================================
+
   const escapeHtml = (value) =>
     String(value ?? "")
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+      .replace(
+        /'/g,
+        "&#039;"
+      );
+
+  // =========================================
+  // TICKET HTML
+  // =========================================
 
   const getTicketHtml = (ticket) => `
     <div style="
@@ -227,26 +302,41 @@ function Dashboard() {
       color: #222;
       font-family: Arial, sans-serif;
     ">
+
       <div style="
         border: 1px solid #ddd;
         border-radius: 15px;
         padding: 30px;
       ">
+
         <div style="
           text-align: center;
           border-bottom: 1px solid #ddd;
           padding-bottom: 20px;
           margin-bottom: 20px;
         ">
-          <h1 style="color: #0b7d45; margin: 0;">BUSGO</h1>
-          <p style="margin: 5px 0 0; color: #777;">
+
+          <h1 style="
+            color: #0b7d45;
+            margin: 0;
+          ">
+            BUSGO
+          </h1>
+
+          <p style="
+            margin: 5px 0 0;
+            color: #777;
+          ">
             BUS TRANSPORT RESERVATION
           </p>
+
         </div>
 
         <p>
           <strong>Ticket:</strong>
-          ${escapeHtml(ticket.ticketNumber)}
+          ${escapeHtml(
+            ticket.ticketNumber
+          )}
         </p>
 
         <div style="
@@ -257,33 +347,91 @@ function Dashboard() {
           background: #f5f9f6;
           margin: 20px 0;
         ">
+
           <div>
             <small>FROM</small>
-            <h2 style="margin: 5px 0;">
-              ${escapeHtml(ticket.from)}
+
+            <h2 style="
+              margin: 5px 0;
+            ">
+              ${escapeHtml(
+                ticket.from
+              )}
             </h2>
           </div>
 
-          <strong style="font-size: 25px;">→</strong>
+          <strong style="
+            font-size: 25px;
+          ">
+            →
+          </strong>
 
           <div>
             <small>TO</small>
-            <h2 style="margin: 5px 0;">
-              ${escapeHtml(ticket.to)}
+
+            <h2 style="
+              margin: 5px 0;
+            ">
+              ${escapeHtml(
+                ticket.to
+              )}
             </h2>
           </div>
+
         </div>
 
-        <p><strong>Passenger:</strong> ${escapeHtml(ticket.name)}</p>
-        <p><strong>Phone:</strong> ${escapeHtml(ticket.phone)}</p>
-        <p><strong>Bus Type:</strong> ${escapeHtml(ticket.busType)}</p>
-        <p><strong>Seats:</strong> ${escapeHtml(ticket.seats.join(", "))}</p>
-        <p><strong>Travel Date:</strong> ${escapeHtml(formatDate(ticket.date))}</p>
-        <p><strong>Payment:</strong> ${escapeHtml(ticket.paymentMethod)}</p>
-        <p><strong>Status:</strong> ${escapeHtml(ticket.paymentStatus)}</p>
+        <p>
+          <strong>Passenger:</strong>
+          ${escapeHtml(
+            ticket.name
+          )}
+        </p>
+
+        <p>
+          <strong>Phone:</strong>
+          ${escapeHtml(
+            ticket.phone
+          )}
+        </p>
+
+        <p>
+          <strong>Bus Type:</strong>
+          ${escapeHtml(
+            ticket.busType
+          )}
+        </p>
+
+        <p>
+          <strong>Seats:</strong>
+          ${escapeHtml(
+            ticket.seats.join(", ")
+          )}
+        </p>
+
+        <p>
+          <strong>Travel Date:</strong>
+          ${escapeHtml(
+            formatDate(ticket.date)
+          )}
+        </p>
+
+        <p>
+          <strong>Payment:</strong>
+          ${escapeHtml(
+            ticket.paymentMethod
+          )}
+        </p>
+
+        <p>
+          <strong>Status:</strong>
+          ${escapeHtml(
+            ticket.paymentStatus
+          )}
+        </p>
 
         ${
-          ticket.offerTitle !== "No Offer"
+          ticket.offerTitle !==
+          "No Offer"
             ? `
               <div style="
                 margin: 20px 0;
@@ -292,9 +440,19 @@ function Dashboard() {
                 border-radius: 10px;
                 color: #0b7d45;
               ">
-                <strong>${escapeHtml(ticket.offerTitle)}</strong>
+
+                <strong>
+                  ${escapeHtml(
+                    ticket.offerTitle
+                  )}
+                </strong>
+
                 <br />
-                ${ticket.discountPercentage}% OFF
+
+                ${
+                  ticket.discountPercentage
+                }% OFF
+
               </div>
             `
             : ""
@@ -306,28 +464,54 @@ function Dashboard() {
           background: #f8faf9;
           border-radius: 10px;
         ">
+
           <p>
             Total Price:
-            <strong style="float: right;">
-              ${formatMoney(ticket.totalPrice)}
+
+            <strong style="
+              float: right;
+            ">
+              ${formatMoney(
+                ticket.totalPrice
+              )}
             </strong>
           </p>
 
-          <p style="color: #0b7d45;">
+          <p style="
+            color: #0b7d45;
+          ">
+
             Discount:
-            <strong style="float: right;">
-              - ${formatMoney(ticket.discount)}
+
+            <strong style="
+              float: right;
+            ">
+              - ${formatMoney(
+                ticket.discount
+              )}
             </strong>
+
           </p>
 
           <hr />
 
-          <h2 style="color: #0b7d45; margin-bottom: 0;">
+          <h2 style="
+            color: #0b7d45;
+            margin-bottom: 0;
+          ">
+
             Total Payment:
-            <span style="float: right;">
-              ${formatMoney(ticket.totalPayment)}
+
+            <span style="
+              float: right;
+            ">
+              ${formatMoney(
+                ticket.totalPayment
+              )}
             </span>
+
           </h2>
+
         </div>
 
         <p style="
@@ -337,27 +521,60 @@ function Dashboard() {
         ">
           Thank you for travelling with BusGo
         </p>
+
       </div>
+
     </div>
   `;
 
-  const downloadTicket = async (ticket) => {
-    const ticketElement = document.createElement("div");
+  // =========================================
+  // DOWNLOAD TICKET PDF
+  // =========================================
 
-    ticketElement.style.position = "fixed";
-    ticketElement.style.left = "-99999px";
-    ticketElement.style.top = "0";
-    ticketElement.innerHTML = getTicketHtml(ticket);
+  const downloadTicket = async (
+    ticket
+  ) => {
+    const ticketElement =
+      document.createElement("div");
 
-    document.body.appendChild(ticketElement);
+    ticketElement.style.position =
+      "fixed";
+
+    ticketElement.style.left =
+      "-99999px";
+
+    ticketElement.style.top =
+      "0";
+
+    ticketElement.innerHTML =
+      getTicketHtml(ticket);
+
+    document.body.appendChild(
+      ticketElement
+    );
 
     try {
-      const canvas = await html2canvas(ticketElement);
-      const imageData = canvas.toDataURL("image/png");
+      const canvas =
+        await html2canvas(
+          ticketElement
+        );
 
-      const pdf = new jsPDF("p", "mm", "a4");
+      const imageData =
+        canvas.toDataURL(
+          "image/png"
+        );
+
+      const pdf = new jsPDF(
+        "p",
+        "mm",
+        "a4"
+      );
+
       const width = 190;
-      const height = (canvas.height * width) / canvas.width;
+
+      const height =
+        (canvas.height * width) /
+        canvas.width;
 
       pdf.addImage(
         imageData,
@@ -368,35 +585,61 @@ function Dashboard() {
         height
       );
 
-      pdf.save(`BusGo-${ticket.ticketNumber}.pdf`);
+      pdf.save(
+        `BusGo-${ticket.ticketNumber}.pdf`
+      );
     } catch (pdfError) {
-      console.error("PDF generation error:", pdfError);
-      alert("Unable to create the ticket PDF.");
+      console.error(
+        "PDF generation error:",
+        pdfError
+      );
+
+      alert(
+        "Unable to create the ticket PDF."
+      );
     } finally {
-      document.body.removeChild(ticketElement);
+      document.body.removeChild(
+        ticketElement
+      );
     }
   };
 
+  // =========================================
+  // PRINT TICKET
+  // =========================================
+
   const printTicket = (ticket) => {
-    const printWindow = window.open(
-      "",
-      "_blank",
-      "width=800,height=900"
-    );
+    const printWindow =
+      window.open(
+        "",
+        "_blank",
+        "width=800,height=900"
+      );
 
     if (!printWindow) {
-      alert("Please allow pop-ups to print your ticket.");
+      alert(
+        "Please allow pop-ups to print your ticket."
+      );
+
       return;
     }
 
     printWindow.document.write(`
       <html>
+
         <head>
-          <title>BusGo Ticket - ${escapeHtml(ticket.ticketNumber)}</title>
+          <title>
+            BusGo Ticket -
+            ${escapeHtml(
+              ticket.ticketNumber
+            )}
+          </title>
         </head>
+
         <body>
           ${getTicketHtml(ticket)}
         </body>
+
       </html>
     `);
 
@@ -409,96 +652,184 @@ function Dashboard() {
     }, 300);
   };
 
-  const cancelTicket = async (ticket) => {
-  const confirmed = window.confirm(
-    `Cancel ticket ${ticket.ticketNumber}?`
-  );
+  // =========================================
+  // CANCEL TICKET
+  // =========================================
 
-  if (!confirmed) {
-    return;
-  }
+  const cancelTicket = async (
+    ticket
+  ) => {
+    const confirmed =
+      window.confirm(
+        `Cancel ticket ${ticket.ticketNumber}?`
+      );
 
-  try {
-    await axios.patch(
-      `${API_URL}/api/bookings/${ticket.id}/status`,
-      { bookingStatus: "Cancelled" }
-    );
+    if (!confirmed) {
+      return;
+    }
 
-    setBookings((currentBookings) =>
-      currentBookings.map((booking) =>
-        booking.id === ticket.id
-          ? {
-              ...booking,
-              bookingStatus: "Cancelled"
-            }
-          : booking
-      )
-    );
+    try {
+      await axios.patch(
+        `${API_URL}/api/bookings/${ticket.id}/status`,
+        {
+          bookingStatus:
+            "Cancelled"
+        }
+      );
 
-    setSelectedTicket(null);
+      setBookings(
+        (currentBookings) =>
+          currentBookings.map(
+            (booking) =>
+              booking.id ===
+              ticket.id
+                ? {
+                    ...booking,
+                    bookingStatus:
+                      "Cancelled"
+                  }
+                : booking
+          )
+      );
 
-    alert("Booking cancelled successfully.");
-  } catch (cancelError) {
-    alert(
-      cancelError.response?.data?.message ||
-      "Unable to cancel this booking."
-    );
-  }
-};
+      setSelectedTicket(null);
+
+      alert(
+        "Booking cancelled successfully."
+      );
+    } catch (cancelError) {
+      console.error(
+        "Cancel booking error:",
+        cancelError
+      );
+
+      alert(
+        cancelError.response?.data
+          ?.message ||
+        "Unable to cancel this booking."
+      );
+    }
+  };
+
+  // =========================================
+  // PAGE
+  // =========================================
 
   return (
     <>
       <Navbar />
 
       <section className="dashboard-page">
+
         <div className="dashboard-container">
+
+          {/* HEADER */}
+
           <div className="dashboard-header">
+
             <div>
+
               <h1>
-                Welcome back, {user?.name || "Traveller"}
+                Welcome back,{" "}
+                {user?.name ||
+                  "Traveller"}
               </h1>
 
               <p>
-                View and manage your BusGo bookings.
+                View and manage your
+                BusGo bookings.
               </p>
+
             </div>
 
             <button
               className="new-booking-btn"
-              onClick={() => navigate("/booking")}
+              onClick={() =>
+                navigate("/booking")
+              }
             >
               Book a Trip
             </button>
+
           </div>
+
+          {/* STATS */}
 
           <div className="dashboard-stats">
+
             <div className="stat-card">
-              <span>🎫</span>
+
+              <span>
+                🎫
+              </span>
+
               <div>
-                <p>Total Bookings</p>
-                <h2>{totalBookings}</h2>
+
+                <p>
+                  Total Bookings
+                </p>
+
+                <h2>
+                  {totalBookings}
+                </h2>
+
               </div>
+
             </div>
 
             <div className="stat-card">
-              <span>💳</span>
+
+              <span>
+                💳
+              </span>
+
               <div>
-                <p>Total Spent</p>
-                <h2>{formatMoney(totalSpent)}</h2>
+
+                <p>
+                  Total Spent
+                </p>
+
+                <h2>
+                  {formatMoney(
+                    totalSpent
+                  )}
+                </h2>
+
               </div>
+
             </div>
 
             <div className="stat-card">
-              <span>🎉</span>
+
+              <span>
+                🎉
+              </span>
+
               <div>
-                <p>Total Savings</p>
-                <h2>{formatMoney(totalDiscount)}</h2>
+
+                <p>
+                  Total Savings
+                </p>
+
+                <h2>
+                  {formatMoney(
+                    totalDiscount
+                  )}
+                </h2>
+
               </div>
+
             </div>
+
           </div>
 
+          {/* BOOKINGS */}
+
           <div className="bookings-section">
-            <h2>My Bookings</h2>
+
+            <h2>
+              My Bookings
+            </h2>
 
             {loading && (
               <p className="dashboard-message">
@@ -506,201 +837,404 @@ function Dashboard() {
               </p>
             )}
 
-            {!loading && error && (
-              <p className="dashboard-error">
-                {error}
-              </p>
-            )}
-
-            {!loading && !error && bookings.length === 0 && (
-              <div className="empty-dashboard">
-                <h3>No bookings yet</h3>
-                <p>
-                  Your confirmed BusGo tickets will appear here.
+            {!loading &&
+              error && (
+                <p className="dashboard-error">
+                  {error}
                 </p>
+              )}
 
-                <button
-                  onClick={() => navigate("/booking")}
-                >
-                  Make a Booking
-                </button>
-              </div>
-            )}
+            {!loading &&
+              !error &&
+              bookings.length === 0 && (
 
-            {!loading && !error && bookings.length > 0 && (
-              <div className="bookings-list">
-                {bookings.map((ticket) => (
-                  <div
-                    className="booking-card"
-                    key={ticket.id || ticket.ticketNumber}
+                <div className="empty-dashboard">
+
+                  <h3>
+                    No bookings yet
+                  </h3>
+
+                  <p>
+                    Your confirmed
+                    BusGo tickets will
+                    appear here.
+                  </p>
+
+                  <button
+                    onClick={() =>
+                      navigate(
+                        "/booking"
+                      )
+                    }
                   >
-                    <div className="booking-card-header">
-                      <div>
-                        <small>Ticket Number</small>
-                        <h3>{ticket.ticketNumber}</h3>
-                      </div>
+                    Make a Booking
+                  </button>
 
-                      <span
-                        className={
-                          ticket.paymentStatus?.toLowerCase() === "paid"
-                            ? "booking-status paid"
-                            : "booking-status"
+                </div>
+              )}
+
+            {!loading &&
+              !error &&
+              bookings.length > 0 && (
+
+                <div className="bookings-list">
+
+                  {bookings.map(
+                    (ticket) => (
+
+                      <div
+                        className="booking-card"
+                        key={
+                          ticket.id ||
+                          ticket.ticketNumber
                         }
                       >
-                        {ticket.paymentStatus}
-                      </span>
-                    </div>
 
-                    <div className="booking-route">
-                      <div>
-                        <small>FROM</small>
-                        <h3>{ticket.from}</h3>
+                        {/* CARD HEADER */}
+
+                        <div className="booking-card-header">
+
+                          <div>
+
+                            <small>
+                              Ticket Number
+                            </small>
+
+                            <h3>
+                              {
+                                ticket.ticketNumber
+                              }
+                            </h3>
+
+                          </div>
+
+                          <span
+                            className={
+                              ticket.paymentStatus?.toLowerCase() ===
+                              "paid"
+                                ? "booking-status paid"
+                                : "booking-status"
+                            }
+                          >
+                            {
+                              ticket.paymentStatus
+                            }
+                          </span>
+
+                        </div>
+
+                        {/* ROUTE */}
+
+                        <div className="booking-route">
+
+                          <div>
+
+                            <small>
+                              FROM
+                            </small>
+
+                            <h3>
+                              {ticket.from}
+                            </h3>
+
+                          </div>
+
+                          <span>
+                            →
+                          </span>
+
+                          <div>
+
+                            <small>
+                              TO
+                            </small>
+
+                            <h3>
+                              {ticket.to}
+                            </h3>
+
+                          </div>
+
+                        </div>
+
+                        {/* DETAILS */}
+
+                        <div className="booking-details">
+
+                          <p>
+                            <strong>
+                              Bus:
+                            </strong>{" "}
+                            {
+                              ticket.busType
+                            }
+                          </p>
+
+                          <p>
+                            <strong>
+                              Seats:
+                            </strong>{" "}
+                            {
+                              ticket.seats.join(
+                                ", "
+                              ) ||
+                              "N/A"
+                            }
+                          </p>
+
+                          <p>
+                            <strong>
+                              Date:
+                            </strong>{" "}
+                            {
+                              formatDate(
+                                ticket.date
+                              )
+                            }
+                          </p>
+
+                          <p>
+                            <strong>
+                              Paid:
+                            </strong>{" "}
+                            {
+                              formatMoney(
+                                ticket.totalPayment
+                              )
+                            }
+                          </p>
+
+                        </div>
+
+                        {/* ACTIONS */}
+
+                        <div className="booking-actions">
+
+                          <button
+                            className="view-ticket-btn"
+                            onClick={() =>
+                              setSelectedTicket(
+                                ticket
+                              )
+                            }
+                          >
+                            View Ticket
+                          </button>
+
+                          <button
+                            className="download-ticket-btn"
+                            onClick={() =>
+                              downloadTicket(
+                                ticket
+                              )
+                            }
+                          >
+                            Download PDF
+                          </button>
+
+                          <button
+                            className="print-ticket-btn"
+                            onClick={() =>
+                              printTicket(
+                                ticket
+                              )
+                            }
+                          >
+                            Print
+                          </button>
+
+                          <button
+                            className="cancel-ticket-btn"
+                            onClick={() =>
+                              cancelTicket(
+                                ticket
+                              )
+                            }
+                          >
+                            Cancel
+                          </button>
+
+                        </div>
+
                       </div>
 
-                      <span>→</span>
+                    )
+                  )}
 
-                      <div>
-                        <small>TO</small>
-                        <h3>{ticket.to}</h3>
-                      </div>
-                    </div>
+                </div>
+              )}
 
-                    <div className="booking-details">
-                      <p>
-                        <strong>Bus:</strong> {ticket.busType}
-                      </p>
-
-                      <p>
-                        <strong>Seats:</strong>{" "}
-                        {ticket.seats.join(", ") || "N/A"}
-                      </p>
-
-                      <p>
-                        <strong>Date:</strong>{" "}
-                        {formatDate(ticket.date)}
-                      </p>
-
-                      <p>
-                        <strong>Paid:</strong>{" "}
-                        {formatMoney(ticket.totalPayment)}
-                      </p>
-                    </div>
-
-                    <div className="booking-actions">
-                      <button
-                        className="view-ticket-btn"
-                        onClick={() => setSelectedTicket(ticket)}
-                      >
-                        View Ticket
-                      </button>
-
-                      <button
-                        className="download-ticket-btn"
-                        onClick={() => downloadTicket(ticket)}
-                      >
-                        Download PDF
-                      </button>
-
-                      <button
-                        className="print-ticket-btn"
-                        onClick={() => printTicket(ticket)}
-                      >
-                        Print
-                      </button>
-
-                      <button
-                        className="cancel-ticket-btn"
-                        onClick={() => cancelTicket(ticket)}
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
+
         </div>
+
       </section>
 
+      {/* TICKET MODAL */}
+
       {selectedTicket && (
+
         <div className="ticket-modal-overlay">
+
           <div className="ticket-modal">
+
             <button
               className="close-ticket-modal"
-              onClick={() => setSelectedTicket(null)}
+              onClick={() =>
+                setSelectedTicket(
+                  null
+                )
+              }
             >
               ×
             </button>
 
-            <h2>BusGo Ticket</h2>
+            <h2>
+              BusGo Ticket
+            </h2>
 
             <p>
-              <strong>Ticket:</strong>{" "}
-              {selectedTicket.ticketNumber}
+              <strong>
+                Ticket:
+              </strong>{" "}
+              {
+                selectedTicket.ticketNumber
+              }
             </p>
 
             <div className="modal-route">
-              <div>
-                <small>FROM</small>
-                <h3>{selectedTicket.from}</h3>
-              </div>
-
-              <span>→</span>
 
               <div>
-                <small>TO</small>
-                <h3>{selectedTicket.to}</h3>
+
+                <small>
+                  FROM
+                </small>
+
+                <h3>
+                  {
+                    selectedTicket.from
+                  }
+                </h3>
+
               </div>
+
+              <span>
+                →
+              </span>
+
+              <div>
+
+                <small>
+                  TO
+                </small>
+
+                <h3>
+                  {
+                    selectedTicket.to
+                  }
+                </h3>
+
+              </div>
+
             </div>
 
             <p>
-              <strong>Passenger:</strong> {selectedTicket.name}
+              <strong>
+                Passenger:
+              </strong>{" "}
+              {
+                selectedTicket.name
+              }
             </p>
 
             <p>
-              <strong>Phone:</strong> {selectedTicket.phone}
+              <strong>
+                Phone:
+              </strong>{" "}
+              {
+                selectedTicket.phone
+              }
             </p>
 
             <p>
-              <strong>Bus Type:</strong> {selectedTicket.busType}
+              <strong>
+                Bus Type:
+              </strong>{" "}
+              {
+                selectedTicket.busType
+              }
             </p>
 
             <p>
-              <strong>Seats:</strong>{" "}
-              {selectedTicket.seats.join(", ")}
+              <strong>
+                Seats:
+              </strong>{" "}
+              {
+                selectedTicket.seats.join(
+                  ", "
+                )
+              }
             </p>
 
             <p>
-              <strong>Travel Date:</strong>{" "}
-              {formatDate(selectedTicket.date)}
+              <strong>
+                Travel Date:
+              </strong>{" "}
+              {
+                formatDate(
+                  selectedTicket.date
+                )
+              }
             </p>
 
             <p>
-              <strong>Payment:</strong>{" "}
-              {selectedTicket.paymentMethod}
+              <strong>
+                Payment:
+              </strong>{" "}
+              {
+                selectedTicket.paymentMethod
+              }
             </p>
 
             <p>
-              <strong>Total Payment:</strong>{" "}
-              {formatMoney(selectedTicket.totalPayment)}
+              <strong>
+                Total Payment:
+              </strong>{" "}
+              {
+                formatMoney(
+                  selectedTicket.totalPayment
+                )
+              }
             </p>
 
             <div className="modal-ticket-actions">
+
               <button
-                onClick={() => downloadTicket(selectedTicket)}
+                onClick={() =>
+                  downloadTicket(
+                    selectedTicket
+                  )
+                }
               >
                 Download PDF
               </button>
 
               <button
-                onClick={() => printTicket(selectedTicket)}
+                onClick={() =>
+                  printTicket(
+                    selectedTicket
+                  )
+                }
               >
                 Print Ticket
               </button>
+
             </div>
+
           </div>
+
         </div>
+
       )}
 
       <Footer />
