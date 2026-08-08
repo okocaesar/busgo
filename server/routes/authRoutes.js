@@ -2,12 +2,11 @@ const express = require("express");
 
 const router = express.Router();
 
-const authController =
-  require("../controllers/authController");
-
+const authController = require("../controllers/authController");
 
 // =========================================
 // REGISTER
+// POST /api/auth/register
 // =========================================
 
 router.post(
@@ -15,9 +14,9 @@ router.post(
   authController.register
 );
 
-
 // =========================================
 // VERIFY OTP
+// POST /api/auth/verify-otp
 // =========================================
 
 router.post(
@@ -25,9 +24,9 @@ router.post(
   authController.verifyOTP
 );
 
-
 // =========================================
 // RESEND OTP
+// POST /api/auth/resend-otp
 // =========================================
 
 router.post(
@@ -35,15 +34,14 @@ router.post(
   authController.resendOTP
 );
 
-
 // =========================================
 // LOGIN
+// POST /api/auth/login
 // =========================================
 
 router.post(
   "/login",
   authController.login
 );
-
 
 module.exports = router;

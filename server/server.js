@@ -8,6 +8,10 @@ dotenv.config();
 // ENVIRONMENT CHECK
 // =========================================
 
+console.log("=========================================");
+console.log("BUSGO SERVER STARTING");
+console.log("=========================================");
+
 console.log("PORT:", process.env.PORT);
 
 console.log(
@@ -41,6 +45,17 @@ app.use(
 app.use(express.json());
 
 // =========================================
+// SERVER TEST
+// =========================================
+
+app.get("/api/server-test", (req, res) => {
+  res.status(200).json({
+    message: "BusGo server is working correctly.",
+    time: new Date().toISOString()
+  });
+});
+
+// =========================================
 // AUTHENTICATION ROUTES
 // =========================================
 
@@ -57,6 +72,16 @@ app.use(
   "/api/bookings",
   require("./routes/bookingRoutes")
 );
+
+// =========================================
+// NOTIFICATION TEST ROUTE
+// =========================================
+
+app.get("/api/notifications-test", (req, res) => {
+  res.status(200).json({
+    message: "BusGo notification system route is working."
+  });
+});
 
 // =========================================
 // NOTIFICATION ROUTES
@@ -81,7 +106,9 @@ app.use(
 // =========================================
 
 app.get("/", (req, res) => {
-  res.send("BusGo API Server Running");
+  res.status(200).send(
+    "BusGo API Server Running"
+  );
 });
 
 // =========================================
@@ -89,9 +116,30 @@ app.get("/", (req, res) => {
 // =========================================
 
 app.use((req, res) => {
+  console.log(
+    "404 ROUTE NOT FOUND:",
+    req.method,
+    req.originalUrl
+  );
+
   res.status(404).json({
     message: "API route not found",
     path: req.originalUrl
+  });
+});
+
+// =========================================
+// GLOBAL ERROR HANDLER
+// =========================================
+
+app.use((err, req, res, next) => {
+  console.error(
+    "GLOBAL SERVER ERROR:",
+    err
+  );
+
+  res.status(500).json({
+    message: "Internal server error."
   });
 });
 
@@ -102,5 +150,9 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log("=========================================");
+  console.log(
+    `BusGo server running on port ${PORT}`
+  );
+  console.log("=========================================");
 });

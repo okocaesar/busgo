@@ -1,21 +1,114 @@
-import React, { useState } from "react";
-import logo from "../../assets/logo.png";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { NavLink, useNavigate } from "react-router-dom";
-import "./Navbar.css";
 
+import logo from "../../assets/logo.png";
+import { API_URL } from "../../api";
+
+import "./Navbar.css";
 
 function Navbar() {
 
   const navigate = useNavigate();
 
-
   const [loggedIn, setLoggedIn] = useState(
     localStorage.getItem("loggedIn")
   );
 
-
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const [notifications, setNotifications] = useState([]);
+
+  // =========================================
+  // CURRENT USER
+  // =========================================
+
+  const currentUser = JSON.parse(
+    localStorage.getItem("currentUser") || "null"
+  );
+
+  // =========================================
+  // LOAD NOTIFICATIONS
+  // =========================================
+
+  const loadNotifications = async () => {
+
+    if (!loggedIn || !currentUser?.id) {
+      setNotifications([]);
+      return;
+    }
+
+    const token = localStorage.getItem("authToken");
+
+    if (!token) {
+      return;
+    }
+
+    try {
+
+      const response = await axios.get(
+        `${API_URL}/api/notifications`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      setNotifications(
+        response.data.notifications || []
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Unable to load notifications:",
+        error
+      );
+
+    }
+  };
+
+  // =========================================
+  // LOAD WHEN USER LOGS IN
+  // =========================================
+
+  useEffect(() => {
+
+    loadNotifications();
+
+  }, [loggedIn]);
+
+  // =========================================
+  // REFRESH NOTIFICATIONS
+  // =========================================
+
+  useEffect(() => {
+
+    if (!loggedIn) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      loadNotifications();
+    }, 30000);
+
+    return () => clearInterval(interval);
+
+  }, [loggedIn]);
+
+  // =========================================
+  // UNREAD COUNT
+  // =========================================
+
+  const unreadCount = notifications.filter(
+    (notification) =>
+      Number(notification.is_read) === 0
+  ).length;
+
+  // =========================================
+  // LOGOUT
+  // =========================================
 
   const logout = () => {
 
@@ -23,7 +116,11 @@ function Navbar() {
 
     localStorage.removeItem("currentUser");
 
+    localStorage.removeItem("authToken");
+
     setLoggedIn(false);
+
+    setNotifications([]);
 
     setMenuOpen(false);
 
@@ -31,16 +128,29 @@ function Navbar() {
 
   };
 
+  // =========================================
+  // CLOSE MENU
+  // =========================================
 
   const closeMenu = () => {
     setMenuOpen(false);
   };
 
+  // =========================================
+  // OPEN NOTIFICATIONS
+  // =========================================
+
+  const openNotifications = () => {
+
+    closeMenu();
+
+    navigate("/notifications");
+
+  };
 
   return (
 
     <nav className="navbar">
-
 
       {/* LOGO */}
 
@@ -57,7 +167,6 @@ function Navbar() {
         />
 
       </NavLink>
-
 
 
       {/* HAMBURGER */}
@@ -80,7 +189,6 @@ function Navbar() {
       </button>
 
 
-
       {/* NAVIGATION */}
 
       <div
@@ -89,9 +197,7 @@ function Navbar() {
         }`}
       >
 
-
         <div className="nav-links">
-
 
           <NavLink
             to="/"
@@ -116,6 +222,7 @@ function Navbar() {
             Offers
           </NavLink>
 
+
           <NavLink
             to="/about"
             onClick={closeMenu}
@@ -135,15 +242,45 @@ function Navbar() {
 
           )}
 
-
         </div>
 
 
-
-        {/* AUTH BUTTONS */}
+        {/* RIGHT SIDE */}
 
         <div className="auth-buttons">
 
+
+          {/* NOTIFICATION BUTTON */}
+
+          {loggedIn && (
+
+            <button
+              className="notification-button"
+              onClick={openNotifications}
+              aria-label="Notifications"
+              title="Notifications"
+            >
+
+              <span className="notification-icon">
+                🔔
+              </span>
+
+              {unreadCount > 0 && (
+
+                <span className="notification-badge">
+                  {unreadCount > 99
+                    ? "99+"
+                    : unreadCount}
+                </span>
+
+              )}
+
+            </button>
+
+          )}
+
+
+          {/* AUTH */}
 
           {loggedIn ? (
 
@@ -187,15 +324,12 @@ function Navbar() {
 
         </div>
 
-
       </div>
-
 
     </nav>
 
   );
 
 }
-
 
 export default Navbar;

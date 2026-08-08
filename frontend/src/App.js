@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard/Dashboard";
 import Payment from "./pages/Payment/Payment";
 import AdminDashboard from "./pages/AdminDashboard/AdminDashboard";
 import VerifyOTP from "./pages/VerifyOTP/VerifyOTP";
+import Notifications from "./pages/Notifications/Notifications";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/routes" element={<RoutesPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/booking" element={<Booking />} />
         <Route path="/offers" element={<Offers />} />
         <Route path="/about" element={<About />} />
@@ -29,7 +31,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />}/>
         <Route path="/payment" element={<Payment />}/>
         <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/verify-otp" element={<VerifyOTP />} />
+        <Route path="/notifications" element={<Notifications />} />
       </Routes>
     </BrowserRouter>
   );

@@ -1,21 +1,15 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useLocation, useNavigate, NavLink } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { API_URL } from "../../api";
 import "./VerifyOTP.css";
 
 function VerifyOTP() {
-
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [email, setEmail] = useState(
-    location.state?.email ||
-    localStorage.getItem("pendingVerificationEmail") ||
-    ""
-  );
-
+  const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -24,57 +18,42 @@ function VerifyOTP() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const [countdown, setCountdown] = useState(0);
-
-
-  // =========================================
-  // COUNTDOWN
-  // =========================================
-
   useEffect(() => {
+    const stateEmail = location.state?.email;
 
-    if (countdown <= 0) {
-      return;
-    }
+    const savedEmail = localStorage.getItem(
+      "pendingVerificationEmail"
+    );
 
-    const timer = setInterval(() => {
-      setCountdown(
-        (current) => current - 1
-      );
-    }, 1000);
-
-    return () => clearInterval(timer);
-
-  }, [countdown]);
-
+    setEmail(stateEmail || savedEmail || "");
+  }, [location.state]);
 
   // =========================================
   // VERIFY OTP
   // =========================================
 
   const handleVerify = async (e) => {
-
     e.preventDefault();
 
     setError("");
     setMessage("");
 
     if (!email) {
-      setError(
-        "Email address is missing."
-      );
+      setError("Email address is missing. Please register again.");
       return;
     }
 
-    if (!otp || otp.length !== 6) {
-      setError(
-        "Please enter the 6-digit verification code."
-      );
+    if (!otp) {
+      setError("Please enter the verification code.");
+      return;
+    }
+
+    if (otp.length !== 6) {
+      setError("Verification code must contain 6 digits.");
       return;
     }
 
     try {
-
       setLoading(true);
 
       const response = await axios.post(
@@ -86,7 +65,8 @@ function VerifyOTP() {
       );
 
       setMessage(
-        response.data.message
+        response.data.message ||
+          "Email verified successfully."
       );
 
       localStorage.removeItem(
@@ -97,39 +77,35 @@ function VerifyOTP() {
         navigate("/login");
       }, 1500);
 
-    } catch (requestError) {
-
-      setError(
-        requestError.response?.data?.message ||
-        "Unable to verify the code."
+    } catch (error) {
+      console.error(
+        "OTP verification error:",
+        error
       );
 
+      setError(
+        error.response?.data?.message ||
+          "Unable to verify your email."
+      );
     } finally {
-
       setLoading(false);
-
     }
   };
-
 
   // =========================================
   // RESEND OTP
   // =========================================
 
   const handleResend = async () => {
-
     setError("");
     setMessage("");
 
     if (!email) {
-      setError(
-        "Email address is missing."
-      );
+      setError("Email address is missing.");
       return;
     }
 
     try {
-
       setResending(true);
 
       const response = await axios.post(
@@ -140,35 +116,31 @@ function VerifyOTP() {
       );
 
       setMessage(
-        response.data.message
+        response.data.message ||
+          "A new verification code has been sent."
       );
 
-      setOtp("");
-
-      // 60-second resend cooldown
-      setCountdown(60);
-
-    } catch (requestError) {
+    } catch (error) {
+      console.error(
+        "Resend OTP error:",
+        error
+      );
 
       setError(
-        requestError.response?.data?.message ||
-        "Unable to resend the verification code."
+        error.response?.data?.message ||
+          "Unable to resend verification code."
       );
-
     } finally {
-
       setResending(false);
-
     }
   };
-
 
   return (
     <section className="verify-otp-page">
 
       <div className="verify-otp-card">
 
-        <div className="verify-icon">
+        <div className="verify-otp-icon">
           ✉
         </div>
 
@@ -177,18 +149,16 @@ function VerifyOTP() {
         </h1>
 
         <p className="verify-description">
-          We sent a 6-digit verification code
-          to:
+          We sent a 6-digit verification code to:
         </p>
 
         <strong className="verify-email">
-          {email}
+          {email || "your email address"}
         </strong>
-
 
         <form onSubmit={handleVerify}>
 
-          <div className="otp-input-box">
+          <div className="input-box">
 
             <label>
               Verification Code
@@ -199,32 +169,28 @@ function VerifyOTP() {
               inputMode="numeric"
               maxLength="6"
               value={otp}
-              onChange={(e) =>
-                setOtp(
-                  e.target.value
-                    .replace(/\D/g, "")
-                )
-              }
-              placeholder="000000"
-              autoComplete="one-time-code"
+              onChange={(e) => {
+                const value =
+                  e.target.value.replace(/\D/g, "");
+
+                setOtp(value);
+              }}
+              placeholder="Enter 6-digit code"
             />
 
           </div>
 
-
           {error && (
-            <p className="otp-error">
+            <div className="verify-error">
               {error}
-            </p>
+            </div>
           )}
-
 
           {message && (
-            <p className="otp-success">
+            <div className="verify-success">
               {message}
-            </p>
+            </div>
           )}
-
 
           <button
             type="submit"
@@ -237,7 +203,6 @@ function VerifyOTP() {
 
         </form>
 
-
         <div className="resend-section">
 
           <p>
@@ -248,30 +213,22 @@ function VerifyOTP() {
             type="button"
             className="resend-button"
             onClick={handleResend}
-            disabled={
-              resending ||
-              countdown > 0
-            }
+            disabled={resending}
           >
-
             {resending
               ? "Sending..."
-              : countdown > 0
-              ? `Resend in ${countdown}s`
               : "Resend OTP"}
-
           </button>
 
         </div>
 
-
-        <div className="back-login">
-
-          <NavLink to="/login">
-            Back to Login
-          </NavLink>
-
-        </div>
+        <button
+          type="button"
+          className="back-login-button"
+          onClick={() => navigate("/login")}
+        >
+          Back to Login
+        </button>
 
       </div>
 

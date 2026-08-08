@@ -12,8 +12,7 @@ const {
 
 
 // =========================================
-// AUTHENTICATION
-// All notification routes require login
+// ALL NOTIFICATION ROUTES REQUIRE LOGIN
 // =========================================
 
 router.use(requireAuth);
@@ -25,10 +24,12 @@ router.use(requireAuth);
 // =========================================
 
 router.get("/test", (req, res) => {
+
   res.json({
     message: "Notification routes are working",
     userId: req.user.id
   });
+
 });
 
 
@@ -44,7 +45,7 @@ router.get(
 
 
 // =========================================
-// MARK ONE NOTIFICATION AS READ
+// MARK ONE AS READ
 // PATCH /api/notifications/:notificationId/read
 // =========================================
 
@@ -55,7 +56,7 @@ router.patch(
 
 
 // =========================================
-// MARK ALL NOTIFICATIONS AS READ
+// MARK ALL AS READ
 // PATCH /api/notifications/read-all
 // =========================================
 

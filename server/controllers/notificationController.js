@@ -8,7 +8,33 @@ const db = require("../config/database");
 
 exports.getUserNotifications = (req, res) => {
 
+  console.log("=========================================");
+  console.log("GET USER NOTIFICATIONS");
+  console.log("REQ.USER:", req.user);
+  console.log("=========================================");
+
+  // =========================================
+  // CHECK AUTHENTICATED USER
+  // =========================================
+
+  if (!req.user || !req.user.id) {
+
+    console.error(
+      "NOTIFICATION ERROR: req.user.id is missing"
+    );
+
+    return res.status(401).json({
+      message: "User authentication information is missing."
+    });
+  }
+
+
   const userId = req.user.id;
+
+
+  // =========================================
+  // DATABASE QUERY
+  // =========================================
 
   const sql = `
     SELECT
@@ -23,6 +49,13 @@ exports.getUserNotifications = (req, res) => {
     ORDER BY created_at DESC
   `;
 
+
+  console.log(
+    "Loading notifications for user:",
+    userId
+  );
+
+
   db.query(
     sql,
     [userId],
@@ -31,8 +64,17 @@ exports.getUserNotifications = (req, res) => {
       if (err) {
 
         console.error(
-          "GET NOTIFICATIONS ERROR:",
-          err
+          "========================================="
+        );
+
+        console.error(
+          "GET NOTIFICATIONS DATABASE ERROR:"
+        );
+
+        console.error(err);
+
+        console.error(
+          "========================================="
         );
 
         return res.status(500).json({
@@ -41,7 +83,14 @@ exports.getUserNotifications = (req, res) => {
         });
       }
 
-      return res.json({
+
+      console.log(
+        "Notifications found:",
+        results.length
+      );
+
+
+      return res.status(200).json({
         notifications: results
       });
 
@@ -51,17 +100,24 @@ exports.getUserNotifications = (req, res) => {
 
 
 // =========================================
-// MARK ONE AS READ
+// MARK ONE NOTIFICATION AS READ
 // PATCH /api/notifications/:notificationId/read
 // =========================================
 
 exports.markAsRead = (req, res) => {
 
+  if (!req.user || !req.user.id) {
+
+    return res.status(401).json({
+      message: "User authentication information is missing."
+    });
+  }
+
+
   const userId = req.user.id;
 
-  const {
-    notificationId
-  } = req.params;
+  const { notificationId } = req.params;
+
 
   const sql = `
     UPDATE notifications
@@ -70,12 +126,10 @@ exports.markAsRead = (req, res) => {
       AND user_id = ?
   `;
 
+
   db.query(
     sql,
-    [
-      notificationId,
-      userId
-    ],
+    [notificationId, userId],
     (err, result) => {
 
       if (err) {
@@ -86,20 +140,25 @@ exports.markAsRead = (req, res) => {
         );
 
         return res.status(500).json({
-          message: "Unable to update notification.",
+          message:
+            "Unable to update notification.",
           error: err.message
         });
       }
 
+
       if (result.affectedRows === 0) {
 
         return res.status(404).json({
-          message: "Notification not found."
+          message:
+            "Notification not found."
         });
       }
 
-      return res.json({
-        message: "Notification marked as read."
+
+      return res.status(200).json({
+        message:
+          "Notification marked as read."
       });
 
     }
@@ -108,20 +167,29 @@ exports.markAsRead = (req, res) => {
 
 
 // =========================================
-// MARK ALL AS READ
+// MARK ALL NOTIFICATIONS AS READ
 // PATCH /api/notifications/read-all
 // =========================================
 
 exports.markAllAsRead = (req, res) => {
 
+  if (!req.user || !req.user.id) {
+
+    return res.status(401).json({
+      message: "User authentication information is missing."
+    });
+  }
+
+
   const userId = req.user.id;
+
 
   const sql = `
     UPDATE notifications
     SET is_read = 1
     WHERE user_id = ?
-      AND is_read = 0
   `;
+
 
   db.query(
     sql,
@@ -136,14 +204,18 @@ exports.markAllAsRead = (req, res) => {
         );
 
         return res.status(500).json({
-          message: "Unable to update notifications.",
+          message:
+            "Unable to update notifications.",
           error: err.message
         });
       }
 
-      return res.json({
-        message: "All notifications marked as read.",
-        updated: result.affectedRows
+
+      return res.status(200).json({
+        message:
+          "All notifications marked as read.",
+        updated:
+          result.affectedRows
       });
 
     }

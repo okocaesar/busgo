@@ -1,33 +1,10 @@
 const nodemailer = require("nodemailer");
 
-// =========================================
-// CHECK EMAIL CONFIGURATION
-// =========================================
-
-console.log("=========================================");
-console.log("EMAIL CONFIGURATION");
-console.log("EMAIL_HOST:", process.env.EMAIL_HOST ? "YES" : "NO");
-console.log("EMAIL_PORT:", process.env.EMAIL_PORT ? "YES" : "NO");
-console.log("EMAIL_USER:", process.env.EMAIL_USER ? "YES" : "NO");
-console.log(
-  "EMAIL_PASSWORD:",
-  process.env.EMAIL_PASSWORD ? "YES" : "NO"
-);
-console.log("EMAIL_FROM:", process.env.EMAIL_FROM ? "YES" : "NO");
-console.log("=========================================");
-
-
-// =========================================
-// CREATE SMTP TRANSPORTER
-// =========================================
-
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
-
   port: Number(process.env.EMAIL_PORT),
 
-  secure:
-    Number(process.env.EMAIL_PORT) === 465,
+  secure: Number(process.env.EMAIL_PORT) === 465,
 
   auth: {
     user: process.env.EMAIL_USER,
@@ -35,31 +12,22 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-
 // =========================================
 // VERIFY SMTP CONNECTION
 // =========================================
 
 transporter.verify((error, success) => {
-
   if (error) {
-
-    console.error(
-      "❌ EMAIL SMTP CONNECTION FAILED:"
-    );
-
+    console.error("=========================================");
+    console.error("❌ SMTP CONNECTION FAILED");
     console.error(error);
-
+    console.error("=========================================");
   } else {
-
-    console.log(
-      "✅ EMAIL SMTP SERVER IS READY"
-    );
-
+    console.log("=========================================");
+    console.log("✅ EMAIL SMTP SERVER IS READY");
+    console.log("=========================================");
   }
-
 });
-
 
 // =========================================
 // SEND EMAIL
@@ -70,36 +38,26 @@ async function sendEmail({
   subject,
   html
 }) {
-
-  console.log("=========================================");
-  console.log("📧 ATTEMPTING TO SEND EMAIL");
-  console.log("To:", to);
-  console.log("Subject:", subject);
-  console.log(
-    "From configured:",
-    process.env.EMAIL_FROM ? "YES" : "NO"
-  );
-  console.log("=========================================");
-
   try {
 
+    console.log("=========================================");
+    console.log("📧 ATTEMPTING TO SEND EMAIL");
+    console.log("TO:", to);
+    console.log("FROM:", process.env.EMAIL_FROM);
+    console.log("HOST:", process.env.EMAIL_HOST);
+    console.log("PORT:", process.env.EMAIL_PORT);
+    console.log("=========================================");
+
     const info = await transporter.sendMail({
-
       from: process.env.EMAIL_FROM,
-
       to,
-
       subject,
-
       html
-
     });
 
     console.log("=========================================");
     console.log("✅ EMAIL SENT SUCCESSFULLY");
     console.log("Message ID:", info.messageId);
-    console.log("Accepted:", info.accepted);
-    console.log("Rejected:", info.rejected);
     console.log("=========================================");
 
     return info;
@@ -108,14 +66,16 @@ async function sendEmail({
 
     console.error("=========================================");
     console.error("❌ EMAIL SENDING FAILED");
-    console.error("Error:", error);
+    console.error("NAME:", error.name);
+    console.error("MESSAGE:", error.message);
+    console.error("CODE:", error.code);
+    console.error("COMMAND:", error.command);
+    console.error("RESPONSE:", error.response);
+    console.error("RESPONSE CODE:", error.responseCode);
     console.error("=========================================");
 
     throw error;
-
   }
-
 }
-
 
 module.exports = sendEmail;
