@@ -1,0 +1,154 @@
+.verify-otp-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: #f4f8f6;
+}
+
+.verify-otp-card {
+  width: 100%;
+  max-width: 480px;
+  background: #ffffff;
+  padding: 45px 35px;
+  border-radius: 18px;
+  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.verify-icon {
+  width: 65px;
+  height: 65px;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #e9f7ef;
+  color: #0b7d45;
+  font-size: 30px;
+}
+
+.verify-otp-card h1 {
+  margin: 0 0 12px;
+  color: #222;
+}
+
+.verify-description {
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.verify-email {
+  display: block;
+  color: #0b7d45;
+  margin-bottom: 30px;
+  word-break: break-word;
+}
+
+.otp-input-box {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.otp-input-box label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.otp-input-box input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  outline: none;
+  font-size: 25px;
+  text-align: center;
+  letter-spacing: 8px;
+}
+
+.otp-input-box input:focus {
+  border-color: #0b7d45;
+}
+
+.verify-otp-card form > button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: #0b7d45;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.verify-otp-card form > button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.otp-error {
+  margin: 15px 0;
+  color: #c62828;
+  font-size: 14px;
+}
+
+.otp-success {
+  margin: 15px 0;
+  color: #0b7d45;
+  font-size: 14px;
+}
+
+.resend-section {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+}
+
+.resend-section p {
+  margin-bottom: 8px;
+  color: #666;
+}
+
+.resend-button {
+  border: none;
+  background: transparent;
+  color: #0b7d45;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.resend-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.back-login {
+  margin-top: 25px;
+}
+
+.back-login a {
+  color: #555;
+  text-decoration: none;
+}
+
+.back-login a:hover {
+  color: #0b7d45;
+}
+
+@media (max-width: 500px) {
+
+  .verify-otp-card {
+    padding: 35px 20px;
+  }
+
+  .otp-input-box input {
+    font-size: 21px;
+    letter-spacing: 5px;
+  }
+
+}

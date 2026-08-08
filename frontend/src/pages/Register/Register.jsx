@@ -17,6 +17,12 @@ function Register() {
     confirmPassword: "",
   });
 
+  const [loading, setLoading] = useState(false);
+
+  // =========================================
+  // HANDLE INPUT CHANGE
+  // =========================================
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -24,13 +30,26 @@ function Register() {
     });
   };
 
+  // =========================================
+  // HANDLE REGISTRATION
+  // =========================================
+
   const handleRegister = async (e) => {
     e.preventDefault();
 
+    // Prevent double clicking
+    if (loading) {
+      return;
+    }
+
+    // =========================================
+    // VALIDATION
+    // =========================================
+
     if (
-      !formData.name ||
-      !formData.email ||
-      !formData.phone ||
+      !formData.name.trim() ||
+      !formData.email.trim() ||
+      !formData.phone.trim() ||
       !formData.password ||
       !formData.confirmPassword
     ) {
@@ -43,42 +62,96 @@ function Register() {
       return;
     }
 
+    if (formData.password.length < 6) {
+      alert("Password must be at least 6 characters.");
+      return;
+    }
+
     try {
+      setLoading(true);
+
+      // =========================================
+      // SEND ONE REGISTRATION REQUEST
+      // =========================================
+
       const response = await axios.post(
         `${API_URL}/api/auth/register`,
         {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
+          name: formData.name.trim(),
+          email: formData.email.trim().toLowerCase(),
+          phone: formData.phone.trim(),
           password: formData.password,
         }
       );
 
-      alert(response.data.message);
+      // =========================================
+      // SAVE EMAIL FOR OTP PAGE
+      // =========================================
 
-      navigate("/login");
+      const verificationEmail =
+        response.data.email ||
+        formData.email.trim().toLowerCase();
+
+      localStorage.setItem(
+        "pendingVerificationEmail",
+        verificationEmail
+      );
+
+      // =========================================
+      // GO TO OTP VERIFICATION PAGE
+      // =========================================
+
+      navigate("/verify-otp", {
+        state: {
+          email: verificationEmail,
+        },
+      });
+
     } catch (error) {
+      console.error(
+        "Registration error:",
+        error
+      );
+
       alert(
         error.response?.data?.message ||
-          "Registration failed."
+          "Registration failed. Please try again."
       );
+    } finally {
+      setLoading(false);
     }
   };
+
+  // =========================================
+  // PAGE
+  // =========================================
 
   return (
     <section
       className="auth-page"
-      style={{ backgroundImage: `url(${background})` }}
+      style={{
+        backgroundImage: `url(${background})`,
+      }}
     >
       <div className="auth-overlay">
+
         <div className="auth-card">
+
           <h1>Create Account</h1>
 
-          <p>Join BusGo and start booking your journeys.</p>
+          <p>
+            Join BusGo and start booking your journeys.
+          </p>
 
           <form onSubmit={handleRegister}>
+
+            {/* FULL NAME */}
+
             <div className="input-box">
-              <label>Full Name</label>
+
+              <label>
+                Full Name
+              </label>
 
               <input
                 type="text"
@@ -86,11 +159,20 @@ function Register() {
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Enter your full name"
+                autoComplete="name"
+                disabled={loading}
               />
+
             </div>
 
+
+            {/* EMAIL */}
+
             <div className="input-box">
-              <label>Email</label>
+
+              <label>
+                Email
+              </label>
 
               <input
                 type="email"
@@ -98,11 +180,20 @@ function Register() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Enter your email"
+                autoComplete="email"
+                disabled={loading}
               />
+
             </div>
 
+
+            {/* PHONE */}
+
             <div className="input-box">
-              <label>Phone Number</label>
+
+              <label>
+                Phone Number
+              </label>
 
               <input
                 type="tel"
@@ -110,11 +201,20 @@ function Register() {
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="Enter your phone number"
+                autoComplete="tel"
+                disabled={loading}
               />
+
             </div>
 
+
+            {/* PASSWORD */}
+
             <div className="input-box">
-              <label>Password</label>
+
+              <label>
+                Password
+              </label>
 
               <input
                 type="password"
@@ -122,11 +222,20 @@ function Register() {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Create a password"
+                autoComplete="new-password"
+                disabled={loading}
               />
+
             </div>
 
+
+            {/* CONFIRM PASSWORD */}
+
             <div className="input-box">
-              <label>Confirm Password</label>
+
+              <label>
+                Confirm Password
+              </label>
 
               <input
                 type="password"
@@ -134,23 +243,47 @@ function Register() {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 placeholder="Confirm your password"
+                autoComplete="new-password"
+                disabled={loading}
               />
+
             </div>
 
-            <button type="submit">
-              Register
+
+            {/* REGISTER BUTTON */}
+
+            <button
+              type="submit"
+              disabled={loading}
+            >
+
+              {loading
+                ? "Creating Account..."
+                : "Register"}
+
             </button>
+
           </form>
 
+
+          {/* LOGIN LINK */}
+
           <div className="auth-link">
+
             Already have an account?
+
+            {" "}
 
             <NavLink to="/login">
               Login
             </NavLink>
+
           </div>
+
         </div>
+
       </div>
+
     </section>
   );
 }
