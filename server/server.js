@@ -4,6 +4,10 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
+// =========================================
+// ENVIRONMENT CHECK
+// =========================================
+
 console.log("PORT:", process.env.PORT);
 
 console.log(
@@ -52,6 +56,15 @@ app.use(
 app.use(
   "/api/bookings",
   require("./routes/bookingRoutes")
+);
+
+// =========================================
+// NOTIFICATION ROUTES
+// =========================================
+
+app.use(
+  "/api/notifications",
+  require("./routes/notificationRoutes")
 );
 
 // =========================================
