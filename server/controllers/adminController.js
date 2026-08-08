@@ -53,14 +53,22 @@ exports.getStats = (req, res) => {
       );
 
       res.json({
-        totalUsers: Number(results[0].totalUsers || 0),
-        totalBookings: Number(results[0].totalBookings || 0),
+        totalUsers: Number(
+          results[0].totalUsers || 0
+        ),
+
+        totalBookings: Number(
+          results[0].totalBookings || 0
+        ),
+
         confirmedBookings: Number(
           results[0].confirmedBookings || 0
         ),
+
         cancelledBookings: Number(
           results[0].cancelledBookings || 0
         ),
+
         totalRevenue: Number(
           results[0].totalRevenue || 0
         )
@@ -202,7 +210,8 @@ exports.updateBookingStatus = (req, res) => {
         );
 
         return res.status(500).json({
-          message: "Unable to update booking status.",
+          message:
+            "Unable to update booking status.",
           error: err.message
         });
       }
@@ -214,8 +223,251 @@ exports.updateBookingStatus = (req, res) => {
       }
 
       res.json({
-        message: "Booking status updated successfully."
+        message:
+          "Booking status updated successfully."
       });
+    }
+  );
+};
+
+
+// =========================================
+// SEND NOTIFICATION
+// POST /api/admin/notifications
+// =========================================
+
+exports.sendNotification = (req, res) => {
+
+  const {
+    userId,
+    title,
+    message,
+    type
+  } = req.body;
+
+
+  // =========================================
+  // VALIDATION
+  // =========================================
+
+  if (!title || !title.trim()) {
+    return res.status(400).json({
+      message:
+        "Notification title is required."
+    });
+  }
+
+  if (!message || !message.trim()) {
+    return res.status(400).json({
+      message:
+        "Notification message is required."
+    });
+  }
+
+
+  // =========================================
+  // NOTIFICATION TYPE
+  // =========================================
+
+  const notificationType =
+    type || "info";
+
+  const allowedTypes = [
+    "info",
+    "success",
+    "warning",
+    "booking"
+  ];
+
+  if (
+    !allowedTypes.includes(
+      notificationType
+    )
+  ) {
+    return res.status(400).json({
+      message:
+        "Invalid notification type."
+    });
+  }
+
+
+  // =========================================
+  // SEND TO ALL USERS
+  // =========================================
+
+  if (
+    !userId ||
+    userId === "all"
+  ) {
+
+    const sql = `
+      INSERT INTO notifications
+      (
+        user_id,
+        title,
+        message,
+        type,
+        is_read
+      )
+
+      SELECT
+        id,
+        ?,
+        ?,
+        ?,
+        0
+
+      FROM users
+
+      WHERE role != 'admin'
+    `;
+
+
+    db.query(
+      sql,
+      [
+        title.trim(),
+        message.trim(),
+        notificationType
+      ],
+      (err, result) => {
+
+        if (err) {
+
+          console.error(
+            "SEND NOTIFICATION TO ALL ERROR:",
+            err
+          );
+
+          return res.status(500).json({
+            message:
+              "Unable to send notification.",
+            error:
+              err.message
+          });
+        }
+
+
+        console.log(
+          "ADMIN NOTIFICATION SENT:",
+          result.affectedRows,
+          "users"
+        );
+
+
+        return res.status(201).json({
+          message:
+            "Notification sent to all users successfully.",
+
+          recipients:
+            result.affectedRows
+        });
+
+      }
+    );
+
+
+    return;
+  }
+
+
+  // =========================================
+  // SEND TO ONE USER
+  // =========================================
+
+  const checkUserSql = `
+    SELECT
+      id
+    FROM users
+    WHERE id = ?
+  `;
+
+
+  db.query(
+    checkUserSql,
+    [userId],
+    (userError, users) => {
+
+      if (userError) {
+
+        console.error(
+          "CHECK NOTIFICATION USER ERROR:",
+          userError
+        );
+
+        return res.status(500).json({
+          message:
+            "Unable to find the selected user.",
+
+          error:
+            userError.message
+        });
+      }
+
+
+      if (
+        !users ||
+        users.length === 0
+      ) {
+
+        return res.status(404).json({
+          message:
+            "Selected user was not found."
+        });
+      }
+
+
+      const insertSql = `
+        INSERT INTO notifications
+        (
+          user_id,
+          title,
+          message,
+          type,
+          is_read
+        )
+
+        VALUES (?, ?, ?, ?, 0)
+      `;
+
+
+      db.query(
+        insertSql,
+        [
+          userId,
+          title.trim(),
+          message.trim(),
+          notificationType
+        ],
+        (insertError) => {
+
+          if (insertError) {
+
+            console.error(
+              "SEND USER NOTIFICATION ERROR:",
+              insertError
+            );
+
+            return res.status(500).json({
+              message:
+                "Unable to send notification.",
+
+              error:
+                insertError.message
+            });
+          }
+
+
+          return res.status(201).json({
+            message:
+              "Notification sent successfully.",
+
+            recipients: 1
+          });
+
+        }
+      );
+
     }
   );
 };

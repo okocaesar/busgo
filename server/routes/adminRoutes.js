@@ -31,4 +31,16 @@ router.patch(
   adminController.updateBookingStatus
 );
 
+
+// =========================================
+// SEND NOTIFICATION
+// POST /api/admin/notifications
+// =========================================
+
+router.post(
+  "/notifications",
+  adminController.sendNotification
+);
+
+
 module.exports = router;

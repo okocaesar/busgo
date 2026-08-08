@@ -172,3 +172,99 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================
+   ADMIN NOTIFICATIONS
+========================================= */
+
+.admin-notification-description {
+  margin: -10px 0 25px;
+  color: #666;
+  line-height: 1.6;
+}
+
+
+.admin-notification-form {
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+
+.admin-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+
+.admin-form-group label {
+  font-weight: 600;
+  color: #222;
+}
+
+
+.admin-form-group input,
+.admin-form-group select,
+.admin-form-group textarea {
+  width: 100%;
+  padding: 13px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+
+.admin-form-group input:focus,
+.admin-form-group select:focus,
+.admin-form-group textarea:focus {
+  border-color: #0b7d45;
+}
+
+
+.admin-form-group textarea {
+  resize: vertical;
+  min-height: 140px;
+}
+
+
+.send-notification-btn {
+  border: none;
+  padding: 14px 24px;
+  border-radius: 8px;
+  background: #0b7d45;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  width: fit-content;
+}
+
+
+.send-notification-btn:hover {
+  opacity: 0.9;
+}
+
+
+.send-notification-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+@media (max-width: 768px) {
+
+  .admin-notification-form {
+    width: 100%;
+  }
+
+
+  .send-notification-btn {
+    width: 100%;
+  }
+
+}
