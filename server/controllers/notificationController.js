@@ -1,5 +1,6 @@
 const db = require("../config/database");
 
+
 // =========================================
 // GET USER NOTIFICATIONS
 // GET /api/notifications
@@ -35,11 +36,12 @@ exports.getUserNotifications = (req, res) => {
         );
 
         return res.status(500).json({
-          message: "Unable to load notifications."
+          message: "Unable to load notifications.",
+          error: err.message
         });
       }
 
-      res.json({
+      return res.json({
         notifications: results
       });
 
@@ -56,7 +58,10 @@ exports.getUserNotifications = (req, res) => {
 exports.markAsRead = (req, res) => {
 
   const userId = req.user.id;
-  const { notificationId } = req.params;
+
+  const {
+    notificationId
+  } = req.params;
 
   const sql = `
     UPDATE notifications
@@ -67,7 +72,10 @@ exports.markAsRead = (req, res) => {
 
   db.query(
     sql,
-    [notificationId, userId],
+    [
+      notificationId,
+      userId
+    ],
     (err, result) => {
 
       if (err) {
@@ -78,7 +86,8 @@ exports.markAsRead = (req, res) => {
         );
 
         return res.status(500).json({
-          message: "Unable to update notification."
+          message: "Unable to update notification.",
+          error: err.message
         });
       }
 
@@ -89,7 +98,7 @@ exports.markAsRead = (req, res) => {
         });
       }
 
-      res.json({
+      return res.json({
         message: "Notification marked as read."
       });
 
@@ -111,12 +120,13 @@ exports.markAllAsRead = (req, res) => {
     UPDATE notifications
     SET is_read = 1
     WHERE user_id = ?
+      AND is_read = 0
   `;
 
   db.query(
     sql,
     [userId],
-    (err) => {
+    (err, result) => {
 
       if (err) {
 
@@ -126,14 +136,14 @@ exports.markAllAsRead = (req, res) => {
         );
 
         return res.status(500).json({
-          message:
-            "Unable to update notifications."
+          message: "Unable to update notifications.",
+          error: err.message
         });
       }
 
-      res.json({
-        message:
-          "All notifications marked as read."
+      return res.json({
+        message: "All notifications marked as read.",
+        updated: result.affectedRows
       });
 
     }

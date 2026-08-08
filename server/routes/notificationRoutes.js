@@ -6,6 +6,19 @@ const notificationController = require(
   "../controllers/notificationController"
 );
 
+const {
+  requireAuth
+} = require("../middleware/authMiddleware");
+
+
+// =========================================
+// AUTHENTICATION
+// All notification routes require login
+// =========================================
+
+router.use(requireAuth);
+
+
 // =========================================
 // TEST
 // GET /api/notifications/test
@@ -13,22 +26,25 @@ const notificationController = require(
 
 router.get("/test", (req, res) => {
   res.json({
-    message: "Notification routes are working"
+    message: "Notification routes are working",
+    userId: req.user.id
   });
 });
 
+
 // =========================================
 // GET USER NOTIFICATIONS
-// GET /api/notifications/:userId
+// GET /api/notifications
 // =========================================
 
 router.get(
-  "/:userId",
+  "/",
   notificationController.getUserNotifications
 );
 
+
 // =========================================
-// MARK NOTIFICATION AS READ
+// MARK ONE NOTIFICATION AS READ
 // PATCH /api/notifications/:notificationId/read
 // =========================================
 
@@ -37,14 +53,16 @@ router.patch(
   notificationController.markAsRead
 );
 
+
 // =========================================
 // MARK ALL NOTIFICATIONS AS READ
-// PATCH /api/notifications/user/:userId/read-all
+// PATCH /api/notifications/read-all
 // =========================================
 
 router.patch(
-  "/user/:userId/read-all",
+  "/read-all",
   notificationController.markAllAsRead
 );
+
 
 module.exports = router;
