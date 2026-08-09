@@ -35,11 +35,77 @@ const app = express();
 // MIDDLEWARE
 // =========================================
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://okocaesar-group2internship.vercel.app"
+];
+
+
 app.use(
   cors({
-    origin: true,
-    credentials: true
+
+    origin: function(origin, callback) {
+
+
+      // Allow Postman/mobile apps/no origin requests
+      if (!origin) {
+        return callback(null, true);
+      }
+
+
+      if (allowedOrigins.includes(origin)) {
+
+        return callback(null, true);
+
+      }
+
+
+      console.log(
+        "BLOCKED BY CORS:",
+        origin
+      );
+
+
+      return callback(
+        new Error(
+          "Not allowed by CORS"
+        )
+      );
+
+    },
+
+
+    credentials: true,
+
+
+    methods: [
+      "GET",
+      "POST",
+      "PUT",
+      "PATCH",
+      "DELETE",
+      "OPTIONS"
+    ],
+
+
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization"
+    ]
+
   })
+);
+
+
+// Handle browser preflight requests
+app.options(
+  "*",
+  cors()
+);
+
+
+app.use(
+  express.json()
 );
 
 app.use(express.json());
