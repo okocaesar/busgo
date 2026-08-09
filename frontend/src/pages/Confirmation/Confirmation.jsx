@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useLocation, NavLink, useNavigate } from "react-router-dom";
+import {
+  useLocation,
+  NavLink,
+  useNavigate
+} from "react-router-dom";
 
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -26,7 +30,11 @@ function Confirmation() {
   // =========================================
 
   const [ticketNumber] = useState(
-    "BG-" + Math.floor(100000 + Math.random() * 900000)
+    "BG-" +
+    Math.floor(
+      100000 +
+      Math.random() * 900000
+    )
   );
 
 
@@ -56,12 +64,15 @@ function Confirmation() {
 
   const totalPayment = Number(
     booking?.totalPayment ??
-    Math.max(0, totalPrice - discount)
+    Math.max(
+      0,
+      totalPrice - discount
+    )
   );
 
 
   // =========================================
-  // QR CODE
+  // QR CODE DATA
   // =========================================
 
   const qrData = `
@@ -102,10 +113,15 @@ XAF ${totalPayment.toLocaleString("en-GB")}
 
   const confirmBooking = async () => {
 
+    // Prevent double clicking
     if (saving) {
       return;
     }
 
+
+    // =========================================
+    // GET CURRENT USER
+    // =========================================
 
     const currentUser = JSON.parse(
       localStorage.getItem("currentUser")
@@ -125,136 +141,402 @@ XAF ${totalPayment.toLocaleString("en-GB")}
     }
 
 
+    // =========================================
+    // GET AUTH TOKEN
+    // =========================================
+
+    const authToken =
+      localStorage.getItem("authToken");
+
+
+    if (!authToken) {
+
+      alert(
+        "Your login session has expired. Please login again."
+      );
+
+      navigate("/login");
+
+      return;
+
+    }
+
+
     try {
 
       setSaving(true);
 
 
-      /*
-        Send booking to Express backend.
+      // =========================================
+      // STEP 1
+      // CREATE BOOKING
+      // =========================================
 
-        Backend endpoint:
-        POST /api/bookings
-      */
+      console.log(
+        "================================="
+      );
 
-      const response = await axios.post(
-        `${API_URL}/api/bookings`,
-        {
+      console.log(
+        "CREATING BUSGO BOOKING"
+      );
 
-          ticketNumber,
-
-          userId:
-            currentUser.id,
-
-          email:
-            currentUser.email,
-
-          name:
-            booking.name,
-
-          phone:
-            booking.phone,
-
-          from:
-            booking.from,
-
-          to:
-            booking.to,
-
-          busType:
-            booking.busType,
-
-          seats:
-            booking.seats,
-
-          date:
-            booking.date,
-
-
-          // Price information
-
-          totalPrice:
-            totalPrice,
-
-          discountPercentage:
-            discountPercentage,
-
-          discount:
-            discount,
-
-          totalPayment:
-            totalPayment,
-
-
-          // Offer
-
-          offerTitle:
-            booking.offerTitle ||
-            "No Offer",
-
-
-          // Payment
-
-          paymentStatus:
-            booking.paymentStatus ||
-            "Paid",
-
-          paymentMethod:
-            booking.paymentMethod,
-
-          paymentDate:
-            booking.paymentDate,
-
-        }
+      console.log(
+        "================================="
       );
 
 
+      const bookingResponse =
+        await axios.post(
+
+          `${API_URL}/api/bookings`,
+
+          {
+
+            // Ticket
+
+            ticketNumber:
+
+
+              ticketNumber,
+
+
+            // User
+
+            userId:
+              currentUser.id,
+
+
+            email:
+              currentUser.email,
+
+
+            // Passenger
+
+            name:
+              booking.name,
+
+
+            phone:
+              booking.phone,
+
+
+            // Route
+
+            from:
+              booking.from,
+
+
+            to:
+              booking.to,
+
+
+            // Bus
+
+            busType:
+              booking.busType,
+
+
+            // Seats
+
+            seats:
+              booking.seats,
+
+
+            // Travel date
+
+            date:
+              booking.date,
+
+
+            // =====================================
+            // PRICE
+            // =====================================
+
+            totalPrice:
+              totalPrice,
+
+
+            discountPercentage:
+              discountPercentage,
+
+
+            discount:
+              discount,
+
+
+            totalPayment:
+              totalPayment,
+
+
+            // =====================================
+            // OFFER
+            // =====================================
+
+            offerTitle:
+              booking.offerTitle ||
+              "No Offer",
+
+
+            // =====================================
+            // PAYMENT
+            // =====================================
+
+            paymentStatus:
+              "Successful",
+
+
+            paymentMethod:
+              booking.paymentMethod,
+
+
+            paymentDate:
+              booking.paymentDate
+
+          }
+
+        );
+
+
       console.log(
-        "Booking saved:",
-        response.data
+        "BOOKING RESPONSE:",
+        bookingResponse.data
+      );
+
+
+      // =========================================
+      // GET CREATED BOOKING ID
+      // =========================================
+
+      const bookingId =
+        bookingResponse.data?.bookingId;
+
+
+      if (!bookingId) {
+
+        throw new Error(
+          "Booking was created but the server did not return a booking ID."
+        );
+
+      }
+
+
+      console.log(
+        "BOOKING CREATED SUCCESSFULLY"
+      );
+
+      console.log(
+        "Booking ID:",
+        bookingId
+      );
+
+
+      // =========================================
+      // STEP 2
+      // CREATE PAYMENT RECORD
+      // =========================================
+
+      console.log(
+        "================================="
+      );
+
+      console.log(
+        "CREATING PAYMENT RECORD"
+      );
+
+      console.log(
+        "================================="
+      );
+
+
+      const paymentResponse =
+        await axios.post(
+
+          `${API_URL}/api/payments`,
+
+          {
+
+            // User
+
+            userId:
+              currentUser.id,
+
+
+            // Booking
+
+            bookingId:
+              bookingId,
+
+
+            // Amount
+
+            amount:
+              totalPayment,
+
+
+            // Currency
+
+            currency:
+              "XAF",
+
+
+            // Payment method
+
+            paymentMethod:
+              booking.paymentMethod,
+
+
+            // Passenger phone
+
+            phoneNumber:
+              booking.phone
+
+          },
+
+          {
+
+            headers: {
+
+              Authorization:
+                `Bearer ${authToken}`
+
+            }
+
+          }
+
+        );
+
+
+      console.log(
+        "PAYMENT RESPONSE:",
+        paymentResponse.data
+      );
+
+
+      // =========================================
+      // SUCCESS
+      // =========================================
+
+      console.log(
+        "================================="
+      );
+
+      console.log(
+        "BOOKING + PAYMENT SUCCESSFUL"
+      );
+
+      console.log(
+        "================================="
       );
 
 
       alert(
-        "Booking confirmed successfully!"
+        "Booking and payment confirmed successfully!"
       );
 
 
-      /*
-        Go to dashboard.
+      // =========================================
+      // GO TO DASHBOARD
+      // =========================================
 
-        Dashboard will later load
-        bookings directly from MySQL.
-      */
-
-      navigate("/dashboard");
+      navigate(
+        "/dashboard"
+      );
 
 
     } catch (error) {
 
+      // =========================================
+      // ERROR LOGGING
+      // =========================================
+
       console.error(
-        "Booking save error:",
+        "================================="
+      );
+
+      console.error(
+        "BUSGO BOOKING/PAYMENT ERROR"
+      );
+
+      console.error(
+        "================================="
+      );
+
+
+      console.error(
+        "Error message:",
+        error.message
+      );
+
+
+      console.error(
+        "HTTP status:",
+        error.response?.status
+      );
+
+
+      console.error(
+        "Server response:",
+        error.response?.data
+      );
+
+
+      console.error(
+        "Full error:",
         error
       );
 
 
+      // =========================================
+      // SERVER ERROR
+      // =========================================
+
       if (error.response) {
 
-        alert(
+        const serverMessage =
           error.response.data?.message ||
-          "Unable to save booking."
-        );
+          "Unable to save booking.";
 
-      } else {
+
+        const serverError =
+          error.response.data?.error ||
+          "";
+
+
+        if (serverError) {
+
+          alert(
+            `${serverMessage}\n\n${serverError}`
+          );
+
+        } else {
+
+          alert(
+            serverMessage
+          );
+
+        }
+
+
+      }
+
+      // =========================================
+      // NETWORK ERROR
+      // =========================================
+
+      else {
 
         alert(
-          "Unable to connect to BusGo server."
+          "Unable to connect to the BusGo server."
         );
 
       }
 
 
     } finally {
+
+      // =========================================
+      // STOP LOADING
+      // =========================================
 
       setSaving(false);
 
@@ -270,11 +552,15 @@ XAF ${totalPayment.toLocaleString("en-GB")}
   const downloadTicket = () => {
 
     const ticket =
-      document.getElementById("ticket");
+      document.getElementById(
+        "ticket"
+      );
 
 
     if (!ticket) {
+
       return;
+
     }
 
 
@@ -282,7 +568,9 @@ XAF ${totalPayment.toLocaleString("en-GB")}
       .then((canvas) => {
 
         const imgData =
-          canvas.toDataURL("image/png");
+          canvas.toDataURL(
+            "image/png"
+          );
 
 
         const pdf =
@@ -297,8 +585,11 @@ XAF ${totalPayment.toLocaleString("en-GB")}
 
 
         const height =
-          (canvas.height * width)
-          / canvas.width;
+          (
+            canvas.height *
+            width
+          ) /
+          canvas.width;
 
 
         pdf.addImage(
@@ -313,6 +604,19 @@ XAF ${totalPayment.toLocaleString("en-GB")}
 
         pdf.save(
           `BusGo-${ticketNumber}.pdf`
+        );
+
+      })
+
+      .catch((error) => {
+
+        console.error(
+          "PDF download error:",
+          error
+        );
+
+        alert(
+          "Unable to download the ticket."
         );
 
       });
@@ -341,7 +645,9 @@ XAF ${totalPayment.toLocaleString("en-GB")}
 
 
           <NavLink to="/booking">
+
             Make Booking
+
           </NavLink>
 
         </div>
@@ -380,7 +686,9 @@ XAF ${totalPayment.toLocaleString("en-GB")}
         >
 
 
-          {/* HEADER */}
+          {/* =====================================
+              HEADER
+          ===================================== */}
 
           <div className="ticket-header">
 
@@ -395,7 +703,9 @@ XAF ${totalPayment.toLocaleString("en-GB")}
           </div>
 
 
-          {/* TICKET NUMBER */}
+          {/* =====================================
+              TICKET NUMBER
+          ===================================== */}
 
           <div className="ticket-number">
 
@@ -408,7 +718,9 @@ XAF ${totalPayment.toLocaleString("en-GB")}
           </div>
 
 
-          {/* ROUTE */}
+          {/* =====================================
+              ROUTE
+          ===================================== */}
 
           <div className="route-box">
 
@@ -445,7 +757,9 @@ XAF ${totalPayment.toLocaleString("en-GB")}
           </div>
 
 
-          {/* DETAILS */}
+          {/* =====================================
+              DETAILS
+          ===================================== */}
 
           <div className="details">
 
@@ -517,10 +831,13 @@ XAF ${totalPayment.toLocaleString("en-GB")}
             </p>
 
 
-            {/* OFFER */}
+            {/* =====================================
+                OFFER
+            ===================================== */}
 
             {booking.offerTitle &&
-              booking.offerTitle !== "No Offer" && (
+              booking.offerTitle !==
+                "No Offer" && (
 
               <p>
 
@@ -528,9 +845,12 @@ XAF ${totalPayment.toLocaleString("en-GB")}
                   Offer
                 </span>
 
-                <strong className="offer-used">
+                <strong
+                  className="offer-used"
+                >
 
                   {booking.offerTitle}
+
 
                   {discountPercentage > 0 &&
                     ` (${discountPercentage}% OFF)`}
@@ -542,7 +862,9 @@ XAF ${totalPayment.toLocaleString("en-GB")}
             )}
 
 
-            {/* STATUS */}
+            {/* =====================================
+                STATUS
+            ===================================== */}
 
             <p>
 
@@ -551,7 +873,9 @@ XAF ${totalPayment.toLocaleString("en-GB")}
               </span>
 
               <span className="paid">
-                Paid ✓
+
+                Successful ✓
+
               </span>
 
             </p>
@@ -586,7 +910,12 @@ XAF ${totalPayment.toLocaleString("en-GB")}
             </div>
 
 
-            <div className="ticket-price-row ticket-discount">
+            <div
+              className="
+                ticket-price-row
+                ticket-discount
+              "
+            >
 
               <span>
 
@@ -611,10 +940,18 @@ XAF ${totalPayment.toLocaleString("en-GB")}
             </div>
 
 
-            <div className="ticket-price-divider"></div>
+            <div
+              className="
+                ticket-price-divider
+              "
+            ></div>
 
 
-            <div className="ticket-final-price">
+            <div
+              className="
+                ticket-final-price
+              "
+            >
 
               <span>
                 TOTAL PAYMENT
@@ -637,7 +974,9 @@ XAF ${totalPayment.toLocaleString("en-GB")}
           </div>
 
 
-          {/* QR CODE */}
+          {/* =====================================
+              QR CODE
+          ===================================== */}
 
           <div className="qr-box">
 

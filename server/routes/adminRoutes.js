@@ -43,4 +43,25 @@ router.post(
 );
 
 
+// =========================================
+// PAYMENT MANAGEMENT
+// =========================================
+
+router.get(
+  "/payments",
+  adminController.getPayments
+);
+
+
+router.patch(
+  "/payments/:paymentId/accept-reversal",
+  adminController.acceptPaymentReversal
+);
+
+
+router.patch(
+  "/payments/:paymentId/deny-reversal",
+  adminController.denyPaymentReversal
+);
+
 module.exports = router;

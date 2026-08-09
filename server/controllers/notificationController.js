@@ -2,16 +2,17 @@ const db = require("../config/database");
 
 
 // =========================================
-// GET USER NOTIFICATIONS
-// GET /api/notifications
+// CREATE NOTIFICATION
+// POST /api/notifications
 // =========================================
 
-exports.getUserNotifications = (req, res) => {
+exports.createNotification = (req, res) => {
 
   console.log("=========================================");
-  console.log("GET USER NOTIFICATIONS");
+  console.log("CREATE NOTIFICATION");
   console.log("REQ.USER:", req.user);
   console.log("=========================================");
+
 
   // =========================================
   // CHECK AUTHENTICATED USER
@@ -24,8 +25,149 @@ exports.getUserNotifications = (req, res) => {
     );
 
     return res.status(401).json({
-      message: "User authentication information is missing."
+      message:
+        "User authentication information is missing."
     });
+
+  }
+
+
+  const userId = req.user.id;
+
+
+  // =========================================
+  // GET NOTIFICATION DATA
+  // =========================================
+
+  const {
+    title,
+    message,
+    type
+  } = req.body;
+
+
+  // =========================================
+  // VALIDATE NOTIFICATION
+  // =========================================
+
+  if (!title || !message) {
+
+    return res.status(400).json({
+      message:
+        "Notification title and message are required."
+    });
+
+  }
+
+
+  // =========================================
+  // DATABASE QUERY
+  // =========================================
+
+  const sql = `
+    INSERT INTO notifications
+    (
+      user_id,
+      title,
+      message,
+      type,
+      is_read
+    )
+    VALUES (?, ?, ?, ?, ?)
+  `;
+
+
+  db.query(
+    sql,
+    [
+      userId,
+      title,
+      message,
+      type || "general",
+      0
+    ],
+    (err, result) => {
+
+      if (err) {
+
+        console.error(
+          "========================================="
+        );
+
+        console.error(
+          "CREATE NOTIFICATION DATABASE ERROR:"
+        );
+
+        console.error(err);
+
+        console.error(
+          "========================================="
+        );
+
+        return res.status(500).json({
+          message:
+            "Unable to create notification.",
+          error:
+            err.message
+        });
+
+      }
+
+
+      console.log(
+        "Notification created successfully."
+      );
+
+      console.log(
+        "Notification ID:",
+        result.insertId
+      );
+
+
+      return res.status(201).json({
+
+        message:
+          "Notification created successfully.",
+
+        notificationId:
+          result.insertId
+
+      });
+
+    }
+  );
+
+};
+
+
+// =========================================
+// GET USER NOTIFICATIONS
+// GET /api/notifications
+// =========================================
+
+exports.getUserNotifications = (req, res) => {
+
+  console.log("=========================================");
+  console.log("GET USER NOTIFICATIONS");
+  console.log("REQ.USER:", req.user);
+  console.log("=========================================");
+
+
+  // =========================================
+  // CHECK AUTHENTICATED USER
+  // =========================================
+
+  if (!req.user || !req.user.id) {
+
+    console.error(
+      "NOTIFICATION ERROR: req.user.id is missing"
+    );
+
+    return res.status(401).json({
+      message:
+        "User authentication information is missing."
+    });
+
   }
 
 
@@ -78,9 +220,12 @@ exports.getUserNotifications = (req, res) => {
         );
 
         return res.status(500).json({
-          message: "Unable to load notifications.",
-          error: err.message
+          message:
+            "Unable to load notifications.",
+          error:
+            err.message
         });
+
       }
 
 
@@ -91,11 +236,15 @@ exports.getUserNotifications = (req, res) => {
 
 
       return res.status(200).json({
-        notifications: results
+
+        notifications:
+          results
+
       });
 
     }
   );
+
 };
 
 
@@ -109,14 +258,18 @@ exports.markAsRead = (req, res) => {
   if (!req.user || !req.user.id) {
 
     return res.status(401).json({
-      message: "User authentication information is missing."
+      message:
+        "User authentication information is missing."
     });
+
   }
 
 
   const userId = req.user.id;
 
-  const { notificationId } = req.params;
+  const {
+    notificationId
+  } = req.params;
 
 
   const sql = `
@@ -129,7 +282,10 @@ exports.markAsRead = (req, res) => {
 
   db.query(
     sql,
-    [notificationId, userId],
+    [
+      notificationId,
+      userId
+    ],
     (err, result) => {
 
       if (err) {
@@ -142,8 +298,10 @@ exports.markAsRead = (req, res) => {
         return res.status(500).json({
           message:
             "Unable to update notification.",
-          error: err.message
+          error:
+            err.message
         });
+
       }
 
 
@@ -153,16 +311,20 @@ exports.markAsRead = (req, res) => {
           message:
             "Notification not found."
         });
+
       }
 
 
       return res.status(200).json({
+
         message:
           "Notification marked as read."
+
       });
 
     }
   );
+
 };
 
 
@@ -176,8 +338,10 @@ exports.markAllAsRead = (req, res) => {
   if (!req.user || !req.user.id) {
 
     return res.status(401).json({
-      message: "User authentication information is missing."
+      message:
+        "User authentication information is missing."
     });
+
   }
 
 
@@ -206,18 +370,24 @@ exports.markAllAsRead = (req, res) => {
         return res.status(500).json({
           message:
             "Unable to update notifications.",
-          error: err.message
+          error:
+            err.message
         });
+
       }
 
 
       return res.status(200).json({
+
         message:
           "All notifications marked as read.",
+
         updated:
           result.affectedRows
+
       });
 
     }
   );
+
 };

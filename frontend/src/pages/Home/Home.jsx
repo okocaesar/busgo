@@ -5,12 +5,15 @@ import Features from "../../components/Features/Features";
 import PopularRoutes from "../../components/PopularRoutes/PopularRoutes";
 import Testimonials from "../../components/Testimonials/Testimonials";
 import Footer from "../../components/Footer/Footer";
+import InstallApp from "../../components/InstallApp/InstallApp";
+
 
 function Home() {
   return (
     <>
       <Navbar />
       <Hero />
+      <InstallApp />
       <SearchCard />
       <Features />
       <PopularRoutes />

@@ -176,7 +176,7 @@ function Payment() {
       // Payment information
 
       paymentStatus:
-        "Paid",
+        "Successful",
 
 
       paymentMethod:
@@ -185,7 +185,7 @@ function Payment() {
 
       paymentDate:
         new Date()
-          .toLocaleDateString("en-GB"),
+        .toISOString()
 
     };
 

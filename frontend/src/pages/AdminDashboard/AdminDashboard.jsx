@@ -7,9 +7,27 @@ import React, {
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-import Navbar from "../../components/Navbar/Navbar";
-import Footer from "../../components/Footer/Footer";
+import {
+  FiGrid,
+  FiTruck,
+  FiMap,
+  FiCalendar,
+  FiUsers,
+  FiCreditCard,
+  FiBarChart2,
+  FiSettings,
+  FiLogOut,
+  FiBell,
+  FiRefreshCw,
+  FiX,
+  FiCheckCircle,
+  FiXCircle,
+  FiDollarSign,
+  FiUserPlus
+} from "react-icons/fi";
+
 import { API_URL } from "../../api";
+import logo from "../../assets/logo.png";
 
 import "./AdminDashboard.css";
 
@@ -29,10 +47,15 @@ function AdminDashboard() {
 
   const [bookings, setBookings] = useState([]);
 
+  const [payments, setPayments] = useState([]);
+
   const [activeTab, setActiveTab] =
-    useState("bookings");
+    useState("dashboard");
 
   const [error, setError] = useState("");
+
+  const [sidebarOpen, setSidebarOpen] =
+    useState(false);
 
 
   // =========================================
@@ -71,8 +94,11 @@ function AdminDashboard() {
 
 
     if (!token) {
+
       navigate("/login");
+
       return;
+
     }
 
 
@@ -82,8 +108,10 @@ function AdminDashboard() {
         `${API_URL}/api/admin`,
 
       headers: {
+
         Authorization:
           `Bearer ${token}`
+
       }
 
     });
@@ -95,18 +123,21 @@ function AdminDashboard() {
 
 
       const [
-        statsResponse,
-        usersResponse,
-        bookingsResponse
-      ] = await Promise.all([
+  statsResponse,
+  usersResponse,
+  bookingsResponse,
+  paymentsResponse
+] = await Promise.all([
 
-        api.get("/stats"),
+  api.get("/stats"),
 
-        api.get("/users"),
+  api.get("/users"),
 
-        api.get("/bookings")
+  api.get("/bookings"),
 
-      ]);
+  api.get("/payments")
+
+]);
 
 
       setStats(
@@ -123,6 +154,10 @@ function AdminDashboard() {
         bookingsResponse.data.bookings || []
       );
 
+      setPayments(
+        paymentsResponse.data.payments || []
+      );
+
 
     } catch (requestError) {
 
@@ -133,14 +168,20 @@ function AdminDashboard() {
 
 
       setError(
+
         requestError.response?.data?.message ||
+
         "Unable to load admin information."
+
       );
 
 
       if (
+
         requestError.response?.status === 401 ||
+
         requestError.response?.status === 403
+
       ) {
 
         localStorage.removeItem(
@@ -179,8 +220,11 @@ function AdminDashboard() {
 
 
     if (
+
       !currentUser ||
+
       currentUser.role !== "admin"
+
     ) {
 
       navigate("/");
@@ -226,8 +270,10 @@ function AdminDashboard() {
         `${API_URL}/api/admin`,
 
       headers: {
+
         Authorization:
           `Bearer ${token}`
+
       }
 
     });
@@ -247,20 +293,26 @@ function AdminDashboard() {
 
 
       setBookings(
+
         (currentBookings) =>
 
           currentBookings.map(
+
             (booking) =>
 
               booking.id === bookingId
 
                 ? {
+
                     ...booking,
+
                     booking_status:
                       bookingStatus
+
                   }
 
                 : booking
+
           )
 
       );
@@ -272,19 +324,184 @@ function AdminDashboard() {
     } catch (requestError) {
 
       console.error(
+
         "UNABLE TO UPDATE BOOKING:",
+
         requestError
+
       );
 
 
       alert(
+
         requestError.response?.data?.message ||
+
         "Unable to update this booking."
+
       );
 
     }
 
   };
+
+  // =========================================
+// ACCEPT PAYMENT REVERSAL
+// =========================================
+
+const acceptPaymentReversal = async (
+  paymentId
+) => {
+
+  const token =
+    localStorage.getItem("authToken");
+
+
+  if (!token) {
+
+    navigate("/login");
+
+    return;
+
+  }
+
+
+  if (
+    !window.confirm(
+      "Are you sure you want to accept this payment reversal?"
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  try {
+
+    const api = axios.create({
+
+      baseURL:
+        `${API_URL}/api/admin`,
+
+      headers: {
+
+        Authorization:
+          `Bearer ${token}`
+
+      }
+
+    });
+
+
+    await api.patch(
+      `/payments/${paymentId}/accept-reversal`
+    );
+
+
+    await loadAdminData();
+
+
+    alert(
+      "Payment reversal accepted successfully."
+    );
+
+
+  } catch (requestError) {
+
+    console.error(
+      "ACCEPT REVERSAL ERROR:",
+      requestError
+    );
+
+
+    alert(
+      requestError.response?.data?.message ||
+      "Unable to accept payment reversal."
+    );
+
+  }
+
+};
+
+
+// =========================================
+// DENY PAYMENT REVERSAL
+// =========================================
+
+const denyPaymentReversal = async (
+  paymentId
+) => {
+
+  const token =
+    localStorage.getItem("authToken");
+
+
+  if (!token) {
+
+    navigate("/login");
+
+    return;
+
+  }
+
+
+  if (
+    !window.confirm(
+      "Are you sure you want to deny this payment reversal?"
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  try {
+
+    const api = axios.create({
+
+      baseURL:
+        `${API_URL}/api/admin`,
+
+      headers: {
+
+        Authorization:
+          `Bearer ${token}`
+
+      }
+
+    });
+
+
+    await api.patch(
+      `/payments/${paymentId}/deny-reversal`
+    );
+
+
+    await loadAdminData();
+
+
+    alert(
+      "Payment reversal request denied."
+    );
+
+
+  } catch (requestError) {
+
+    console.error(
+      "DENY REVERSAL ERROR:",
+      requestError
+    );
+
+
+    alert(
+      requestError.response?.data?.message ||
+      "Unable to deny payment reversal."
+    );
+
+  }
+
+};
 
 
   // =========================================
@@ -300,6 +517,7 @@ function AdminDashboard() {
 
 
     setNotificationData(
+
       (currentData) => ({
 
         ...currentData,
@@ -307,6 +525,7 @@ function AdminDashboard() {
         [name]: value
 
       })
+
     );
 
 
@@ -340,7 +559,9 @@ function AdminDashboard() {
     ) {
 
       setNotificationError(
+
         "Please enter a notification title."
+
       );
 
       return;
@@ -353,7 +574,9 @@ function AdminDashboard() {
     ) {
 
       setNotificationError(
+
         "Please enter a notification message."
+
       );
 
       return;
@@ -397,16 +620,13 @@ function AdminDashboard() {
       });
 
 
-      console.log(
-        "SENDING ADMIN NOTIFICATION:",
-        notificationData
-      );
-
-
       const response =
         await api.post(
+
           "/notifications",
+
           {
+
             userId:
               notificationData.userId,
 
@@ -418,14 +638,10 @@ function AdminDashboard() {
 
             type:
               notificationData.type
+
           }
+
         );
-
-
-      console.log(
-        "NOTIFICATION RESPONSE:",
-        response.data
-      );
 
 
       setNotificationSuccess(
@@ -457,27 +673,12 @@ function AdminDashboard() {
     } catch (requestError) {
 
       console.error(
+
         "SEND NOTIFICATION ERROR:",
+
         requestError
+
       );
-
-
-      if (
-        requestError.response?.status === 401 ||
-        requestError.response?.status === 403
-      ) {
-
-        setNotificationError(
-
-          requestError.response?.data?.message ||
-
-          "You are not authorized to send notifications."
-
-        );
-
-        return;
-
-      }
 
 
       setNotificationError(
@@ -510,6 +711,121 @@ function AdminDashboard() {
 
 
   // =========================================
+  // LOGOUT
+  // =========================================
+
+  const handleLogout = () => {
+
+    localStorage.removeItem(
+      "authToken"
+    );
+
+    localStorage.removeItem(
+      "loggedIn"
+    );
+
+    localStorage.removeItem(
+      "currentUser"
+    );
+
+
+    navigate("/login");
+
+  };
+
+
+  // =========================================
+  // SIDEBAR NAVIGATION
+  // =========================================
+
+  const navigationItems = [
+
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: <FiGrid />
+    },
+
+    {
+      id: "buses",
+      label: "Buses",
+      icon: <FiTruck />,
+      future: true
+    },
+
+    {
+      id: "routes",
+      label: "Routes",
+      icon: <FiMap />,
+      future: true
+    },
+
+    {
+      id: "bookings",
+      label: "Bookings",
+      icon: <FiCalendar />
+    },
+
+    {
+      id: "users",
+      label: "Users",
+      icon: <FiUsers />
+    },
+
+    {
+      id: "payments",
+      label: "Payments",
+      icon: <FiCreditCard />,
+    },
+
+    {
+      id: "notifications",
+      label: "Notifications",
+      icon: <FiBell />
+    },
+
+    {
+      id: "reports",
+      label: "Reports",
+      icon: <FiBarChart2 />,
+      future: true
+    },
+
+    {
+      id: "settings",
+      label: "Settings",
+      icon: <FiSettings />,
+      future: true
+    }
+
+  ];
+
+
+  // =========================================
+  // HANDLE SIDEBAR NAVIGATION
+  // =========================================
+
+  const handleNavigation = (item) => {
+
+    if (item.future) {
+
+      return;
+
+    }
+
+
+    setActiveTab(item.id);
+
+    setNotificationSuccess("");
+
+    setNotificationError("");
+
+    setSidebarOpen(false);
+
+  };
+
+
+  // =========================================
   // ERROR SCREEN
   // =========================================
 
@@ -517,25 +833,48 @@ function AdminDashboard() {
 
     return (
 
-      <>
+      <main className="admin-shell">
 
-        <Navbar />
+        <aside className="admin-sidebar">
+
+          <div className="sidebar-top">
+
+            <div className="sidebar-brand">
+
+              <img
+                src={logo}
+                alt="BusGo"
+                className="sidebar-logo"
+              />
+
+            </div>
+
+          </div>
+
+        </aside>
 
 
-        <main className="admin-page">
+        <div className="admin-main">
 
-          <p className="admin-error">
+          <div className="admin-error-card">
 
-            {error}
+            <FiXCircle />
 
-          </p>
+            <p>
+              {error}
+            </p>
 
-        </main>
+            <button
+              onClick={loadAdminData}
+            >
+              Try Again
+            </button>
 
+          </div>
 
-        <Footer />
+        </div>
 
-      </>
+      </main>
 
     );
 
@@ -548,721 +887,1654 @@ function AdminDashboard() {
 
   return (
 
-    <>
-
-      <Navbar />
+    <div className="admin-shell">
 
 
-      <main className="admin-page">
+      {/* =====================================
+          MOBILE OVERLAY
+      ===================================== */}
+
+      {sidebarOpen && (
+
+        <div
+          className="admin-sidebar-overlay"
+          onClick={() =>
+            setSidebarOpen(false)
+          }
+        />
+
+      )}
 
 
-        {/* =====================================
-            HEADER
-        ===================================== */}
+      {/* =====================================
+          SIDEBAR
+      ===================================== */}
 
-        <div className="admin-header">
-
-          <div>
-
-            <p className="admin-label">
-              BUSGO ADMIN
-            </p>
-
-
-            <h1>
-              Admin Dashboard
-            </h1>
+      <aside
+        className={`admin-sidebar ${
+          sidebarOpen
+            ? "sidebar-open"
+            : ""
+        }`}
+      >
 
 
-            <span>
-              Manage bookings and monitor your platform.
-            </span>
+        {/* SIDEBAR TOP */}
+
+        <div className="sidebar-top">
+
+          <div className="sidebar-brand">
+
+            <img
+              src={logo}
+              alt="BusGo"
+              className="sidebar-logo"
+            />
 
           </div>
 
 
           <button
-            onClick={loadAdminData}
+            type="button"
+            className="sidebar-close"
+            onClick={() =>
+              setSidebarOpen(false)
+            }
+            aria-label="Close sidebar"
           >
-            Refresh Data
+
+            <FiX />
+
           </button>
 
         </div>
 
 
-        {/* =====================================
-            STATS
-        ===================================== */}
+        {/* NAVIGATION */}
 
-        <section className="admin-stats">
+        <nav className="sidebar-navigation">
 
-
-          <div className="admin-stat-card">
-
-            <span>
-              Users
-            </span>
-
-
-            <strong>
-              {stats?.totalUsers || 0}
-            </strong>
-
-          </div>
-
-
-          <div className="admin-stat-card">
-
-            <span>
-              Total Bookings
-            </span>
-
-
-            <strong>
-              {stats?.totalBookings || 0}
-            </strong>
-
-          </div>
-
-
-          <div className="admin-stat-card">
-
-            <span>
-              Confirmed
-            </span>
-
-
-            <strong>
-              {stats?.confirmedBookings || 0}
-            </strong>
-
-          </div>
-
-
-          <div className="admin-stat-card">
-
-            <span>
-              Revenue
-            </span>
-
-
-            <strong>
-              {formatMoney(
-                stats?.totalRevenue
-              )}
-            </strong>
-
-          </div>
-
-
-        </section>
-
-
-        {/* =====================================
-            TABS
-        ===================================== */}
-
-        <div className="admin-tabs">
-
-
-          <button
-            className={
-              activeTab === "bookings"
-                ? "active"
-                : ""
-            }
-            onClick={() =>
-              setActiveTab("bookings")
-            }
-          >
-            Bookings
-          </button>
-
-
-          <button
-            className={
-              activeTab === "users"
-                ? "active"
-                : ""
-            }
-            onClick={() =>
-              setActiveTab("users")
-            }
-          >
-            Users
-          </button>
-
-
-          <button
-            className={
-              activeTab === "notifications"
-                ? "active"
-                : ""
-            }
-            onClick={() => {
-
-              setActiveTab(
-                "notifications"
-              );
-
-              setNotificationSuccess("");
-
-              setNotificationError("");
-
-            }}
-          >
-            Notifications
-          </button>
-
-
-        </div>
-
-
-        {/* =====================================
-            BOOKINGS
-        ===================================== */}
-
-        {activeTab === "bookings" && (
-
-          <section className="admin-table-card">
-
-            <h2>
-              All Bookings
-            </h2>
-
-
-            <div className="admin-table-scroll">
-
-              <table>
-
-                <thead>
-
-                  <tr>
-
-                    <th>
-                      Ticket
-                    </th>
-
-                    <th>
-                      Passenger
-                    </th>
-
-                    <th>
-                      Route
-                    </th>
-
-                    <th>
-                      Bus
-                    </th>
-
-                    <th>
-                      Payment
-                    </th>
-
-                    <th>
-                      Status
-                    </th>
-
-                    <th>
-                      Action
-                    </th>
-
-                  </tr>
-
-                </thead>
-
-
-                <tbody>
-
-
-                  {bookings.length === 0 ? (
-
-                    <tr>
-
-                      <td colSpan="7">
-
-                        No bookings found.
-
-                      </td>
-
-                    </tr>
-
-                  ) : (
-
-                    bookings.map(
-                      (booking) => (
-
-                        <tr
-                          key={booking.id}
-                        >
-
-
-                          <td>
-                            {booking.ticket_number}
-                          </td>
-
-
-                          <td>
-
-                            {booking.passenger_name}
-
-                            <small>
-                              {booking.user_email}
-                            </small>
-
-                          </td>
-
-
-                          <td>
-
-                            {booking.departure}
-
-                            {" → "}
-
-                            {booking.destination}
-
-                          </td>
-
-
-                          <td>
-                            {booking.bus_name}
-                          </td>
-
-
-                          <td>
-
-                            {formatMoney(
-                              booking.total_payment
-                            )}
-
-                          </td>
-
-
-                          <td>
-
-                            <span
-                              className={`status ${
-                                booking.booking_status
-                                  ?.toLowerCase()
-                                  .replace(
-                                    /\s+/g,
-                                    "-"
-                                  ) || ""
-                              }`}
-                            >
-
-                              {booking.booking_status}
-
-                            </span>
-
-                          </td>
-
-
-                          <td>
-
-
-                            {booking.booking_status ===
-                            "Cancelled" ? (
-
-                              <button
-                                className="confirm-status-btn"
-                                onClick={() =>
-                                  updateBookingStatus(
-                                    booking.id,
-                                    "Confirmed"
-                                  )
-                                }
-                              >
-                                Restore
-                              </button>
-
-                            ) : (
-
-                              <button
-                                className="cancel-status-btn"
-                                onClick={() =>
-                                  updateBookingStatus(
-                                    booking.id,
-                                    "Cancelled"
-                                  )
-                                }
-                              >
-                                Cancel
-                              </button>
-
-                            )}
-
-
-                          </td>
-
-
-                        </tr>
-
-                      )
-                    )
-
-                  )}
-
-
-                </tbody>
-
-              </table>
-
-            </div>
-
-          </section>
-
-        )}
-
-
-        {/* =====================================
-            USERS
-        ===================================== */}
-
-        {activeTab === "users" && (
-
-          <section className="admin-table-card">
-
-            <h2>
-              Registered Users
-            </h2>
-
-
-            <div className="admin-table-scroll">
-
-              <table>
-
-                <thead>
-
-                  <tr>
-
-                    <th>
-                      Name
-                    </th>
-
-                    <th>
-                      Email
-                    </th>
-
-                    <th>
-                      Phone
-                    </th>
-
-                    <th>
-                      Role
-                    </th>
-
-                    <th>
-                      Joined
-                    </th>
-
-                  </tr>
-
-                </thead>
-
-
-                <tbody>
-
-
-                  {users.length === 0 ? (
-
-                    <tr>
-
-                      <td colSpan="5">
-
-                        No users found.
-
-                      </td>
-
-                    </tr>
-
-                  ) : (
-
-                    users.map(
-                      (user) => (
-
-                        <tr
-                          key={user.id}
-                        >
-
-                          <td>
-                            {user.name}
-                          </td>
-
-                          <td>
-                            {user.email}
-                          </td>
-
-                          <td>
-                            {user.phone}
-                          </td>
-
-                          <td>
-                            {user.role}
-                          </td>
-
-                          <td>
-
-                            {user.created_at
-
-                              ? String(
-                                  user.created_at
-                                ).slice(
-                                  0,
-                                  10
-                                )
-
-                              : "N/A"}
-
-                          </td>
-
-                        </tr>
-
-                      )
-                    )
-
-                  )}
-
-
-                </tbody>
-
-              </table>
-
-            </div>
-
-          </section>
-
-        )}
-
-
-        {/* =====================================
-            NOTIFICATIONS
-        ===================================== */}
-
-        {activeTab === "notifications" && (
-
-          <section className="admin-table-card">
-
-            <h2>
-              Send Notification
-            </h2>
-
-
-            <p className="admin-notification-description">
-
-              Send an announcement or important
-              message directly to BusGo users.
-
-            </p>
-
-
-            {/* SUCCESS */}
-
-            {notificationSuccess && (
-
-              <div className="admin-notification-success">
-
-                ✅ {notificationSuccess}
-
-              </div>
-
-            )}
-
-
-            {/* ERROR */}
-
-            {notificationError && (
-
-              <div className="admin-notification-error">
-
-                ⚠️ {notificationError}
-
-              </div>
-
-            )}
-
-
-            <form
-              className="admin-notification-form"
-              onSubmit={sendNotification}
-            >
-
-
-              {/* RECIPIENT */}
-
-              <div className="admin-form-group">
-
-                <label>
-                  Send To
-                </label>
-
-
-                <select
-                  name="userId"
-                  value={
-                    notificationData.userId
-                  }
-                  onChange={
-                    handleNotificationChange
-                  }
-                >
-
-                  <option value="all">
-
-                    📢 All Users
-
-                  </option>
-
-
-                  {users
-                    .filter(
-                      (user) =>
-                        user.role !== "admin"
-                    )
-                    .map(
-                      (user) => (
-
-                        <option
-                          key={user.id}
-                          value={user.id}
-                        >
-
-                          {user.name}
-                          {" — "}
-                          {user.email}
-
-                        </option>
-
-                      )
-                    )}
-
-                </select>
-
-              </div>
-
-
-              {/* TYPE */}
-
-              <div className="admin-form-group">
-
-                <label>
-                  Notification Type
-                </label>
-
-
-                <select
-                  name="type"
-                  value={
-                    notificationData.type
-                  }
-                  onChange={
-                    handleNotificationChange
-                  }
-                >
-
-                  <option value="info">
-                    🔔 General Information
-                  </option>
-
-                  <option value="success">
-                    ✅ Success
-                  </option>
-
-                  <option value="warning">
-                    ⚠️ Warning
-                  </option>
-
-                  <option value="booking">
-                    🎫 Booking
-                  </option>
-
-                </select>
-
-              </div>
-
-
-              {/* TITLE */}
-
-              <div className="admin-form-group">
-
-                <label>
-                  Notification Title
-                </label>
-
-
-                <input
-                  type="text"
-                  name="title"
-                  value={
-                    notificationData.title
-                  }
-                  onChange={
-                    handleNotificationChange
-                  }
-                  placeholder="Enter notification title"
-                  maxLength="150"
-                />
-
-              </div>
-
-
-              {/* MESSAGE */}
-
-              <div className="admin-form-group">
-
-                <label>
-                  Message
-                </label>
-
-
-                <textarea
-                  name="message"
-                  value={
-                    notificationData.message
-                  }
-                  onChange={
-                    handleNotificationChange
-                  }
-                  placeholder="Write your announcement here..."
-                  rows="6"
-                  maxLength="1000"
-                />
-
-              </div>
-
-
-              {/* SEND BUTTON */}
+          {navigationItems.map(
+            (item) => (
 
               <button
-                type="submit"
-                className="send-notification-btn"
-                disabled={
-                  sendingNotification
+
+                type="button"
+
+                key={item.id}
+
+                className={`sidebar-link ${
+                  activeTab === item.id
+                    ? "active"
+                    : ""
+                } ${
+                  item.future
+                    ? "future-link"
+                    : ""
+                }`}
+
+                onClick={() =>
+                  handleNavigation(item)
                 }
+
               >
 
-                {sendingNotification
+                <span className="sidebar-icon">
 
-                  ? "Sending..."
+                  {item.icon}
 
-                  : "📢 Send Notification"}
+                </span>
+
+
+                <span>
+
+                  {item.label}
+
+                </span>
 
               </button>
 
+            )
+          )}
 
-            </form>
-
-          </section>
-
-        )}
+        </nav>
 
 
-      </main>
+        {/* LOGOUT */}
+
+        <div className="sidebar-bottom">
+
+          <button
+            type="button"
+            className="sidebar-link logout-link"
+            onClick={handleLogout}
+          >
+
+            <span className="sidebar-icon">
+
+              <FiLogOut />
+
+            </span>
 
 
-      <Footer />
+            <span>
 
-    </>
+              Logout
+
+            </span>
+
+          </button>
+
+        </div>
+
+
+      </aside>
+
+
+      {/* =====================================
+          MAIN AREA
+      ===================================== */}
+
+      <div className="admin-main">
+
+
+        {/* =====================================
+            CONTENT
+        ===================================== */}
+
+        <main className="admin-content">
+
+
+          {/* ===================================
+              DASHBOARD
+          =================================== */}
+
+          {activeTab === "dashboard" && (
+
+            <>
+
+              <div className="dashboard-heading">
+
+                <div>
+
+                  <h1>
+                    Overview
+                  </h1>
+
+                  <p>
+                    Welcome back. Here's what's
+                    happening with BusGo.
+                  </p>
+
+                </div>
+
+
+                <button
+                  type="button"
+                  className="refresh-btn"
+                  onClick={loadAdminData}
+                >
+
+                  <FiRefreshCw />
+
+                  Refresh
+
+                </button>
+
+              </div>
+
+
+              {/* STAT CARDS */}
+
+              <section className="admin-stats">
+
+
+                <div className="admin-stat-card">
+
+                  <div className="stat-card-top">
+
+                    <span>
+                      Total Bookings
+                    </span>
+
+                    <div className="stat-icon blue">
+                      <FiCalendar />
+                    </div>
+
+                  </div>
+
+
+                  <strong>
+                    {stats?.totalBookings || 0}
+                  </strong>
+
+
+                  <small>
+                    Total bookings on platform
+                  </small>
+
+                </div>
+
+
+                <div className="admin-stat-card">
+
+                  <div className="stat-card-top">
+
+                    <span>
+                      Total Users
+                    </span>
+
+                    <div className="stat-icon green">
+                      <FiUsers />
+                    </div>
+
+                  </div>
+
+
+                  <strong>
+                    {stats?.totalUsers || 0}
+                  </strong>
+
+
+                  <small>
+                    Registered BusGo users
+                  </small>
+
+                </div>
+
+
+                <div className="admin-stat-card">
+
+                  <div className="stat-card-top">
+
+                    <span>
+                      Total Revenue
+                    </span>
+
+                    <div className="stat-icon purple">
+                      <FiDollarSign />
+                    </div>
+
+                  </div>
+
+
+                  <strong className="revenue-value">
+
+                    {formatMoney(
+                      stats?.totalRevenue
+                    )}
+
+                  </strong>
+
+
+                  <small>
+                    Confirmed booking revenue
+                  </small>
+
+                </div>
+
+
+                <div className="admin-stat-card">
+
+                  <div className="stat-card-top">
+
+                    <span>
+                      Confirmed Bookings
+                    </span>
+
+                    <div className="stat-icon orange">
+                      <FiCheckCircle />
+                    </div>
+
+                  </div>
+
+
+                  <strong>
+                    {stats?.confirmedBookings || 0}
+                  </strong>
+
+
+                  <small>
+                    Successfully confirmed
+                  </small>
+
+                </div>
+
+
+              </section>
+
+
+              {/* QUICK OVERVIEW */}
+
+              <section className="dashboard-overview-grid">
+
+
+                {/* RECENT BOOKINGS */}
+
+                <div className="dashboard-card">
+
+                  <div className="dashboard-card-header">
+
+                    <div>
+
+                      <h2>
+                        Recent Bookings
+                      </h2>
+
+                      <p>
+                        Latest bookings on BusGo
+                      </p>
+
+                    </div>
+
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setActiveTab(
+                          "bookings"
+                        )
+                      }
+                    >
+                      View All
+                    </button>
+
+                  </div>
+
+
+                  <div className="recent-bookings">
+
+                    {bookings.length === 0 ? (
+
+                      <div className="dashboard-empty">
+
+                        No bookings found.
+
+                      </div>
+
+                    ) : (
+
+                      bookings
+                        .slice(0, 5)
+                        .map(
+                          (booking) => (
+
+                            <div
+                              className="recent-booking"
+                              key={booking.id}
+                            >
+
+                              <div className="booking-avatar">
+
+                                <FiCalendar />
+
+                              </div>
+
+
+                              <div className="booking-summary">
+
+                                <strong>
+                                  {booking.passenger_name}
+                                </strong>
+
+
+                                <span>
+
+                                  {booking.departure}
+
+                                  {" → "}
+
+                                  {booking.destination}
+
+                                </span>
+
+                              </div>
+
+
+                              <div className="booking-right">
+
+                                <strong>
+
+                                  {formatMoney(
+                                    booking.total_payment
+                                  )}
+
+                                </strong>
+
+
+                                <span
+                                  className={`status ${
+                                    booking.booking_status
+                                      ?.toLowerCase()
+                                      .replace(
+                                        /\s+/g,
+                                        "-"
+                                      ) || ""
+                                  }`}
+                                >
+
+                                  {booking.booking_status}
+
+                                </span>
+
+                              </div>
+
+                            </div>
+
+                          )
+                        )
+
+                    )}
+
+                  </div>
+
+                </div>
+
+
+                {/* PLATFORM SUMMARY */}
+
+                <div className="dashboard-card">
+
+                  <div className="dashboard-card-header">
+
+                    <div>
+
+                      <h2>
+                        Platform Summary
+                      </h2>
+
+                      <p>
+                        Current BusGo statistics
+                      </p>
+
+                    </div>
+
+                  </div>
+
+
+                  <div className="summary-list">
+
+
+                    <div className="summary-item">
+
+                      <div className="summary-icon">
+
+                        <FiUsers />
+
+                      </div>
+
+
+                      <div>
+
+                        <span>
+                          Registered Users
+                        </span>
+
+                        <strong>
+                          {stats?.totalUsers || 0}
+                        </strong>
+
+                      </div>
+
+                    </div>
+
+
+                    <div className="summary-item">
+
+                      <div className="summary-icon">
+
+                        <FiCalendar />
+
+                      </div>
+
+
+                      <div>
+
+                        <span>
+                          Total Bookings
+                        </span>
+
+                        <strong>
+                          {stats?.totalBookings || 0}
+                        </strong>
+
+                      </div>
+
+                    </div>
+
+
+                    <div className="summary-item">
+
+                      <div className="summary-icon">
+
+                        <FiCheckCircle />
+
+                      </div>
+
+
+                      <div>
+
+                        <span>
+                          Confirmed
+                        </span>
+
+                        <strong>
+                          {stats?.confirmedBookings || 0}
+                        </strong>
+
+                      </div>
+
+                    </div>
+
+
+                    <div className="summary-item">
+
+                      <div className="summary-icon">
+
+                        <FiXCircle />
+
+                      </div>
+
+
+                      <div>
+
+                        <span>
+                          Cancelled
+                        </span>
+
+                        <strong>
+                          {stats?.cancelledBookings || 0}
+                        </strong>
+
+                      </div>
+
+                    </div>
+
+
+                  </div>
+
+                </div>
+
+
+              </section>
+
+            </>
+
+          )}
+
+
+          {/* ===================================
+              BOOKINGS
+          =================================== */}
+
+          {activeTab === "bookings" && (
+
+            <section className="admin-table-card">
+
+              <div className="section-heading">
+
+                <div>
+
+                  <h1>
+                    Bookings
+                  </h1>
+
+                  <p>
+                    Manage all BusGo bookings.
+                  </p>
+
+                </div>
+
+
+                <button
+                  type="button"
+                  className="refresh-btn"
+                  onClick={loadAdminData}
+                >
+
+                  <FiRefreshCw />
+
+                  Refresh
+
+                </button>
+
+              </div>
+
+
+              <div className="admin-table-scroll">
+
+                <table>
+
+                  <thead>
+
+                    <tr>
+
+                      <th>
+                        Ticket
+                      </th>
+
+                      <th>
+                        Passenger
+                      </th>
+
+                      <th>
+                        Route
+                      </th>
+
+                      <th>
+                        Bus
+                      </th>
+
+                      <th>
+                        Payment
+                      </th>
+
+                      <th>
+                        Status
+                      </th>
+
+                      <th>
+                        Action
+                      </th>
+
+                    </tr>
+
+                  </thead>
+
+
+                  <tbody>
+
+                    {bookings.length === 0 ? (
+
+                      <tr>
+
+                        <td colSpan="7">
+
+                          No bookings found.
+
+                        </td>
+
+                      </tr>
+
+                    ) : (
+
+                      bookings.map(
+                        (booking) => (
+
+                          <tr
+                            key={
+                              booking.id
+                            }
+                          >
+
+                            <td>
+
+                              <strong>
+                                {booking.ticket_number}
+                              </strong>
+
+                            </td>
+
+
+                            <td>
+
+                              <strong>
+                                {booking.passenger_name}
+                              </strong>
+
+                              <small>
+                                {booking.user_email}
+                              </small>
+
+                            </td>
+
+
+                            <td>
+
+                              {booking.departure}
+
+                              <span className="route-arrow">
+                                →
+                              </span>
+
+                              {booking.destination}
+
+                            </td>
+
+
+                            <td>
+                              {booking.bus_name}
+                            </td>
+
+
+                            <td>
+
+                              {formatMoney(
+                                booking.total_payment
+                              )}
+
+                            </td>
+
+
+                            <td>
+
+                              <span
+                                className={`status ${
+                                  booking.booking_status
+                                    ?.toLowerCase()
+                                    .replace(
+                                      /\s+/g,
+                                      "-"
+                                    ) || ""
+                                }`}
+                              >
+
+                                {booking.booking_status}
+
+                              </span>
+
+                            </td>
+
+
+                            <td>
+
+                              {booking.booking_status ===
+                              "Cancelled" ? (
+
+                                <button
+                                  type="button"
+                                  className="confirm-status-btn"
+                                  onClick={() =>
+                                    updateBookingStatus(
+                                      booking.id,
+                                      "Confirmed"
+                                    )
+                                  }
+                                >
+                                  Restore
+                                </button>
+
+                              ) : (
+
+                                <button
+                                  type="button"
+                                  className="cancel-status-btn"
+                                  onClick={() =>
+                                    updateBookingStatus(
+                                      booking.id,
+                                      "Cancelled"
+                                    )
+                                  }
+                                >
+                                  Cancel
+                                </button>
+
+                              )}
+
+                            </td>
+
+                          </tr>
+
+                        )
+                      )
+
+                    )}
+
+                  </tbody>
+
+                </table>
+
+              </div>
+
+            </section>
+
+          )}
+
+
+          {/* ===================================
+              USERS
+          =================================== */}
+
+          {activeTab === "users" && (
+
+            <section className="admin-table-card">
+
+              <div className="section-heading">
+
+                <div>
+
+                  <h1>
+                    Users
+                  </h1>
+
+                  <p>
+                    Manage registered BusGo users.
+                  </p>
+
+                </div>
+
+
+                <div className="section-count">
+
+                  <FiUserPlus />
+
+                  {users.length} Users
+
+                </div>
+
+              </div>
+
+
+              <div className="admin-table-scroll">
+
+                <table>
+
+                  <thead>
+
+                    <tr>
+
+                      <th>
+                        Name
+                      </th>
+
+                      <th>
+                        Email
+                      </th>
+
+                      <th>
+                        Phone
+                      </th>
+
+                      <th>
+                        Role
+                      </th>
+
+                      <th>
+                        Joined
+                      </th>
+
+                    </tr>
+
+                  </thead>
+
+
+                  <tbody>
+
+                    {users.length === 0 ? (
+
+                      <tr>
+
+                        <td colSpan="5">
+
+                          No users found.
+
+                        </td>
+
+                      </tr>
+
+                    ) : (
+
+                      users.map(
+                        (user) => (
+
+                          <tr
+                            key={
+                              user.id
+                            }
+                          >
+
+                            <td>
+
+                              <div className="user-cell">
+
+                                <div className="user-avatar">
+
+                                  {user.name
+                                    ?.charAt(0)
+                                    ?.toUpperCase()}
+
+                                </div>
+
+
+                                <strong>
+                                  {user.name}
+                                </strong>
+
+                              </div>
+
+                            </td>
+
+
+                            <td>
+                              {user.email}
+                            </td>
+
+
+                            <td>
+                              {user.phone}
+                            </td>
+
+
+                            <td>
+
+                              <span
+                                className={`role-badge ${
+                                  user.role ===
+                                  "admin"
+                                    ? "admin-role"
+                                    : ""
+                                }`}
+                              >
+
+                                {user.role}
+
+                              </span>
+
+                            </td>
+
+
+                            <td>
+
+                              {user.created_at
+
+                                ? String(
+                                    user.created_at
+                                  ).slice(
+                                    0,
+                                    10
+                                  )
+
+                                : "N/A"}
+
+                            </td>
+
+                          </tr>
+
+                        )
+                      )
+
+                    )}
+
+                  </tbody>
+
+                </table>
+
+              </div>
+
+            </section>
+
+          )}
+
+
+          {/* ===================================
+              NOTIFICATIONS
+          =================================== */}
+
+          {activeTab === "notifications" && (
+
+            <section className="admin-table-card notification-panel">
+
+              <div className="section-heading">
+
+                <div>
+
+                  <h1>
+                    Notifications
+                  </h1>
+
+                  <p>
+                    Send announcements and important
+                    messages to BusGo users.
+                  </p>
+
+                </div>
+
+
+                <div className="notification-heading-icon">
+
+                  <FiBell />
+
+                </div>
+
+              </div>
+
+
+              {notificationSuccess && (
+
+                <div className="admin-notification-success">
+
+                  <FiCheckCircle />
+
+                  <span>
+                    {notificationSuccess}
+                  </span>
+
+                </div>
+
+              )}
+
+
+              {notificationError && (
+
+                <div className="admin-notification-error">
+
+                  <FiXCircle />
+
+                  <span>
+                    {notificationError}
+                  </span>
+
+                </div>
+
+              )}
+
+
+              <form
+                className="admin-notification-form"
+                onSubmit={
+                  sendNotification
+                }
+              >
+
+
+                <div className="form-grid">
+
+
+                  <div className="admin-form-group">
+
+                    <label>
+                      Send To
+                    </label>
+
+
+                    <select
+                      name="userId"
+                      value={
+                        notificationData.userId
+                      }
+                      onChange={
+                        handleNotificationChange
+                      }
+                    >
+
+                      <option value="all">
+                        📢 All Users
+                      </option>
+
+
+                      {users
+                        .filter(
+                          (user) =>
+                            user.role !==
+                            "admin"
+                        )
+                        .map(
+                          (user) => (
+
+                            <option
+                              key={user.id}
+                              value={user.id}
+                            >
+
+                              {user.name}
+                              {" — "}
+                              {user.email}
+
+                            </option>
+
+                          )
+                        )}
+
+                    </select>
+
+                  </div>
+
+
+                  <div className="admin-form-group">
+
+                    <label>
+                      Notification Type
+                    </label>
+
+
+                    <select
+                      name="type"
+                      value={
+                        notificationData.type
+                      }
+                      onChange={
+                        handleNotificationChange
+                      }
+                    >
+
+                      <option value="info">
+                        🔔 General Information
+                      </option>
+
+                      <option value="success">
+                        ✅ Success
+                      </option>
+
+                      <option value="warning">
+                        ⚠️ Warning
+                      </option>
+
+                      <option value="booking">
+                        🎫 Booking
+                      </option>
+
+                    </select>
+
+                  </div>
+
+
+                </div>
+
+
+                <div className="admin-form-group">
+
+                  <label>
+                    Notification Title
+                  </label>
+
+
+                  <input
+                    type="text"
+                    name="title"
+                    value={
+                      notificationData.title
+                    }
+                    onChange={
+                      handleNotificationChange
+                    }
+                    placeholder="Enter notification title"
+                    maxLength="150"
+                  />
+
+                </div>
+
+
+                <div className="admin-form-group">
+
+                  <label>
+                    Message
+                  </label>
+
+
+                  <textarea
+                    name="message"
+                    value={
+                      notificationData.message
+                    }
+                    onChange={
+                      handleNotificationChange
+                    }
+                    placeholder="Write your announcement here..."
+                    rows="6"
+                    maxLength="1000"
+                  />
+
+                </div>
+
+
+                <button
+                  type="submit"
+                  className="send-notification-btn"
+                  disabled={
+                    sendingNotification
+                  }
+                >
+
+                  <FiBell />
+
+                  {sendingNotification
+                    ? "Sending..."
+                    : "Send Notification"}
+
+                </button>
+
+
+              </form>
+
+            </section>
+
+          )}
+
+{/* ===================================
+    PAYMENTS
+=================================== */}
+
+{activeTab === "payments" && (
+
+  <section className="admin-table-card payments-panel">
+
+    <div className="section-heading">
+
+      <div>
+
+        <h1>
+          Payments
+        </h1>
+
+        <p>
+          View and manage all BusGo payment transactions.
+        </p>
+
+      </div>
+
+
+      <button
+        className="refresh-btn"
+        onClick={loadAdminData}
+      >
+
+        <FiRefreshCw />
+
+        Refresh
+
+      </button>
+
+    </div>
+
+
+    {/* PAYMENT SUMMARY */}
+
+    <div className="payment-summary">
+
+      <div className="payment-summary-card">
+
+        <span>
+          Successful
+        </span>
+
+        <strong>
+          {
+            payments.filter(
+              payment =>
+                payment.status === "Successful"
+            ).length
+          }
+        </strong>
+
+      </div>
+
+
+      <div className="payment-summary-card reversal">
+
+        <span>
+          Requested Reversal
+        </span>
+
+        <strong>
+          {
+            payments.filter(
+              payment =>
+                payment.status ===
+                "Requested Reversal"
+            ).length
+          }
+        </strong>
+
+      </div>
+
+
+      <div className="payment-summary-card reversed">
+
+        <span>
+          Reversed
+        </span>
+
+        <strong>
+          {
+            payments.filter(
+              payment =>
+                payment.status === "Reversed"
+            ).length
+          }
+        </strong>
+
+      </div>
+
+
+      <div className="payment-summary-card failed">
+
+        <span>
+          Failed
+        </span>
+
+        <strong>
+          {
+            payments.filter(
+              payment =>
+                payment.status === "Failed"
+            ).length
+          }
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    {/* PAYMENT TABLE */}
+
+    <div className="admin-table-scroll">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>
+              Transaction
+            </th>
+
+            <th>
+              User
+            </th>
+
+            <th>
+              Ticket
+            </th>
+
+            <th>
+              Amount
+            </th>
+
+            <th>
+              Method
+            </th>
+
+            <th>
+              Date
+            </th>
+
+            <th>
+              Status
+            </th>
+
+            <th>
+              Action
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          {payments.length === 0 ? (
+
+            <tr>
+
+              <td
+                colSpan="8"
+                className="empty-payment"
+              >
+
+                No payment transactions found.
+
+              </td>
+
+            </tr>
+
+          ) : (
+
+            payments.map(
+              payment => (
+
+                <tr
+                  key={payment.id}
+                >
+
+                  {/* TRANSACTION */}
+
+                  <td>
+
+                    <strong>
+                      {payment.transaction_id}
+                    </strong>
+
+                  </td>
+
+
+                  {/* USER */}
+
+                  <td>
+
+                    <div className="payment-user">
+
+                      <strong>
+                        {payment.user_name ||
+                          "Unknown User"}
+                      </strong>
+
+                      <small>
+                        {payment.user_email}
+                      </small>
+
+                    </div>
+
+                  </td>
+
+
+                  {/* TICKET */}
+
+                  <td>
+
+                    {payment.ticket_number ||
+                      "N/A"}
+
+                  </td>
+
+
+                  {/* AMOUNT */}
+
+                  <td>
+
+                    <strong>
+                      {formatMoney(
+                        payment.amount
+                      )}
+                    </strong>
+
+                  </td>
+
+
+                  {/* METHOD */}
+
+                  <td>
+
+                    {payment.payment_method}
+
+                  </td>
+
+
+                  {/* DATE */}
+
+                  <td>
+
+                    {payment.payment_date
+                      ? new Date(
+                          payment.payment_date
+                        ).toLocaleString(
+                          "en-GB"
+                        )
+                      : "N/A"}
+
+                  </td>
+
+
+                  {/* STATUS */}
+
+                  <td>
+
+                    <span
+                      className={`payment-status ${payment.status
+                        ?.toLowerCase()
+                        .replace(
+                          /\s+/g,
+                          "-"
+                        )}`}
+                    >
+
+                      {payment.status}
+
+                    </span>
+
+                  </td>
+
+
+                  {/* ACTION */}
+
+                  <td>
+
+                    {payment.status ===
+                    "Requested Reversal" ? (
+
+                      <div className="payment-actions">
+
+                        <button
+                          className="accept-reversal-btn"
+                          onClick={() =>
+                            acceptPaymentReversal(
+                              payment.id
+                            )
+                          }
+                        >
+
+                          <FiCheckCircle />
+
+                          Accept
+
+                        </button>
+
+
+                        <button
+                          className="deny-reversal-btn"
+                          onClick={() =>
+                            denyPaymentReversal(
+                              payment.id
+                            )
+                          }
+                        >
+
+                          <FiXCircle />
+
+                          Deny
+
+                        </button>
+
+                      </div>
+
+                    ) : (
+
+                      <span className="no-payment-action">
+                        —
+                      </span>
+
+                    )}
+
+                  </td>
+
+                </tr>
+
+              )
+            )
+
+          )}
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </section>
+
+)}
+          {/* ===================================
+              FUTURE ADMIN SECTIONS
+          =================================== */}
+
+          {[
+            "buses",
+            "routes",
+            "reports",
+            "settings"
+          ].includes(activeTab) && (
+
+            <section className="coming-soon-card">
+
+              <div className="coming-soon-icon">
+
+                {activeTab === "buses" &&
+                  <FiTruck />}
+
+                {activeTab === "routes" &&
+                  <FiMap />}
+
+                {activeTab === "payments" &&
+                  <FiCreditCard />}
+
+                {activeTab === "reports" &&
+                  <FiBarChart2 />}
+
+                {activeTab === "settings" &&
+                  <FiSettings />}
+
+              </div>
+
+
+              <h1>
+
+                {activeTab.charAt(0).toUpperCase() +
+                  activeTab.slice(1)}
+
+              </h1>
+
+
+              <p>
+
+                This section is ready for the existing
+                BusGo functionality to be connected.
+
+              </p>
+
+            </section>
+
+          )}
+
+        </main>
+
+
+        {/* =====================================
+            FOOTER
+        ===================================== */}
+
+        <footer className="admin-footer">
+
+          <span>
+
+            © {new Date().getFullYear()} BusGo
+
+          </span>
+
+
+          <span>
+
+            Admin Dashboard
+
+          </span>
+
+        </footer>
+
+
+      </div>
+
+    </div>
 
   );
 

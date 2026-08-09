@@ -1,8 +1,9 @@
 const Booking = require("../models/Booking");
+const Notification = require("../models/Notification");
 
 
 // =========================================
-// FORMAT PAYMENT DATE
+// FORMAT PAYMENT DATE FOR MYSQL DATETIME
 // =========================================
 
 const formatPaymentDate = (paymentDate) => {
@@ -11,12 +12,44 @@ const formatPaymentDate = (paymentDate) => {
     return null;
   }
 
+
+  // =========================================
+  // ALREADY A MYSQL DATETIME
+  // =========================================
+
   if (
     typeof paymentDate === "string" &&
-    /^\d{4}-\d{2}-\d{2}/.test(paymentDate)
+    /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(paymentDate)
   ) {
     return paymentDate;
   }
+
+
+  // =========================================
+  // ISO DATE
+  // =========================================
+
+  if (
+    typeof paymentDate === "string" &&
+    /^\d{4}-\d{2}-\d{2}T/.test(paymentDate)
+  ) {
+
+    const date = new Date(paymentDate);
+
+    if (isNaN(date.getTime())) {
+      return null;
+    }
+
+    return date
+      .toISOString()
+      .slice(0, 19)
+      .replace("T", " ");
+  }
+
+
+  // =========================================
+  // DD/MM/YYYY
+  // =========================================
 
   if (
     typeof paymentDate === "string" &&
@@ -32,8 +65,27 @@ const formatPaymentDate = (paymentDate) => {
     return `${year}-${month}-${day} 00:00:00`;
   }
 
+
+  // =========================================
+  // JAVASCRIPT DATE OBJECT
+  // =========================================
+
+  if (paymentDate instanceof Date) {
+
+    if (isNaN(paymentDate.getTime())) {
+      return null;
+    }
+
+    return paymentDate
+      .toISOString()
+      .slice(0, 19)
+      .replace("T", " ");
+  }
+
+
   return null;
 };
+
 
 
 // =========================================
@@ -107,7 +159,8 @@ exports.createBooking = (req, res) => {
         return res.status(500).json({
           message:
             "Failed to find the selected route.",
-          error: routeError.message
+          error:
+            routeError.message
         });
       }
 
@@ -142,7 +195,8 @@ exports.createBooking = (req, res) => {
             return res.status(500).json({
               message:
                 "Failed to find the selected bus.",
-              error: busError.message
+              error:
+                busError.message
             });
           }
 
@@ -205,7 +259,7 @@ exports.createBooking = (req, res) => {
               paymentMethod,
 
               paymentStatus:
-                paymentStatus || "Paid",
+                paymentStatus || "Successful",
 
               bookingStatus:
                 "Confirmed",
@@ -214,6 +268,10 @@ exports.createBooking = (req, res) => {
                 formatPaymentDate(paymentDate)
             };
 
+
+            // =========================================
+            // CREATE BOOKING IN DATABASE
+            // =========================================
 
             Booking.create(
               booking,
@@ -236,16 +294,93 @@ exports.createBooking = (req, res) => {
                 }
 
 
-                return res.status(201).json({
+                // =========================================
+                // BOOKING SAVED SUCCESSFULLY
+                // =========================================
+
+                console.log(
+                  "Booking created successfully:",
+                  result.insertId
+                );
+
+
+                // =========================================
+                // CREATE USER NOTIFICATION
+                // =========================================
+
+                const notification = {
+
+                  userId,
+
+                  title:
+                    "Booking Successful 🎫",
 
                   message:
-                    "Booking saved successfully.",
+                    `Thank you ${name}! Your booking from ${from} to ${to} has been successfully confirmed. Your ticket number is ${ticketNumber}. We wish you a safe and pleasant journey!`,
 
-                  bookingId:
-                    result.insertId,
+                  type:
+                    "booking",
 
-                  ticketNumber
-                });
+                  isRead:
+                    0
+                };
+
+
+                Notification.create(
+                  notification,
+                  (notificationError) => {
+
+                    // =========================================
+                    // NOTIFICATION ERROR
+                    // =========================================
+                    //
+                    // IMPORTANT:
+                    // We DO NOT fail the booking if the
+                    // notification fails.
+                    //
+                    // The ticket has already been saved.
+                    // =========================================
+
+                    if (notificationError) {
+
+                      console.error(
+                        "Notification creation error:",
+                        notificationError
+                      );
+
+                    } else {
+
+                      console.log(
+                        "Booking notification created successfully."
+                      );
+
+                    }
+
+
+                    // =========================================
+                    // SEND FINAL RESPONSE
+                    // =========================================
+
+                    return res.status(201).json({
+
+                      message:
+                        "Booking saved successfully.",
+
+                      bookingId:
+                        result.insertId,
+
+                      ticketNumber,
+
+                      notification:
+                        notificationError
+                          ? false
+                          : true
+
+                    });
+
+                  }
+                );
+
               }
             );
           };
@@ -299,13 +434,17 @@ exports.createBooking = (req, res) => {
 
 
               saveBooking(offerId);
+
             }
           );
+
         }
       );
+
     }
   );
 };
+
 
 
 // =========================================
@@ -365,9 +504,11 @@ exports.getUserBookings = (
           results || []
 
       });
+
     }
   );
 };
+
 
 
 // =========================================
@@ -386,6 +527,10 @@ exports.cancelBooking = (
   } = req.params;
 
 
+  // =========================================
+  // VALIDATE REQUEST
+  // =========================================
+
   if (
     !bookingId ||
     !userId
@@ -395,8 +540,13 @@ exports.cancelBooking = (
       message:
         "Booking ID and User ID are required."
     });
+
   }
 
+
+  // =========================================
+  // CANCEL BOOKING
+  // =========================================
 
   Booking.cancelByIdAndUserId(
     bookingId,
@@ -406,8 +556,17 @@ exports.cancelBooking = (
       if (err) {
 
         console.error(
-          "Cancel booking error:",
-          err
+          "========================================="
+        );
+
+        console.error(
+          "CANCEL BOOKING DATABASE ERROR:"
+        );
+
+        console.error(err);
+
+        console.error(
+          "========================================="
         );
 
         return res.status(500).json({
@@ -417,8 +576,13 @@ exports.cancelBooking = (
           error:
             err.message
         });
+
       }
 
+
+      // =========================================
+      // BOOKING NOT FOUND
+      // =========================================
 
       if (
         result.affectedRows === 0
@@ -428,13 +592,118 @@ exports.cancelBooking = (
           message:
             "Booking not found."
         });
+
       }
 
 
-      return res.json({
+      console.log(
+        "Booking cancelled successfully:",
+        bookingId
+      );
+
+
+      // =========================================
+      // CREATE CANCELLATION NOTIFICATION
+      // =========================================
+
+      const notification = {
+
+        userId:
+
+          Number(userId),
+
+        title:
+
+          "Booking Cancelled ❌",
+
         message:
-          "Booking cancelled successfully."
-      });
+
+          `Your BusGo booking #${bookingId} has been successfully cancelled. If you did not request this cancellation, please contact BusGo support.`,
+
+        type:
+
+          "warning",
+
+        isRead:
+
+          0
+
+      };
+
+
+      Notification.create(
+        notification,
+        (notificationError) => {
+
+          // =========================================
+          // NOTIFICATION ERROR
+          // =========================================
+
+          if (notificationError) {
+
+            console.error(
+              "========================================="
+            );
+
+            console.error(
+              "CANCELLATION NOTIFICATION ERROR:"
+            );
+
+            console.error(
+              notificationError
+            );
+
+            console.error(
+              "========================================="
+            );
+
+            // IMPORTANT:
+            // The booking is already cancelled.
+            // Do NOT return 500 because notification
+            // creation failed.
+
+            return res.status(200).json({
+
+              message:
+                "Booking cancelled successfully.",
+
+              bookingId:
+                bookingId,
+
+              notification:
+                false
+
+            });
+
+          }
+
+
+          // =========================================
+          // SUCCESS
+          // =========================================
+
+          console.log(
+            "Cancellation notification created successfully."
+          );
+
+
+          return res.status(200).json({
+
+            message:
+              "Booking cancelled successfully.",
+
+            bookingId:
+              bookingId,
+
+            notification:
+              true
+
+          });
+
+        }
+      );
+
     }
   );
+
 };

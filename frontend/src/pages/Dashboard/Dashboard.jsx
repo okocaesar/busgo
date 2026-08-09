@@ -89,6 +89,19 @@ function Dashboard() {
           booking.bus_name ||
           "",
 
+        busNumber:
+          booking.busNumber ||
+          booking.bus_number ||
+          booking.busNo ||
+          booking.bus_no ||
+          "BG-01",
+
+        time:
+          booking.time ||
+          booking.departure_time ||
+          booking.travel_time ||
+          "08:00 AM",
+
         totalPrice: Number(
           booking.totalPrice ??
           booking.total_price ??
@@ -126,7 +139,7 @@ function Dashboard() {
         paymentStatus:
           booking.paymentStatus ||
           booking.payment_status ||
-          "Paid",
+          "Successful",
 
         bookingStatus:
           booking.bookingStatus ||
@@ -149,6 +162,62 @@ function Dashboard() {
     },
     []
   );
+
+  // =========================================
+  // GET TICKET STATUS
+  // =========================================
+
+  const getTicketStatus = (ticket) => {
+    const bookingStatus =
+      String(ticket.bookingStatus || "")
+        .toLowerCase()
+        .trim();
+
+    const paymentStatus =
+      String(ticket.paymentStatus || "")
+        .toLowerCase()
+        .trim();
+
+    // Cancelled booking
+    if (
+      bookingStatus.includes("cancel") ||
+      bookingStatus === "cancelled"
+    ) {
+      return "cancelled";
+    }
+
+    // Pending booking/payment
+    if (
+      bookingStatus.includes("pending") ||
+      paymentStatus.includes("pending")
+    ) {
+      return "pending";
+    }
+
+    // Determine status using travel date
+    if (ticket.date) {
+      const travelDate = new Date(
+        `${String(ticket.date).slice(0, 10)}T00:00:00`
+      );
+
+      const today = new Date();
+
+      today.setHours(0, 0, 0, 0);
+
+      if (
+        !Number.isNaN(travelDate.getTime())
+      ) {
+        if (travelDate < today) {
+          return "completed";
+        }
+
+        return "active";
+      }
+    }
+
+    // Default
+    return "active";
+  };
 
   // =========================================
   // LOAD BOOKINGS
@@ -239,6 +308,13 @@ function Dashboard() {
       0
     );
 
+  const activeBookings =
+    bookings.filter(
+      (ticket) =>
+        getTicketStatus(ticket) ===
+        "active"
+    ).length;
+
   // =========================================
   // FORMAT MONEY
   // =========================================
@@ -276,6 +352,18 @@ function Dashboard() {
   };
 
   // =========================================
+  // FORMAT TIME
+  // =========================================
+
+  const formatTime = (time) => {
+    if (!time) {
+      return "08:00 AM";
+    }
+
+    return time;
+  };
+
+  // =========================================
   // ESCAPE HTML
   // =========================================
 
@@ -294,241 +382,320 @@ function Dashboard() {
   // TICKET HTML
   // =========================================
 
-  const getTicketHtml = (ticket) => `
-    <div style="
-      width: 600px;
-      padding: 30px;
-      background: #ffffff;
-      color: #222;
-      font-family: Arial, sans-serif;
-    ">
+  const getTicketHtml = (ticket) => {
+    const status =
+      getTicketStatus(ticket);
 
+    return `
       <div style="
-        border: 1px solid #ddd;
-        border-radius: 15px;
+        width: 820px;
         padding: 30px;
+        background: #ffffff;
+        font-family: Arial, Helvetica, sans-serif;
+        box-sizing: border-box;
       ">
 
         <div style="
-          text-align: center;
-          border-bottom: 1px solid #ddd;
-          padding-bottom: 20px;
-          margin-bottom: 20px;
+          position: relative;
+          overflow: hidden;
+          background: #eaf5fa;
+          border-radius: 0 0 35px 35px;
+          border: 1px solid #d6e4ea;
+          box-sizing: border-box;
         ">
 
-          <h1 style="
-            color: #0b7d45;
-            margin: 0;
+          <!-- HEADER -->
+
+          <div style="
+            height: 125px;
+            width: 82%;
+            background: #428bb7;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            padding: 0 45px;
+            box-sizing: border-box;
+            border-radius: 0 0 28px 0;
           ">
-            BUSGO
-          </h1>
 
-          <p style="
-            margin: 5px 0 0;
-            color: #777;
-          ">
-            BUS TRANSPORT RESERVATION
-          </p>
-
-        </div>
-
-        <p>
-          <strong>Ticket:</strong>
-          ${escapeHtml(
-            ticket.ticketNumber
-          )}
-        </p>
-
-        <div style="
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 20px;
-          background: #f5f9f6;
-          margin: 20px 0;
-        ">
-
-          <div>
-            <small>FROM</small>
-
-            <h2 style="
-              margin: 5px 0;
+            <h1 style="
+              margin: 0;
+              font-size: 48px;
+              font-weight: 800;
+              letter-spacing: 1px;
             ">
-              ${escapeHtml(
-                ticket.from
-              )}
-            </h2>
+              BUSGO TICKET
+            </h1>
+
           </div>
 
-          <strong style="
-            font-size: 25px;
+          <!-- CONTENT -->
+
+          <div style="
+            display: grid;
+            grid-template-columns: 160px 1fr 125px;
+            gap: 25px;
+            align-items: center;
+            padding: 45px 40px 55px;
           ">
-            →
-          </strong>
 
-          <div>
-            <small>TO</small>
+            <!-- BUS -->
 
-            <h2 style="
-              margin: 5px 0;
+            <div style="
+              text-align: center;
             ">
-              ${escapeHtml(
-                ticket.to
-              )}
-            </h2>
-          </div>
 
-        </div>
-
-        <p>
-          <strong>Passenger:</strong>
-          ${escapeHtml(
-            ticket.name
-          )}
-        </p>
-
-        <p>
-          <strong>Phone:</strong>
-          ${escapeHtml(
-            ticket.phone
-          )}
-        </p>
-
-        <p>
-          <strong>Bus Type:</strong>
-          ${escapeHtml(
-            ticket.busType
-          )}
-        </p>
-
-        <p>
-          <strong>Seats:</strong>
-          ${escapeHtml(
-            ticket.seats.join(", ")
-          )}
-        </p>
-
-        <p>
-          <strong>Travel Date:</strong>
-          ${escapeHtml(
-            formatDate(ticket.date)
-          )}
-        </p>
-
-        <p>
-          <strong>Payment:</strong>
-          ${escapeHtml(
-            ticket.paymentMethod
-          )}
-        </p>
-
-        <p>
-          <strong>Status:</strong>
-          ${escapeHtml(
-            ticket.paymentStatus
-          )}
-        </p>
-
-        ${
-          ticket.offerTitle !==
-          "No Offer"
-            ? `
               <div style="
-                margin: 20px 0;
-                padding: 15px;
-                background: #eef8f2;
-                border-radius: 10px;
-                color: #0b7d45;
+                font-size: 88px;
+                line-height: 1;
+              ">
+                🚌
+              </div>
+
+              <div style="
+                margin-top: 12px;
+                color: #428bb7;
+                font-size: 12px;
+                font-weight: 700;
+              ">
+                ${escapeHtml(ticket.busType)}
+              </div>
+
+            </div>
+
+            <!-- DETAILS -->
+
+            <div style="
+              display: flex;
+              flex-direction: column;
+              gap: 14px;
+            ">
+
+              <div style="
+                height: 48px;
+                border: 2px solid #172126;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                padding: 0 15px;
+                font-size: 20px;
+                font-weight: 700;
+                box-sizing: border-box;
+              ">
+                DATE:
+                <span style="
+                  margin-left: 12px;
+                  font-weight: 500;
+                ">
+                  ${escapeHtml(
+                    formatDate(ticket.date)
+                  )}
+                </span>
+              </div>
+
+              <div style="
+                height: 48px;
+                border: 2px solid #172126;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                padding: 0 15px;
+                font-size: 20px;
+                font-weight: 700;
+                box-sizing: border-box;
+              ">
+                TIME:
+                <span style="
+                  margin-left: 12px;
+                  font-weight: 500;
+                ">
+                  ${escapeHtml(
+                    formatTime(ticket.time)
+                  )}
+                </span>
+              </div>
+
+              <div style="
+                height: 48px;
+                border: 2px solid #172126;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                padding: 0 15px;
+                font-size: 20px;
+                font-weight: 700;
+                box-sizing: border-box;
+              ">
+                FROM:
+                <span style="
+                  margin-left: 12px;
+                  font-weight: 500;
+                ">
+                  ${escapeHtml(ticket.from)}
+                </span>
+              </div>
+
+              <div style="
+                height: 48px;
+                border: 2px solid #172126;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                padding: 0 15px;
+                font-size: 20px;
+                font-weight: 700;
+                box-sizing: border-box;
+              ">
+                TO:
+                <span style="
+                  margin-left: 12px;
+                  font-weight: 500;
+                ">
+                  ${escapeHtml(ticket.to)}
+                </span>
+              </div>
+
+            </div>
+
+            <!-- BUS / SEAT -->
+
+            <div style="
+              display: flex;
+              flex-direction: column;
+              gap: 18px;
+            ">
+
+              <div style="
+                height: 100px;
+                border: 2px solid #172126;
+                border-radius: 18px;
+                padding: 12px;
+                box-sizing: border-box;
+                text-align: center;
               ">
 
-                <strong>
+                <div style="
+                  font-size: 18px;
+                  font-weight: 800;
+                ">
+                  Bus No.
+                </div>
+
+                <div style="
+                  margin-top: 10px;
+                  font-size: 15px;
+                ">
                   ${escapeHtml(
-                    ticket.offerTitle
+                    ticket.busNumber
                   )}
-                </strong>
-
-                <br />
-
-                ${
-                  ticket.discountPercentage
-                }% OFF
+                </div>
 
               </div>
-            `
-            : ""
-        }
 
-        <div style="
-          margin-top: 25px;
-          padding: 20px;
-          background: #f8faf9;
-          border-radius: 10px;
-        ">
+              <div style="
+                height: 100px;
+                border: 2px solid #172126;
+                border-radius: 18px;
+                padding: 12px;
+                box-sizing: border-box;
+                text-align: center;
+              ">
 
-          <p>
-            Total Price:
+                <div style="
+                  font-size: 18px;
+                  font-weight: 800;
+                ">
+                  Seat No.
+                </div>
 
-            <strong style="
-              float: right;
-            ">
-              ${formatMoney(
-                ticket.totalPrice
-              )}
-            </strong>
-          </p>
+                <div style="
+                  margin-top: 10px;
+                  font-size: 15px;
+                ">
+                  ${escapeHtml(
+                    ticket.seats.join(", ") ||
+                    "N/A"
+                  )}
+                </div>
 
-          <p style="
-            color: #0b7d45;
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- FOOTER -->
+
+          <div style="
+            border-top: 1px dashed #aebfc7;
+            padding: 18px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,.35);
           ">
 
-            Discount:
+            <div>
 
-            <strong style="
-              float: right;
+              <div style="
+                font-size: 11px;
+                color: #718089;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+              ">
+                Ticket Number
+              </div>
+
+              <strong style="
+                font-size: 15px;
+              ">
+                ${escapeHtml(
+                  ticket.ticketNumber
+                )}
+              </strong>
+
+            </div>
+
+            <div style="
+              text-align: right;
             ">
-              - ${formatMoney(
-                ticket.discount
-              )}
-            </strong>
 
-          </p>
+              <div style="
+                font-size: 11px;
+                color: #718089;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+              ">
+                Status
+              </div>
 
-          <hr />
+              <strong style="
+                color: ${
+                  status === "completed"
+                    ? "#247a48"
+                    : status === "pending"
+                    ? "#d58b00"
+                    : status === "cancelled"
+                    ? "#c0392b"
+                    : "#428bb7"
+                };
+                text-transform: uppercase;
+              ">
+                ${escapeHtml(status)}
+              </strong>
 
-          <h2 style="
-            color: #0b7d45;
-            margin-bottom: 0;
-          ">
+            </div>
 
-            Total Payment:
-
-            <span style="
-              float: right;
-            ">
-              ${formatMoney(
-                ticket.totalPayment
-              )}
-            </span>
-
-          </h2>
+          </div>
 
         </div>
 
-        <p style="
-          text-align: center;
-          margin-top: 30px;
-          color: #777;
-        ">
-          Thank you for travelling with BusGo
-        </p>
-
       </div>
-
-    </div>
-  `;
+    `;
+  };
 
   // =========================================
-  // DOWNLOAD TICKET PDF
+  // DOWNLOAD TICKET
   // =========================================
 
   const downloadTicket = async (
@@ -546,6 +713,9 @@ function Dashboard() {
     ticketElement.style.top =
       "0";
 
+    ticketElement.style.width =
+      "880px";
+
     ticketElement.innerHTML =
       getTicketHtml(ticket);
 
@@ -556,7 +726,11 @@ function Dashboard() {
     try {
       const canvas =
         await html2canvas(
-          ticketElement
+          ticketElement,
+          {
+            scale: 2,
+            backgroundColor: "#ffffff"
+          }
         );
 
       const imageData =
@@ -613,7 +787,7 @@ function Dashboard() {
       window.open(
         "",
         "_blank",
-        "width=800,height=900"
+        "width=1000,height=900"
       );
 
     if (!printWindow) {
@@ -628,16 +802,37 @@ function Dashboard() {
       <html>
 
         <head>
+
           <title>
             BusGo Ticket -
             ${escapeHtml(
               ticket.ticketNumber
             )}
           </title>
+
+          <style>
+
+            body {
+              margin: 0;
+              padding: 30px;
+              background: #fff;
+              font-family: Arial, Helvetica, sans-serif;
+            }
+
+            @media print {
+              body {
+                padding: 0;
+              }
+            }
+
+          </style>
+
         </head>
 
         <body>
+
           ${getTicketHtml(ticket)}
+
         </body>
 
       </html>
@@ -649,54 +844,95 @@ function Dashboard() {
     setTimeout(() => {
       printWindow.print();
       printWindow.close();
-    }, 300);
+    }, 500);
   };
 
   // =========================================
   // CANCEL TICKET
   // =========================================
 
-  const cancelTicket = async (ticket) => {
-  const confirmed = window.confirm(
-    `Cancel ticket ${ticket.ticketNumber}?`
-  );
+  const cancelTicket = async (
+    ticket
+  ) => {
+    const confirmed =
+      window.confirm(
+        `Cancel ticket ${ticket.ticketNumber}?`
+      );
 
-  if (!confirmed) {
-    return;
-  }
+    if (!confirmed) {
+      return;
+    }
 
-  if (!user?.id) {
-    alert("Your login session has expired. Please login again.");
-    navigate("/login");
-    return;
-  }
+    if (!user?.id) {
+      alert(
+        "Your login session has expired. Please login again."
+      );
 
-  try {
-    await axios.patch(
-      `${API_URL}/api/bookings/${ticket.id}/cancel/user/${user.id}`
-    );
+      navigate("/login");
 
-    setBookings((currentBookings) =>
-      currentBookings.filter(
-        (booking) => booking.id !== ticket.id
-      )
-    );
+      return;
+    }
 
-    setSelectedTicket(null);
+    try {
+      await axios.patch(
+        `${API_URL}/api/bookings/${ticket.id}/cancel/user/${user.id}`
+      );
 
-    alert("Booking cancelled successfully.");
-  } catch (cancelError) {
-    console.error(
-      "Cancel booking error:",
-      cancelError
-    );
+      setBookings(
+        (currentBookings) =>
+          currentBookings.map(
+            (booking) =>
+              booking.id === ticket.id
+                ? {
+                    ...booking,
+                    bookingStatus:
+                      "Cancelled"
+                  }
+                : booking
+          )
+      );
 
-    alert(
-      cancelError.response?.data?.message ||
-      "Unable to cancel this booking."
-    );
-  }
-};
+      setSelectedTicket(null);
+
+      alert(
+        "Booking cancelled successfully."
+      );
+    } catch (cancelError) {
+      console.error(
+        "Cancel booking error:",
+        cancelError
+      );
+
+      alert(
+        cancelError.response?.data
+          ?.message ||
+        "Unable to cancel this booking."
+      );
+    }
+  };
+
+  // =========================================
+  // STATUS LABEL
+  // =========================================
+
+  const statusLabel = (ticket) => {
+    const status =
+      getTicketStatus(ticket);
+
+    if (status === "pending") {
+      return "Pending";
+    }
+
+    if (status === "completed") {
+      return "Completed";
+    }
+
+    if (status === "cancelled") {
+      return "Cancelled";
+    }
+
+    return "Active";
+  };
 
   // =========================================
   // PAGE
@@ -710,21 +946,29 @@ function Dashboard() {
 
         <div className="dashboard-container">
 
-          {/* HEADER */}
+          {/* =================================
+              DASHBOARD HEADER
+          ================================= */}
 
           <div className="dashboard-header">
 
             <div>
 
+              <span className="dashboard-eyebrow">
+                MY BUSGO ACCOUNT
+              </span>
+
               <h1>
                 Welcome back,{" "}
-                {user?.name ||
-                  "Traveller"}
+                <span>
+                  {user?.name ||
+                    "Traveller"}
+                </span>
               </h1>
 
               <p>
-                View and manage your
-                BusGo bookings.
+                View and manage all your
+                BusGo travel bookings.
               </p>
 
             </div>
@@ -740,111 +984,134 @@ function Dashboard() {
 
           </div>
 
-          {/* STATS */}
+          {/* =================================
+              STATISTICS
+          ================================= */}
 
           <div className="dashboard-stats">
 
             <div className="stat-card">
 
-              <span>
+              <div className="stat-icon">
                 🎫
-              </span>
+              </div>
 
               <div>
-
-                <p>
+                <span>
                   Total Bookings
-                </p>
+                </span>
 
-                <h2>
+                <strong>
                   {totalBookings}
-                </h2>
-
+                </strong>
               </div>
 
             </div>
 
             <div className="stat-card">
 
-              <span>
+              <div className="stat-icon">
                 💳
-              </span>
+              </div>
 
               <div>
-
-                <p>
+                <span>
                   Total Spent
-                </p>
+                </span>
 
-                <h2>
+                <strong>
                   {formatMoney(
                     totalSpent
                   )}
-                </h2>
-
+                </strong>
               </div>
 
             </div>
 
             <div className="stat-card">
 
-              <span>
-                🎉
-              </span>
+              <div className="stat-icon">
+                🚌
+              </div>
 
               <div>
+                <span>
+                  Active Trips
+                </span>
 
-                <p>
-                  Total Savings
-                </p>
-
-                <h2>
-                  {formatMoney(
-                    totalDiscount
-                  )}
-                </h2>
-
+                <strong>
+                  {activeBookings}
+                </strong>
               </div>
 
             </div>
 
           </div>
 
-          {/* BOOKINGS */}
+          {/* =================================
+              BOOKINGS SECTION
+          ================================= */}
 
           <div className="bookings-section">
 
-            <h2>
-              My Bookings
-            </h2>
+            <div className="bookings-heading">
+
+              <div>
+
+                <span>
+                  TRAVEL HISTORY
+                </span>
+
+                <h2>
+                  My Tickets
+                </h2>
+
+              </div>
+
+              <div className="booking-count">
+                {totalBookings}{" "}
+                {totalBookings === 1
+                  ? "Ticket"
+                  : "Tickets"}
+              </div>
+
+            </div>
 
             {loading && (
-              <p className="dashboard-message">
-                Loading your bookings...
-              </p>
+              <div className="dashboard-message">
+                <div className="loading-spinner"></div>
+
+                <p>
+                  Loading your tickets...
+                </p>
+              </div>
             )}
 
             {!loading &&
               error && (
-                <p className="dashboard-error">
+                <div className="dashboard-error">
                   {error}
-                </p>
+                </div>
               )}
 
             {!loading &&
               !error &&
               bookings.length === 0 && (
-
                 <div className="empty-dashboard">
+
+                  <div className="empty-icon">
+                    🚌
+                  </div>
 
                   <h3>
                     No bookings yet
                   </h3>
 
                   <p>
-                    Your confirmed
-                    BusGo tickets will
-                    appear here.
+                    Your confirmed BusGo
+                    tickets will appear
+                    here after you make
+                    a booking.
                   </p>
 
                   <button
@@ -860,6 +1127,10 @@ function Dashboard() {
                 </div>
               )}
 
+            {/* =================================
+                TICKET LIST
+            ================================= */}
+
             {!loading &&
               !error &&
               bookings.length > 0 && (
@@ -867,185 +1138,212 @@ function Dashboard() {
                 <div className="bookings-list">
 
                   {bookings.map(
-                    (ticket) => (
+                    (ticket) => {
 
-                      <div
-                        className="booking-card"
-                        key={
-                          ticket.id ||
-                          ticket.ticketNumber
-                        }
-                      >
+                      const status =
+                        getTicketStatus(
+                          ticket
+                        );
 
-                        {/* CARD HEADER */}
+                      return (
+                        <div
+                          className="booking-row"
+                          key={
+                            ticket.id ||
+                            ticket.ticketNumber
+                          }
+                        >
 
-                        <div className="booking-card-header">
+                          {/* LEFT */}
 
-                          <div>
+                          <div className="booking-main">
 
-                            <small>
-                              Ticket Number
-                            </small>
+                            <div className="booking-ticket-number">
 
-                            <h3>
-                              {
-                                ticket.ticketNumber
+                              <span>
+                                TICKET NUMBER
+                              </span>
+
+                              <strong>
+                                {
+                                  ticket.ticketNumber
+                                }
+                              </strong>
+
+                            </div>
+
+                            <div className="booking-route">
+
+                              <div>
+
+                                <small>
+                                  FROM
+                                </small>
+
+                                <strong>
+                                  {ticket.from}
+                                </strong>
+
+                              </div>
+
+                              <span className="route-arrow">
+                                →
+                              </span>
+
+                              <div>
+
+                                <small>
+                                  TO
+                                </small>
+
+                                <strong>
+                                  {ticket.to}
+                                </strong>
+
+                              </div>
+
+                            </div>
+
+                          </div>
+
+                          {/* MIDDLE */}
+
+                          <div className="booking-info">
+
+                            <div>
+
+                              <span>
+                                DATE
+                              </span>
+
+                              <strong>
+                                {formatDate(
+                                  ticket.date
+                                )}
+                              </strong>
+
+                            </div>
+
+                            <div>
+
+                              <span>
+                                SEATS
+                              </span>
+
+                              <strong>
+                                {ticket.seats.join(
+                                  ", "
+                                ) || "N/A"}
+                              </strong>
+
+                            </div>
+
+                            <div>
+
+                              <span>
+                                BUS
+                              </span>
+
+                              <strong>
+                                {
+                                  ticket.busType
+                                }
+                              </strong>
+
+                            </div>
+
+                            <div>
+
+                              <span>
+                                PAID
+                              </span>
+
+                              <strong className="paid">
+                                {formatMoney(
+                                  ticket.totalPayment
+                                )}
+                              </strong>
+
+                            </div>
+
+                          </div>
+
+                          {/* ACTIONS */}
+
+                          <div className="booking-actions">
+
+                            <button
+                              className="view-ticket-btn"
+                              onClick={() =>
+                                setSelectedTicket(
+                                  ticket
+                                )
                               }
-                            </h3>
+                            >
+                              View Ticket
+                            </button>
+
+                            <button
+                              className="download-ticket-btn"
+                              onClick={() =>
+                                downloadTicket(
+                                  ticket
+                                )
+                              }
+                            >
+                              Download
+                            </button>
+
+                            <button
+                              className="print-ticket-btn"
+                              onClick={() =>
+                                printTicket(
+                                  ticket
+                                )
+                              }
+                            >
+                              Print
+                            </button>
+
+                            {status !==
+                              "completed" &&
+                              status !==
+                                "cancelled" && (
+                                <button
+                                  className="cancel-ticket-btn"
+                                  onClick={() =>
+                                    cancelTicket(
+                                      ticket
+                                    )
+                                  }
+                                >
+                                  Cancel
+                                </button>
+                              )}
 
                           </div>
 
-                          <span
-                            className={
-                              ticket.paymentStatus?.toLowerCase() ===
-                              "paid"
-                                ? "booking-status paid"
-                                : "booking-status"
-                            }
+                          {/* STATUS AT END */}
+
+                          <div
+                            className={`ticket-status-end ${status}`}
                           >
-                            {
-                              ticket.paymentStatus
-                            }
-                          </span>
 
-                        </div>
+                            <span>
+                              STATUS
+                            </span>
 
-                        {/* ROUTE */}
-
-                        <div className="booking-route">
-
-                          <div>
-
-                            <small>
-                              FROM
-                            </small>
-
-                            <h3>
-                              {ticket.from}
-                            </h3>
-
-                          </div>
-
-                          <span>
-                            →
-                          </span>
-
-                          <div>
-
-                            <small>
-                              TO
-                            </small>
-
-                            <h3>
-                              {ticket.to}
-                            </h3>
+                            <strong>
+                              {statusLabel(
+                                ticket
+                              )}
+                            </strong>
 
                           </div>
 
                         </div>
-
-                        {/* DETAILS */}
-
-                        <div className="booking-details">
-
-                          <p>
-                            <strong>
-                              Bus:
-                            </strong>{" "}
-                            {
-                              ticket.busType
-                            }
-                          </p>
-
-                          <p>
-                            <strong>
-                              Seats:
-                            </strong>{" "}
-                            {
-                              ticket.seats.join(
-                                ", "
-                              ) ||
-                              "N/A"
-                            }
-                          </p>
-
-                          <p>
-                            <strong>
-                              Date:
-                            </strong>{" "}
-                            {
-                              formatDate(
-                                ticket.date
-                              )
-                            }
-                          </p>
-
-                          <p>
-                            <strong>
-                              Paid:
-                            </strong>{" "}
-                            {
-                              formatMoney(
-                                ticket.totalPayment
-                              )
-                            }
-                          </p>
-
-                        </div>
-
-                        {/* ACTIONS */}
-
-                        <div className="booking-actions">
-
-                          <button
-                            className="view-ticket-btn"
-                            onClick={() =>
-                              setSelectedTicket(
-                                ticket
-                              )
-                            }
-                          >
-                            View Ticket
-                          </button>
-
-                          <button
-                            className="download-ticket-btn"
-                            onClick={() =>
-                              downloadTicket(
-                                ticket
-                              )
-                            }
-                          >
-                            Download PDF
-                          </button>
-
-                          <button
-                            className="print-ticket-btn"
-                            onClick={() =>
-                              printTicket(
-                                ticket
-                              )
-                            }
-                          >
-                            Print
-                          </button>
-
-                          <button
-                            className="cancel-ticket-btn"
-                            onClick={() =>
-                              cancelTicket(
-                                ticket
-                              )
-                            }
-                          >
-                            Cancel
-                          </button>
-
-                        </div>
-
-                      </div>
-
-                    )
+                      );
+                    }
                   )}
 
                 </div>
@@ -1057,146 +1355,270 @@ function Dashboard() {
 
       </section>
 
-      {/* TICKET MODAL */}
+      {/* =====================================
+          TICKET MODAL
+      ===================================== */}
 
       {selectedTicket && (
 
-        <div className="ticket-modal-overlay">
+        <div
+          className="ticket-modal-overlay"
+          onClick={() =>
+            setSelectedTicket(null)
+          }
+        >
 
-          <div className="ticket-modal">
+          <div
+            className="ticket-modal"
+            onClick={(event) =>
+              event.stopPropagation()
+            }
+          >
 
             <button
               className="close-ticket-modal"
               onClick={() =>
-                setSelectedTicket(
-                  null
-                )
+                setSelectedTicket(null)
               }
             >
               ×
             </button>
 
-            <h2>
-              BusGo Ticket
-            </h2>
+            {/* TICKET DESIGN */}
 
-            <p>
-              <strong>
-                Ticket:
-              </strong>{" "}
-              {
-                selectedTicket.ticketNumber
-              }
-            </p>
+            <div className="bus-ticket">
 
-            <div className="modal-route">
+              {/* HEADER */}
 
-              <div>
+              <div className="bus-ticket-header">
 
-                <small>
-                  FROM
-                </small>
-
-                <h3>
-                  {
-                    selectedTicket.from
-                  }
-                </h3>
+                <h2>
+                  BUSGO TICKET
+                </h2>
 
               </div>
 
-              <span>
-                →
-              </span>
+              {/* BODY */}
 
-              <div>
+              <div className="bus-ticket-body">
 
-                <small>
-                  TO
-                </small>
+                {/* BUS ICON */}
 
-                <h3>
-                  {
-                    selectedTicket.to
-                  }
-                </h3>
+                <div className="ticket-bus-area">
+
+                  <div className="bus-ticket-icon">
+                    🚌
+                  </div>
+
+                  <span>
+                    {selectedTicket.busType}
+                  </span>
+
+                </div>
+
+                {/* DETAILS */}
+
+                <div className="ticket-fields">
+
+                  <div className="ticket-field">
+
+                    <strong>
+                      DATE
+                    </strong>
+
+                    <span>
+                      {formatDate(
+                        selectedTicket.date
+                      )}
+                    </span>
+
+                  </div>
+
+                  <div className="ticket-field">
+
+                    <strong>
+                      TIME
+                    </strong>
+
+                    <span>
+                      {formatTime(
+                        selectedTicket.time
+                      )}
+                    </span>
+
+                  </div>
+
+                  <div className="ticket-field">
+
+                    <strong>
+                      FROM
+                    </strong>
+
+                    <span>
+                      {selectedTicket.from}
+                    </span>
+
+                  </div>
+
+                  <div className="ticket-field">
+
+                    <strong>
+                      TO
+                    </strong>
+
+                    <span>
+                      {selectedTicket.to}
+                    </span>
+
+                  </div>
+
+                </div>
+
+                {/* BUS / SEAT */}
+
+                <div className="ticket-side-info">
+
+                  <div className="ticket-side-box">
+
+                    <strong>
+                      Bus No.
+                    </strong>
+
+                    <span>
+                      {
+                        selectedTicket.busNumber
+                      }
+                    </span>
+
+                  </div>
+
+                  <div className="ticket-side-box">
+
+                    <strong>
+                      Seat No.
+                    </strong>
+
+                    <span>
+                      {
+                        selectedTicket.seats.join(
+                          ", "
+                        ) || "N/A"
+                      }
+                    </span>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+              {/* TICKET FOOTER */}
+
+              <div className="bus-ticket-footer">
+
+                <div>
+
+                  <span>
+                    Ticket Number
+                  </span>
+
+                  <strong>
+                    {
+                      selectedTicket.ticketNumber
+                    }
+                  </strong>
+
+                </div>
+
+                <div>
+
+                  <span>
+                    Passenger
+                  </span>
+
+                  <strong>
+                    {selectedTicket.name}
+                  </strong>
+
+                </div>
+
+                <div>
+
+                  <span>
+                    Status
+                  </span>
+
+                  <strong
+                    className={`modal-status ${getTicketStatus(
+                      selectedTicket
+                    )}`}
+                  >
+                    {statusLabel(
+                      selectedTicket
+                    )}
+                  </strong>
+
+                </div>
 
               </div>
 
             </div>
 
-            <p>
-              <strong>
-                Passenger:
-              </strong>{" "}
-              {
-                selectedTicket.name
-              }
-            </p>
+            {/* PRICE */}
 
-            <p>
-              <strong>
-                Phone:
-              </strong>{" "}
-              {
-                selectedTicket.phone
-              }
-            </p>
+            <div className="modal-price-section">
 
-            <p>
-              <strong>
-                Bus Type:
-              </strong>{" "}
-              {
-                selectedTicket.busType
-              }
-            </p>
+              <div>
 
-            <p>
-              <strong>
-                Seats:
-              </strong>{" "}
-              {
-                selectedTicket.seats.join(
-                  ", "
-                )
-              }
-            </p>
+                <span>
+                  Total Price
+                </span>
 
-            <p>
-              <strong>
-                Travel Date:
-              </strong>{" "}
-              {
-                formatDate(
-                  selectedTicket.date
-                )
-              }
-            </p>
+                <strong>
+                  {formatMoney(
+                    selectedTicket.totalPrice
+                  )}
+                </strong>
 
-            <p>
-              <strong>
-                Payment:
-              </strong>{" "}
-              {
-                selectedTicket.paymentMethod
-              }
-            </p>
+              </div>
 
-            <p>
-              <strong>
-                Total Payment:
-              </strong>{" "}
-              {
-                formatMoney(
-                  selectedTicket.totalPayment
-                )
-              }
-            </p>
+              <div>
+
+                <span>
+                  Discount
+                </span>
+
+                <strong className="discount">
+                  -{" "}
+                  {formatMoney(
+                    selectedTicket.discount
+                  )}
+                </strong>
+
+              </div>
+
+              <div className="modal-total">
+
+                <span>
+                  Total Payment
+                </span>
+
+                <strong>
+                  {formatMoney(
+                    selectedTicket.totalPayment
+                  )}
+                </strong>
+
+              </div>
+
+            </div>
+
+            {/* ACTIONS */}
 
             <div className="modal-ticket-actions">
 
               <button
+                className="modal-download-btn"
                 onClick={() =>
                   downloadTicket(
                     selectedTicket
@@ -1207,6 +1629,7 @@ function Dashboard() {
               </button>
 
               <button
+                className="modal-print-btn"
                 onClick={() =>
                   printTicket(
                     selectedTicket
@@ -1216,12 +1639,22 @@ function Dashboard() {
                 Print Ticket
               </button>
 
+              <button
+                className="modal-close-btn"
+                onClick={() =>
+                  setSelectedTicket(
+                    null
+                  )
+                }
+              >
+                Close
+              </button>
+
             </div>
 
           </div>
 
         </div>
-
       )}
 
       <Footer />

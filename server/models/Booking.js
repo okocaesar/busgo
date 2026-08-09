@@ -7,6 +7,7 @@ const Booking = {
   // =========================================
 
   findRouteId: (from, to, callback) => {
+
     const sql = `
       SELECT id
       FROM routes
@@ -28,6 +29,7 @@ const Booking = {
   // =========================================
 
   findBusId: (busType, callback) => {
+
     const sql = `
       SELECT id
       FROM buses
@@ -48,6 +50,7 @@ const Booking = {
   // =========================================
 
   findOfferId: (offerTitle, callback) => {
+
     const sql = `
       SELECT id
       FROM offers
@@ -167,6 +170,7 @@ const Booking = {
       (err, results) => {
 
         if (err) {
+
           console.error(
             "Booking SQL error:",
             err
@@ -204,9 +208,7 @@ const Booking = {
 
     const sql = `
       UPDATE bookings
-
-      SET booking_status = ?
-
+      SET booking_status = 'Cancelled'
       WHERE id = ?
         AND user_id = ?
     `;
@@ -214,7 +216,6 @@ const Booking = {
     db.query(
       sql,
       [
-        "Cancelled",
         bookingId,
         userId
       ],
@@ -223,5 +224,10 @@ const Booking = {
   }
 
 };
+
+
+// =========================================
+// EXPORT BOOKING MODEL
+// =========================================
 
 module.exports = Booking;

@@ -1,0 +1,221 @@
+/* =========================================
+   BUSGO INSTALL APP
+========================================= */
+
+.install-app {
+
+  width: min(
+    100% - 40px,
+    1100px
+  );
+
+  margin: 25px auto;
+
+  padding: 18px 22px;
+
+  background: #ffffff;
+
+  border: 1px solid #e2ebe5;
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 10px 30px rgba(
+      0,
+      0,
+      0,
+      0.08
+    );
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+}
+
+
+/* =========================================
+   CONTENT
+========================================= */
+
+.install-app-content {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 15px;
+
+}
+
+
+.install-icon {
+
+  width: 52px;
+
+  height: 52px;
+
+  flex-shrink: 0;
+
+  border-radius: 14px;
+
+  background: #0b7d45;
+
+  color: #ffffff;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  font-size: 25px;
+
+  font-weight: 800;
+
+}
+
+
+/* =========================================
+   TEXT
+========================================= */
+
+.install-text strong {
+
+  display: block;
+
+  color: #111111;
+
+  font-size: 17px;
+
+  margin-bottom: 4px;
+
+}
+
+
+.install-text p {
+
+  margin: 0;
+
+  color: #6c756f;
+
+  font-size: 13px;
+
+  line-height: 1.5;
+
+}
+
+
+/* =========================================
+   BUTTON
+========================================= */
+
+.install-button {
+
+  border: none;
+
+  background: #0b7d45;
+
+  color: #ffffff;
+
+  min-width: 130px;
+
+  height: 45px;
+
+  padding: 0 20px;
+
+  border-radius: 9px;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+
+}
+
+
+.install-button:hover {
+
+  background: #086237;
+
+  transform: translateY(-1px);
+
+}
+
+
+.install-button:active {
+
+  transform: translateY(0);
+
+}
+
+
+/* =========================================
+   INSTALLED
+========================================= */
+
+.install-app.installed {
+
+  background: #f4faf6;
+
+  border-color: #d8eadf;
+
+}
+
+
+.install-app.installed .install-icon {
+
+  background: #0b7d45;
+
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 600px) {
+
+  .install-app {
+
+    width: calc(100% - 30px);
+
+    padding: 16px;
+
+    flex-direction: column;
+
+    align-items: stretch;
+
+  }
+
+
+  .install-app-content {
+
+    align-items: flex-start;
+
+  }
+
+
+  .install-button {
+
+    width: 100%;
+
+  }
+
+
+  .install-text strong {
+
+    font-size: 16px;
+
+  }
+
+}

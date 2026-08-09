@@ -178,56 +178,366 @@ exports.getBookings = (req, res) => {
 // PATCH /api/admin/bookings/:bookingId/status
 // =========================================
 
+// =========================================
+// UPDATE BOOKING STATUS
+// PATCH /api/admin/bookings/:bookingId/status
+// =========================================
+
 exports.updateBookingStatus = (req, res) => {
-  const { bookingId } = req.params;
-  const { bookingStatus } = req.body;
+
+  const {
+    bookingId
+  } = req.params;
+
+  const {
+    bookingStatus
+  } = req.body;
+
+
+  // =========================================
+  // ALLOWED STATUSES
+  // =========================================
 
   const allowedStatuses = [
     "Confirmed",
     "Cancelled"
   ];
 
-  if (!allowedStatuses.includes(bookingStatus)) {
+
+  if (
+    !allowedStatuses.includes(
+      bookingStatus
+    )
+  ) {
+
     return res.status(400).json({
-      message: "Invalid booking status."
+      message:
+        "Invalid booking status."
     });
+
   }
 
-  const sql = `
-    UPDATE bookings
-    SET booking_status = ?
-    WHERE id = ?
+
+  // =========================================
+  // GET BOOKING INFORMATION FIRST
+  // =========================================
+
+  const bookingSql = `
+    SELECT
+
+      bookings.id,
+      bookings.ticket_number,
+      bookings.user_id,
+      bookings.booking_status,
+      bookings.travel_date,
+
+      users.name AS user_name,
+      users.email AS user_email,
+
+      routes.departure,
+      routes.destination
+
+    FROM bookings
+
+    LEFT JOIN users
+      ON bookings.user_id = users.id
+
+    LEFT JOIN routes
+      ON bookings.route_id = routes.id
+
+    WHERE bookings.id = ?
+
+    LIMIT 1
   `;
 
+
   db.query(
-    sql,
-    [bookingStatus, bookingId],
-    (err, result) => {
-      if (err) {
+    bookingSql,
+    [bookingId],
+    (bookingError, bookingResults) => {
+
+      if (bookingError) {
+
         console.error(
-          "ADMIN UPDATE BOOKING ERROR:",
-          err
+          "GET BOOKING BEFORE STATUS UPDATE ERROR:",
+          bookingError
         );
 
         return res.status(500).json({
+
           message:
-            "Unable to update booking status.",
-          error: err.message
+            "Unable to retrieve booking information.",
+
+          error:
+            bookingError.message
+
         });
+
       }
 
-      if (result.affectedRows === 0) {
+
+      // =========================================
+      // BOOKING NOT FOUND
+      // =========================================
+
+      if (
+        !bookingResults ||
+        bookingResults.length === 0
+      ) {
+
         return res.status(404).json({
-          message: "Booking not found."
+
+          message:
+            "Booking not found."
+
         });
+
       }
 
-      res.json({
-        message:
-          "Booking status updated successfully."
-      });
+
+      const booking =
+        bookingResults[0];
+
+
+      const oldStatus =
+        booking.booking_status;
+
+
+      // =========================================
+      // NO STATUS CHANGE
+      // =========================================
+
+      if (
+        oldStatus === bookingStatus
+      ) {
+
+        return res.status(200).json({
+
+          message:
+            `Booking is already ${bookingStatus}.`
+
+        });
+
+      }
+
+
+      // =========================================
+      // UPDATE BOOKING STATUS
+      // =========================================
+
+      const updateSql = `
+        UPDATE bookings
+
+        SET booking_status = ?
+
+        WHERE id = ?
+      `;
+
+
+      db.query(
+        updateSql,
+        [
+          bookingStatus,
+          bookingId
+        ],
+        (updateError, result) => {
+
+          if (updateError) {
+
+            console.error(
+              "ADMIN UPDATE BOOKING ERROR:",
+              updateError
+            );
+
+            return res.status(500).json({
+
+              message:
+                "Unable to update booking status.",
+
+              error:
+                updateError.message
+
+            });
+
+          }
+
+
+          if (
+            result.affectedRows === 0
+          ) {
+
+            return res.status(404).json({
+
+              message:
+                "Booking was not updated."
+
+            });
+
+          }
+
+
+          // =========================================
+          // DETERMINE NOTIFICATION
+          // =========================================
+
+          let notificationTitle = "";
+
+          let notificationMessage = "";
+
+          let notificationType = "info";
+
+
+          // =========================================
+          // BOOKING CANCELLED
+          // =========================================
+
+          if (
+            bookingStatus === "Cancelled"
+          ) {
+
+            notificationTitle =
+              "Booking Cancelled ❌";
+
+
+            notificationMessage =
+              `Hello ${booking.user_name || "BusGo customer"}, your BusGo ticket ${booking.ticket_number} for ${booking.departure} to ${booking.destination} has been cancelled. Please contact BusGo support if you need further assistance.`;
+
+
+            notificationType =
+              "warning";
+
+          }
+
+
+          // =========================================
+          // BOOKING RESTORED
+          // =========================================
+
+          if (
+            bookingStatus === "Confirmed"
+          ) {
+
+            notificationTitle =
+              "Booking Restored 🎫";
+
+
+            notificationMessage =
+              `Hello ${booking.user_name || "BusGo customer"}, your BusGo ticket ${booking.ticket_number} from ${booking.departure} to ${booking.destination} is active again. Please prepare for your travel date ${booking.travel_date}. We wish you a safe and pleasant journey!`;
+
+
+            notificationType =
+              "success";
+
+          }
+
+
+          // =========================================
+          // CREATE NOTIFICATION
+          // =========================================
+
+          const notificationSql = `
+            INSERT INTO notifications
+            (
+              user_id,
+              title,
+              message,
+              type,
+              is_read
+            )
+
+            VALUES (?, ?, ?, ?, 0)
+          `;
+
+
+          db.query(
+            notificationSql,
+            [
+              booking.user_id,
+              notificationTitle,
+              notificationMessage,
+              notificationType
+            ],
+            (notificationError) => {
+
+              // =========================================
+              // NOTIFICATION ERROR
+              // =========================================
+
+              if (notificationError) {
+
+                console.error(
+                  "BOOKING STATUS NOTIFICATION ERROR:",
+                  notificationError
+                );
+
+
+                // ---------------------------------------
+                // IMPORTANT
+                // ---------------------------------------
+                //
+                // The booking status was already updated.
+                //
+                // Therefore we do NOT return an Internal
+                // Server Error to the admin.
+                //
+                // The booking update succeeded.
+                // ---------------------------------------
+
+                return res.status(200).json({
+
+                  message:
+                    `Booking status changed to ${bookingStatus}, but the user notification could not be created.`,
+
+                  bookingStatus,
+
+                  notification:
+                    false
+
+                });
+
+              }
+
+
+              // =========================================
+              // SUCCESS
+              // =========================================
+
+              console.log(
+                "BOOKING STATUS UPDATED:",
+                booking.ticket_number,
+                oldStatus,
+                "→",
+                bookingStatus
+              );
+
+
+              console.log(
+                "BOOKING STATUS NOTIFICATION CREATED FOR USER:",
+                booking.user_id
+              );
+
+
+              return res.status(200).json({
+
+                message:
+                  `Booking ${bookingStatus.toLowerCase()} successfully.`,
+
+                bookingStatus,
+
+                notification:
+                  true
+
+              });
+
+            }
+          );
+
+        }
+      );
+
     }
   );
+
 };
 
 
@@ -470,4 +780,244 @@ exports.sendNotification = (req, res) => {
 
     }
   );
+};
+
+// =========================================
+// GET ALL PAYMENTS
+// GET /api/admin/payments
+// =========================================
+
+exports.getPayments = (req, res) => {
+
+  const sql = `
+    SELECT
+      payments.*,
+
+      users.name AS user_name,
+      users.email AS user_email,
+      users.phone AS user_phone,
+
+      bookings.ticket_number,
+
+      routes.departure,
+      routes.destination
+
+    FROM payments
+
+    LEFT JOIN users
+      ON payments.user_id = users.id
+
+    LEFT JOIN bookings
+      ON payments.booking_id = bookings.id
+
+    LEFT JOIN routes
+      ON bookings.route_id = routes.id
+
+    ORDER BY payments.payment_date DESC
+  `;
+
+
+  db.query(
+    sql,
+    (err, results) => {
+
+      if (err) {
+
+        console.error(
+          "ADMIN PAYMENTS DATABASE ERROR:",
+          err
+        );
+
+        return res.status(500).json({
+
+          message:
+            "Unable to load payment transactions.",
+
+          error:
+            err.message
+
+        });
+
+      }
+
+
+      res.json({
+
+        payments:
+          results || []
+
+      });
+
+    }
+  );
+
+};
+
+
+// =========================================
+// ACCEPT PAYMENT REVERSAL
+// PATCH /api/admin/payments/:paymentId/accept-reversal
+// =========================================
+
+exports.acceptPaymentReversal = (req, res) => {
+
+  const {
+    paymentId
+  } = req.params;
+
+
+  const adminId =
+    req.user?.id || null;
+
+
+  const sql = `
+    UPDATE payments
+
+    SET
+      status = 'Reversed',
+
+      reversed_at = NOW(),
+
+      reversal_processed_by = ?,
+
+      updated_at = NOW()
+
+    WHERE id = ?
+
+    AND status = 'Requested Reversal'
+  `;
+
+
+  db.query(
+    sql,
+    [
+      adminId,
+      paymentId
+    ],
+    (err, result) => {
+
+      if (err) {
+
+        console.error(
+          "ACCEPT PAYMENT REVERSAL ERROR:",
+          err
+        );
+
+        return res.status(500).json({
+
+          message:
+            "Unable to accept the reversal request.",
+
+          error:
+            err.message
+
+        });
+
+      }
+
+
+      if (
+        result.affectedRows === 0
+      ) {
+
+        return res.status(404).json({
+
+          message:
+            "Reversal request was not found or has already been processed."
+
+        });
+
+      }
+
+
+      res.json({
+
+        message:
+          "Payment reversal accepted successfully."
+
+      });
+
+    }
+  );
+
+};
+
+
+// =========================================
+// DENY PAYMENT REVERSAL
+// PATCH /api/admin/payments/:paymentId/deny-reversal
+// =========================================
+
+exports.denyPaymentReversal = (req, res) => {
+
+  const {
+    paymentId
+  } = req.params;
+
+
+  const sql = `
+    UPDATE payments
+
+    SET
+      status = 'Successful',
+
+      reversal_requested_at = NULL,
+
+      updated_at = NOW()
+
+    WHERE id = ?
+
+    AND status = 'Requested Reversal'
+  `;
+
+
+  db.query(
+    sql,
+    [paymentId],
+    (err, result) => {
+
+      if (err) {
+
+        console.error(
+          "DENY PAYMENT REVERSAL ERROR:",
+          err
+        );
+
+        return res.status(500).json({
+
+          message:
+            "Unable to deny the reversal request.",
+
+          error:
+            err.message
+
+        });
+
+      }
+
+
+      if (
+        result.affectedRows === 0
+      ) {
+
+        return res.status(404).json({
+
+          message:
+            "Reversal request was not found or has already been processed."
+
+        });
+
+      }
+
+
+      res.json({
+
+        message:
+          "Payment reversal request denied."
+
+      });
+
+    }
+  );
+
 };

@@ -1,309 +1,250 @@
-.ticket-page{
+/* =========================================
+   CONFIRMATION / TICKET PAGE
+========================================= */
 
-    min-height:90vh;
+.ticket-page {
+  min-height: 90vh;
 
-    background:#f5f5f5;
+  background: #f5f5f5;
 
-    display:flex;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 
-    flex-direction:column;
-
-    justify-content:center;
-
-    align-items:center;
-
-    padding:40px;
-
+  padding: 40px 20px 60px;
 }
 
 
+/* =========================================
+   TICKET
+========================================= */
 
-.ticket{
+.ticket {
+  width: 420px;
+  max-width: 100%;
 
+  background: #ffffff;
 
-    width:420px;
+  border-radius: 25px;
 
-    background:white;
+  overflow: hidden;
 
-    border-radius:25px;
-
-    overflow:hidden;
-
-    box-shadow:
-    0 20px 50px rgba(0,0,0,.15);
-
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.15);
 }
 
 
+/* =========================================
+   TICKET HEADER
+========================================= */
 
-.ticket-header{
+.ticket-header {
+  background: #0b7d45;
 
-    background:#0b7d45;
+  color: white;
 
-    color:white;
+  text-align: center;
 
-    text-align:center;
-
-    padding:30px;
-
+  padding: 30px;
 }
 
 
+.ticket-header h1 {
+  margin: 0;
 
-.ticket-header h1{
+  font-size: 42px;
 
-    font-size:42px;
+  font-weight: 800;
 
-    margin:0;
-
+  letter-spacing: 1px;
 }
 
 
+.ticket-header p {
+  margin: 5px 0 0;
 
-.ticket-header p{
+  font-size: 13px;
 
-    margin-top:5px;
+  letter-spacing: 1px;
 
-    font-size:13px;
-
+  opacity: 0.9;
 }
 
 
+/* =========================================
+   TICKET NUMBER
+========================================= */
 
-.ticket-number{
+.ticket-number {
+  text-align: center;
 
-    text-align:center;
+  padding: 20px;
 
-    padding:20px;
+  color: #555;
 
-    color:#555;
-
+  font-size: 14px;
 }
 
 
+.ticket-number strong {
+  color: #0b7d45;
 
-.ticket-number strong{
+  margin-left: 8px;
 
-    color:#0b7d45;
-
-    margin-left:8px;
-
+  font-weight: 800;
 }
 
 
+/* =========================================
+   ROUTE
+========================================= */
 
-.route-box{
+.route-box {
+  display: flex;
 
-    display:flex;
+  justify-content: space-around;
 
-    justify-content:space-around;
+  align-items: center;
 
-    align-items:center;
+  gap: 15px;
 
-    padding:25px;
+  padding: 25px;
 
-    background:#f1f1f1;
-
+  background: #f1f1f1;
 }
 
 
+.route-box > div {
+  text-align: center;
 
-.route-box small{
-
-    color:#777;
-
+  min-width: 0;
 }
 
 
+.route-box small {
+  display: block;
 
-.route-box h2{
+  margin-bottom: 5px;
 
-    color:#111;
+  color: #777;
 
+  font-size: 11px;
+
+  font-weight: 700;
+
+  letter-spacing: 1px;
 }
 
 
+.route-box h2 {
+  margin: 0;
 
-.route-box span{
+  color: #111;
 
-    font-size:35px;
+  font-size: 20px;
 
-    color:#0b7d45;
+  font-weight: 800;
 
+  word-break: break-word;
 }
 
 
+.route-box span {
+  flex-shrink: 0;
 
-.details{
+  font-size: 35px;
 
-    padding:25px;
+  color: #0b7d45;
 
+  font-weight: 700;
 }
 
 
+/* =========================================
+   BOOKING DETAILS
+========================================= */
 
-.details p{
-
-    display:flex;
-
-    justify-content:space-between;
-
-    border-bottom:1px solid #eee;
-
-    padding:12px 0;
-
+.details {
+  padding: 25px;
 }
 
 
+.details p {
+  display: flex;
 
-.details span{
+  justify-content: space-between;
 
-    font-weight:bold;
+  align-items: center;
 
-    color:#0b7d45;
+  gap: 15px;
 
+  border-bottom: 1px solid #eee;
+
+  padding: 12px 0;
+
+  margin: 0;
+
+  color: #222;
+
+  font-size: 14px;
 }
 
 
-
-.price-box{
-
-    background:#111;
-
-    color:white;
-
-    text-align:center;
-
-    padding:20px;
-
+.details p:last-child {
+  border-bottom: none;
 }
 
 
+.details p > span:first-child {
+  flex-shrink: 0;
 
-.price-box h2{
+  font-weight: 700;
 
-    color:#0b7d45;
-
-    font-size:30px;
-
+  color: #0b7d45;
 }
 
 
+.details p > span:last-child:not(.paid),
+.details p > strong {
+  text-align: right;
 
-.qr-box{
-
-    margin:25px auto;
-
-    width:140px;
-
-    height:140px;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    background:white;
-
-    padding:10px;
-
-    border-radius:15px;
-
-    border:2px solid #0b7d45;
-
+  word-break: break-word;
 }
 
 
+/* =========================================
+   PAID STATUS
+========================================= */
 
-.thank{
+.paid {
+  color: #0b7d45;
 
-    text-align:center;
+  font-weight: 800;
 
-    color:#777;
-
-    padding-bottom:20px;
-
+  text-align: right;
 }
 
 
+/* =========================================
+   OFFER USED
+========================================= */
 
-.download-btn,
-.print-btn{
+.offer-used {
+  color: #0b7d45 !important;
 
+  font-weight: 700;
 
-    margin-top:20px;
-
-    width:300px;
-
-    height:50px;
-
-    border:none;
-
-    border-radius:10px;
-
-    background:#0b7d45;
-
-    color:white;
-
-    font-size:16px;
-
-    cursor:pointer;
-
+  text-align: right;
 }
 
-
-
-.download-btn:hover,
-.print-btn:hover{
-
-    background:#086237;
-
-}
-
-.confirm-btn{
-
-    margin-top:20px;
-
-    width:300px;
-
-    height:50px;
-
-    border:none;
-
-    border-radius:10px;
-
-    background:#111;
-
-    color:white;
-
-    font-size:16px;
-
-    cursor:pointer;
-
-}
-
-
-.confirm-btn:hover{
-
-    background:#0b7d45;
-
-}
-
-.paid{
-
-color:#0b7d45;
-
-font-weight:bold;
-
-}
 
 /* =========================================
    TICKET PRICE BREAKDOWN
 ========================================= */
 
 .ticket-price-breakdown {
-  margin-top: 25px;
+  margin: 5px 25px 0;
 
   padding: 20px;
 
@@ -314,6 +255,10 @@ font-weight:bold;
   border: 1px solid #e0e9e3;
 }
 
+
+/* =========================================
+   PRICE ROW
+========================================= */
 
 .ticket-price-row {
   display: flex;
@@ -336,8 +281,16 @@ font-weight:bold;
   color: #252c28;
 
   font-size: 14px;
+
+  font-weight: 700;
+
+  white-space: nowrap;
 }
 
+
+/* =========================================
+   DISCOUNT
+========================================= */
 
 .ticket-discount {
   color: #0b7d45;
@@ -349,6 +302,10 @@ font-weight:bold;
 }
 
 
+/* =========================================
+   DIVIDER
+========================================= */
+
 .ticket-price-divider {
   height: 1px;
 
@@ -357,6 +314,10 @@ font-weight:bold;
   background: #dce5df;
 }
 
+
+/* =========================================
+   FINAL PAYMENT
+========================================= */
 
 .ticket-final-price {
   display: flex;
@@ -386,17 +347,209 @@ font-weight:bold;
   font-size: 21px;
 
   font-weight: 800;
+
+  white-space: nowrap;
 }
 
 
 /* =========================================
-   OFFER USED
+   QR CODE
 ========================================= */
 
-.offer-used {
-  color: #0b7d45 !important;
+.qr-box {
+  margin: 25px auto;
 
-  font-weight: 700;
+  width: 140px;
+
+  height: 140px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  background: #ffffff;
+
+  padding: 10px;
+
+  border-radius: 15px;
+
+  border: 2px solid #0b7d45;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================
+   THANK YOU
+========================================= */
+
+.thank {
+  text-align: center;
+
+  color: #777;
+
+  padding: 0 20px 25px;
+
+  margin: 0;
+
+  font-size: 13px;
+}
+
+
+/* =========================================
+   ACTION BUTTONS
+========================================= */
+
+.download-btn,
+.print-btn,
+.confirm-btn {
+  width: 300px;
+
+  max-width: 100%;
+
+  height: 50px;
+
+  margin-top: 20px;
+
+  border: none;
+
+  border-radius: 10px;
+
+  font-size: 16px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.25s ease,
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+
+/* =========================================
+   DOWNLOAD
+========================================= */
+
+.download-btn {
+  background: #0b7d45;
+
+  color: white;
+}
+
+
+.download-btn:hover {
+  background: #086237;
+
+  transform: translateY(-2px);
+}
+
+
+/* =========================================
+   PRINT
+========================================= */
+
+.print-btn {
+  background: #0b7d45;
+
+  color: white;
+}
+
+
+.print-btn:hover {
+  background: #086237;
+
+  transform: translateY(-2px);
+}
+
+
+/* =========================================
+   CONFIRM
+========================================= */
+
+.confirm-btn {
+  background: #111;
+
+  color: white;
+}
+
+
+.confirm-btn:hover {
+  background: #0b7d45;
+
+  transform: translateY(-2px);
+}
+
+
+/* =========================================
+   DISABLED CONFIRM BUTTON
+========================================= */
+
+.confirm-btn:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+/* =========================================
+   EMPTY BOOKING
+========================================= */
+
+.empty-booking {
+  min-height: 70vh;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 20px;
+
+  padding: 40px;
+
+  text-align: center;
+}
+
+
+.empty-booking h2 {
+  margin: 0;
+
+  color: #222;
+}
+
+
+.empty-booking a {
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding: 12px 25px;
+
+  background: #0b7d45;
+
+  color: white;
+
+  text-decoration: none;
+
+  border-radius: 8px;
+
+  font-weight: 600;
+}
+
+
+.empty-booking a:hover {
+  background: #086237;
 }
 
 
@@ -406,8 +559,90 @@ font-weight:bold;
 
 @media (max-width: 600px) {
 
+  .ticket-page {
+    padding: 25px 15px 45px;
+
+    justify-content: flex-start;
+  }
+
+
+  .ticket {
+    width: 100%;
+
+    border-radius: 18px;
+  }
+
+
+  .ticket-header {
+    padding: 25px 20px;
+  }
+
+
+  .ticket-header h1 {
+    font-size: 34px;
+  }
+
+
+  .ticket-header p {
+    font-size: 11px;
+  }
+
+
+  .ticket-number {
+    padding: 16px;
+
+    font-size: 13px;
+  }
+
+
+  .route-box {
+    padding: 20px 15px;
+
+    gap: 8px;
+  }
+
+
+  .route-box h2 {
+    font-size: 17px;
+  }
+
+
+  .route-box span {
+    font-size: 27px;
+  }
+
+
+  .details {
+    padding: 18px;
+  }
+
+
+  .details p {
+    font-size: 13px;
+
+    gap: 10px;
+  }
+
+
   .ticket-price-breakdown {
+    margin: 5px 18px 0;
+
     padding: 15px;
+  }
+
+
+  .ticket-price-row {
+    font-size: 12px;
+  }
+
+
+  .ticket-price-row strong {
+    font-size: 13px;
+  }
+
+
+  .ticket-final-price span {
+    font-size: 12px;
   }
 
 
@@ -416,8 +651,117 @@ font-weight:bold;
   }
 
 
-  .ticket-price-row {
+  .qr-box {
+    width: 130px;
+
+    height: 130px;
+  }
+
+
+  .download-btn,
+  .print-btn,
+  .confirm-btn {
+    width: 100%;
+
+    height: 48px;
+
+    font-size: 15px;
+  }
+
+}
+
+
+/* =========================================
+   VERY SMALL PHONES
+========================================= */
+
+@media (max-width: 380px) {
+
+  .ticket-page {
+    padding: 20px 10px 40px;
+  }
+
+
+  .route-box {
+    padding: 18px 10px;
+  }
+
+
+  .route-box h2 {
+    font-size: 15px;
+  }
+
+
+  .route-box span {
+    font-size: 23px;
+  }
+
+
+  .details {
+    padding: 15px;
+  }
+
+
+  .details p {
     font-size: 12px;
+  }
+
+
+  .ticket-price-breakdown {
+    margin-left: 15px;
+
+    margin-right: 15px;
+
+    padding: 13px;
+  }
+
+
+  .ticket-final-price h2 {
+    font-size: 16px;
+  }
+
+}
+
+
+/* =========================================
+   PRINT TICKET
+========================================= */
+
+@media print {
+
+  body {
+    background: white !important;
+  }
+
+
+  .ticket-page {
+    min-height: auto;
+
+    padding: 0;
+
+    background: white;
+  }
+
+
+  .ticket {
+    width: 420px;
+
+    box-shadow: none;
+
+    border: 1px solid #ddd;
+  }
+
+
+  .download-btn,
+  .print-btn,
+  .confirm-btn {
+    display: none !important;
+  }
+
+
+  .navbar,
+  .site-footer {
+    display: none !important;
   }
 
 }

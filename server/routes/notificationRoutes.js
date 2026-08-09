@@ -45,6 +45,17 @@ router.get(
 
 
 // =========================================
+// CREATE NOTIFICATION
+// POST /api/notifications
+// =========================================
+
+router.post(
+  "/",
+  notificationController.createNotification
+);
+
+
+// =========================================
 // MARK ONE AS READ
 // PATCH /api/notifications/:notificationId/read
 // =========================================

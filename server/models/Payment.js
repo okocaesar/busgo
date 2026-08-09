@@ -3,130 +3,258 @@ const mongoose = require("mongoose");
 
 const paymentSchema = new mongoose.Schema(
 
-{
+  {
+
+    // =========================================
+    // USER
+    // =========================================
 
     userId: {
 
-        type: mongoose.Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
 
-        ref: "User",
+      ref: "User",
 
-        required: true
+      required: true
 
     },
 
+
+    // =========================================
+    // BOOKING
+    // =========================================
 
     bookingId: {
 
-        type: mongoose.Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
 
-        ref: "Booking",
+      ref: "Booking",
 
-        required: true
+      required: true
 
     },
 
+
+    // =========================================
+    // TRANSACTION ID
+    // =========================================
 
     transactionId: {
 
-        type: String,
+      type: String,
 
-        required: true,
+      required: true,
 
-        unique: true
+      unique: true,
+
+      trim: true
 
     },
 
+
+    // =========================================
+    // PAYMENT AMOUNT
+    // =========================================
 
     amount: {
 
-        type: Number,
+      type: Number,
 
-        required: true
+      required: true,
+
+      min: 0
 
     },
 
+
+    // =========================================
+    // CURRENCY
+    // =========================================
 
     currency: {
 
-        type: String,
+      type: String,
 
-        default: "XAF"
+      default: "XAF",
+
+      trim: true
 
     },
 
+
+    // =========================================
+    // PAYMENT METHOD
+    // =========================================
 
     paymentMethod: {
 
-        type: String,
+      type: String,
 
-        enum: [
+      enum: [
 
-            "MTN Mobile Money",
+        "MTN Mobile Money",
 
-            "Orange Money",
+        "Orange Money",
 
-            "Bank Card"
+        "Bank Card"
 
-        ],
+      ],
 
-        required: true
+      required: true
 
     },
 
+
+    // =========================================
+    // PAYMENT STATUS
+    // =========================================
 
     status: {
 
-        type: String,
+      type: String,
 
-        enum: [
+      enum: [
 
-            "Pending",
+        "Pending",
 
-            "Paid",
+        "Paid",
 
-            "Failed",
+        "Failed",
 
-            "Refunded"
+        "Reversal Requested",
 
-        ],
+        "Reversed",
 
-        default: "Pending"
+        "Refunded"
+
+      ],
+
+      default: "Pending"
 
     },
 
+
+    // =========================================
+    // PHONE NUMBER
+    // =========================================
 
     phoneNumber: {
 
-        type: String
+      type: String,
+
+      trim: true
 
     },
 
 
+    // =========================================
+    // PAYMENT DATE
+    // =========================================
+
     paymentDate: {
 
-        type: Date,
+      type: Date,
 
-        default: Date.now
+      default: Date.now
+
+    },
+
+
+    // =========================================
+    // REVERSAL REQUEST DATE
+    // =========================================
+
+    reversalRequestedAt: {
+
+      type: Date,
+
+      default: null
+
+    },
+
+
+    // =========================================
+    // REVERSAL PROCESSED DATE
+    // =========================================
+
+    reversalProcessedAt: {
+
+      type: Date,
+
+      default: null
+
+    },
+
+
+    // =========================================
+    // REVERSAL REASON
+    // =========================================
+
+    reversalReason: {
+
+      type: String,
+
+      default: "",
+
+      trim: true,
+
+      maxlength: 500
+
+    },
+
+
+    // =========================================
+    // ADMIN REVERSAL DECISION
+    // =========================================
+
+    reversalDecision: {
+
+      type: String,
+
+      enum: [
+
+        "Pending",
+
+        "Accepted",
+
+        "Denied",
+
+        null
+
+      ],
+
+      default: null
+
+    },
+
+
+    // =========================================
+    // ADMIN WHO PROCESSED REVERSAL
+    // =========================================
+
+    reversalProcessedBy: {
+
+      type: mongoose.Schema.Types.ObjectId,
+
+      ref: "User",
+
+      default: null
 
     }
 
+  },
 
-},
+  {
 
-{
+    timestamps: true
 
-timestamps:true
-
-}
-
+  }
 
 );
-
 
 
 module.exports =
-mongoose.model(
-"Payment",
-paymentSchema
-);
+  mongoose.model(
+    "Payment",
+    paymentSchema
+  );

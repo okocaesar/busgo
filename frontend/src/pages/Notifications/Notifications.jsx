@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
+
 import { API_URL } from "../../api";
 
 import "./Notifications.css";
@@ -18,117 +19,120 @@ function Notifications() {
 
   const navigate = useNavigate();
 
-  const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+
+  // =========================================
+  // STATE
+  // =========================================
+
+  const [notifications, setNotifications] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
 
 
   // =========================================
-  // GET AUTH TOKEN
+  // EXPANDED NOTIFICATION
   // =========================================
 
-  const getToken = () => {
-    return localStorage.getItem("authToken");
-  };
+  const [expandedNotification, setExpandedNotification] =
+    useState(null);
 
 
   // =========================================
   // LOAD NOTIFICATIONS
   // =========================================
 
-  const loadNotifications = useCallback(async () => {
+  const loadNotifications = useCallback(
+    async () => {
 
-    const token = getToken();
-
-    // =========================================
-    // USER NOT LOGGED IN
-    // =========================================
-
-    if (!token) {
-
-      setLoading(false);
-
-      navigate("/login");
-
-      return;
-    }
+      const token =
+        localStorage.getItem("authToken");
 
 
-    try {
-
-      setLoading(true);
-
-      setError("");
-
-
-      const response = await axios.get(
-        `${API_URL}/api/notifications`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-
-
-      console.log(
-        "NOTIFICATIONS RESPONSE:",
-        response.data
-      );
-
-
-      setNotifications(
-        response.data.notifications || []
-      );
-
-
-    } catch (requestError) {
-
-      console.error(
-        "LOAD NOTIFICATIONS ERROR:",
-        requestError
-      );
-
-
-      // =========================================
-      // AUTHENTICATION ERROR
-      // =========================================
-
-      if (
-        requestError.response?.status === 401
-      ) {
-
-        localStorage.removeItem(
-          "authToken"
-        );
-
-        localStorage.removeItem(
-          "loggedIn"
-        );
-
-        localStorage.removeItem(
-          "currentUser"
-        );
+      if (!token) {
 
         navigate("/login");
 
         return;
+
       }
 
 
-      setError(
-        requestError.response?.data?.message ||
-        "Unable to load notifications."
-      );
+      try {
+
+        setLoading(true);
+
+        setError("");
 
 
-    } finally {
+        const response =
+          await axios.get(
+            `${API_URL}/api/notifications`,
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`
+              }
+            }
+          );
 
-      setLoading(false);
 
-    }
+        setNotifications(
+          response.data.notifications || []
+        );
 
-  }, [navigate]);
+
+      } catch (requestError) {
+
+        console.error(
+          "LOAD NOTIFICATIONS ERROR:",
+          requestError
+        );
+
+
+        if (
+          requestError.response?.status === 401
+        ) {
+
+          localStorage.removeItem(
+            "authToken"
+          );
+
+          localStorage.removeItem(
+            "loggedIn"
+          );
+
+          localStorage.removeItem(
+            "currentUser"
+          );
+
+
+          navigate("/login");
+
+          return;
+
+        }
+
+
+        setError(
+          requestError.response?.data?.message ||
+          "Unable to load notifications."
+        );
+
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    },
+    [navigate]
+  );
 
 
   // =========================================
@@ -150,40 +154,37 @@ function Notifications() {
     notificationId
   ) => {
 
-    const token = getToken();
+    const token =
+      localStorage.getItem("authToken");
 
 
     if (!token) {
 
       navigate("/login");
 
-      return;
+      return false;
+
     }
 
 
     try {
 
       await axios.patch(
-
         `${API_URL}/api/notifications/${notificationId}/read`,
-
         {},
-
         {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization:
+              `Bearer ${token}`
           }
         }
-
       );
 
 
       setNotifications(
         (currentNotifications) =>
-
           currentNotifications.map(
             (notification) =>
-
               notification.id === notificationId
                 ? {
                     ...notification,
@@ -191,8 +192,10 @@ function Notifications() {
                   }
                 : notification
           )
-
       );
+
+
+      return true;
 
 
     } catch (requestError) {
@@ -203,31 +206,59 @@ function Notifications() {
       );
 
 
-      if (
-        requestError.response?.status === 401
-      ) {
-
-        localStorage.removeItem(
-          "authToken"
-        );
-
-        localStorage.removeItem(
-          "loggedIn"
-        );
-
-        localStorage.removeItem(
-          "currentUser"
-        );
-
-        navigate("/login");
-
-        return;
-      }
-
-
       alert(
         requestError.response?.data?.message ||
         "Unable to mark notification as read."
+      );
+
+
+      return false;
+
+    }
+
+  };
+
+
+  // =========================================
+  // OPEN FULL NOTIFICATION
+  // AUTOMATICALLY MARK AS READ
+  // =========================================
+
+  const openNotification = async (
+    notificationId
+  ) => {
+
+    const notification =
+      notifications.find(
+        (item) =>
+          item.id === notificationId
+      );
+
+
+    if (!notification) {
+      return;
+    }
+
+
+    // Expand notification
+
+    setExpandedNotification(
+      (currentId) =>
+        currentId === notificationId
+          ? null
+          : notificationId
+    );
+
+
+    // Automatically mark unread notification
+    // as read when user opens it
+
+    if (
+      Number(notification.is_read) === 0
+    ) {
+
+      await markAsRead(
+        notificationId
       );
 
     }
@@ -241,7 +272,8 @@ function Notifications() {
 
   const markAllAsRead = async () => {
 
-    const token = getToken();
+    const token =
+      localStorage.getItem("authToken");
 
 
     if (!token) {
@@ -249,36 +281,32 @@ function Notifications() {
       navigate("/login");
 
       return;
+
     }
 
 
     try {
 
       await axios.patch(
-
         `${API_URL}/api/notifications/read-all`,
-
         {},
-
         {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization:
+              `Bearer ${token}`
           }
         }
-
       );
 
 
       setNotifications(
         (currentNotifications) =>
-
           currentNotifications.map(
             (notification) => ({
               ...notification,
               is_read: 1
             })
           )
-
       );
 
 
@@ -288,28 +316,6 @@ function Notifications() {
         "MARK ALL NOTIFICATIONS ERROR:",
         requestError
       );
-
-
-      if (
-        requestError.response?.status === 401
-      ) {
-
-        localStorage.removeItem(
-          "authToken"
-        );
-
-        localStorage.removeItem(
-          "loggedIn"
-        );
-
-        localStorage.removeItem(
-          "currentUser"
-        );
-
-        navigate("/login");
-
-        return;
-      }
 
 
       alert(
@@ -348,6 +354,33 @@ function Notifications() {
 
 
   // =========================================
+  // MESSAGE PREVIEW
+  // =========================================
+
+  const getMessagePreview = (
+    message,
+    length = 120
+  ) => {
+
+    if (!message) {
+      return "";
+    }
+
+
+    if (message.length <= length) {
+      return message;
+    }
+
+
+    return (
+      message.substring(0, length).trim() +
+      "..."
+    );
+
+  };
+
+
+  // =========================================
   // UNREAD COUNT
   // =========================================
 
@@ -363,17 +396,21 @@ function Notifications() {
   // =========================================
 
   return (
+
     <>
+
       <Navbar />
 
 
       <main className="notifications-page">
 
+
         {/* =====================================
             HEADER
-        ====================================== */}
+        ===================================== */}
 
         <section className="notifications-header">
+
 
           <div>
 
@@ -388,9 +425,8 @@ function Notifications() {
 
 
             <p>
-              Stay updated with your BusGo
-              account, bookings and important
-              announcements.
+              Stay updated with your BusGo account,
+              bookings and important announcements.
             </p>
 
           </div>
@@ -398,13 +434,12 @@ function Notifications() {
 
           <div className="notification-actions">
 
+
             <button
               onClick={loadNotifications}
               disabled={loading}
             >
-              {loading
-                ? "Loading..."
-                : "Refresh"}
+              Refresh
             </button>
 
 
@@ -419,21 +454,23 @@ function Notifications() {
 
             )}
 
+
           </div>
+
 
         </section>
 
 
         {/* =====================================
             CONTENT
-        ====================================== */}
+        ===================================== */}
 
         <section className="notifications-container">
 
 
           {/* LOADING */}
 
-          {loading && (
+          {loading ? (
 
             <div className="notifications-empty">
 
@@ -448,12 +485,11 @@ function Notifications() {
 
             </div>
 
-          )}
+
+          ) : error ? (
 
 
-          {/* ERROR */}
-
-          {!loading && error && (
+            /* ERROR */
 
             <div className="notifications-error">
 
@@ -470,49 +506,61 @@ function Notifications() {
 
             </div>
 
-          )}
+
+          ) : notifications.length === 0 ? (
 
 
-          {/* EMPTY */}
+            /* EMPTY */
 
-          {!loading &&
-            !error &&
-            notifications.length === 0 && (
+            <div className="notifications-empty">
 
-              <div className="notifications-empty">
-
-                <div className="empty-bell">
-                  🔔
-                </div>
-
-
-                <h2>
-                  No notifications
-                </h2>
-
-
-                <p>
-                  You're all caught up!
-                </p>
-
+              <div className="empty-bell">
+                🔔
               </div>
 
-            )}
+
+              <h2>
+                No notifications
+              </h2>
 
 
-          {/* NOTIFICATIONS */}
+              <p>
+                You're all caught up!
+              </p>
 
-          {!loading &&
-            !error &&
-            notifications.length > 0 && (
+            </div>
 
-              <div className="notification-list">
 
-                {notifications.map(
-                  (notification) => (
+          ) : (
+
+
+            /* NOTIFICATION LIST */
+
+            <div className="notification-list">
+
+
+              {notifications.map(
+                (notification) => {
+
+                  const isExpanded =
+                    expandedNotification ===
+                    notification.id;
+
+
+                  const hasLongMessage =
+                    notification.message &&
+                    notification.message.length >
+                      120;
+
+
+                  return (
 
                     <article
-                      key={notification.id}
+
+                      key={
+                        notification.id
+                      }
+
                       className={`notification-card ${
                         Number(
                           notification.is_read
@@ -520,29 +568,44 @@ function Notifications() {
                           ? "unread"
                           : ""
                       }`}
+
                     >
 
-                      {/* ICON */}
+
+                      {/* =================================
+                          ICON
+                      ================================= */}
 
                       <div className="notification-icon-box">
 
                         {notification.type ===
                         "booking"
+
                           ? "🎫"
+
                           : notification.type ===
                             "warning"
+
                           ? "⚠️"
+
                           : notification.type ===
                             "success"
+
                           ? "✅"
+
                           : "🔔"}
 
                       </div>
 
 
-                      {/* CONTENT */}
+                      {/* =================================
+                          CONTENT
+                      ================================= */}
 
                       <div className="notification-content">
+
+
+                        {/* TITLE */}
 
                         <div className="notification-title-row">
 
@@ -563,50 +626,104 @@ function Notifications() {
 
                         </div>
 
+{/* =================================
+    MESSAGE
+================================= */}
 
-                        <p>
-                          {notification.message}
-                        </p>
+<div
+  className={`notification-message ${
+    isExpanded
+      ? "expanded"
+      : "collapsed"
+  } ${
+    hasLongMessage
+      ? "clickable"
+      : ""
+  }`}
+  onClick={() => {
 
+    if (hasLongMessage) {
+
+      openNotification(
+        notification.id
+      );
+
+    }
+
+  }}
+>
+
+  <p>
+
+    {isExpanded || !hasLongMessage
+
+      ? notification.message
+
+      : getMessagePreview(
+          notification.message
+        )}
+
+  </p>
+
+</div>
+
+
+                        {/* DATE */}
 
                         <span className="notification-date">
+
                           {formatDate(
                             notification.created_at
                           )}
+
                         </span>
+
 
                       </div>
 
 
-                      {/* MARK AS READ */}
+                      {/* =================================
+                          MARK AS READ
+                      ================================= */}
 
                       {Number(
                         notification.is_read
                       ) === 0 && (
 
                         <button
+
                           className="read-button"
+
                           onClick={() =>
                             markAsRead(
                               notification.id
                             )
                           }
+
                         >
+
                           Mark as read
+
                         </button>
 
                       )}
 
+
                     </article>
 
-                  )
-                )}
+                  );
 
-              </div>
+                }
 
-            )}
+              )}
+
+            </div>
+
+          )}
+
 
         </section>
+
 
       </main>
 
@@ -614,7 +731,9 @@ function Notifications() {
       <Footer />
 
     </>
+
   );
+
 }
 
 
