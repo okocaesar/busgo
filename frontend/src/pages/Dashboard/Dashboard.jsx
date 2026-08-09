@@ -298,16 +298,7 @@ function Dashboard() {
       0
     );
 
-  const totalDiscount =
-    bookings.reduce(
-      (sum, ticket) =>
-        sum +
-        Number(
-          ticket.discount || 0
-        ),
-      0
-    );
-
+  
   const activeBookings =
     bookings.filter(
       (ticket) =>
