@@ -5,44 +5,16 @@ import React, {
 
 import "./InstallApp.css";
 
-
 function InstallApp() {
 
   const [installPrompt, setInstallPrompt] =
     useState(null);
 
-  const [installed, setInstalled] =
-    useState(false);
-
+  // =====================================
+  // LISTEN FOR PWA INSTALL PROMPT
+  // =====================================
 
   useEffect(() => {
-
-    // =====================================
-    // CHECK IF APP IS ALREADY INSTALLED
-    // =====================================
-
-    const checkInstalled = () => {
-
-      if (
-        window.matchMedia(
-          "(display-mode: standalone)"
-        ).matches ||
-        window.navigator.standalone === true
-      ) {
-
-        setInstalled(true);
-
-      }
-
-    };
-
-
-    checkInstalled();
-
-
-    // =====================================
-    // ANDROID / CHROME INSTALL PROMPT
-    // =====================================
 
     const handleBeforeInstallPrompt =
       (event) => {
@@ -53,35 +25,10 @@ function InstallApp() {
 
       };
 
-
     window.addEventListener(
       "beforeinstallprompt",
       handleBeforeInstallPrompt
     );
-
-
-    // =====================================
-    // APP INSTALLED
-    // =====================================
-
-    const handleAppInstalled = () => {
-
-      setInstalled(true);
-
-      setInstallPrompt(null);
-
-      console.log(
-        "BusGo has been installed."
-      );
-
-    };
-
-
-    window.addEventListener(
-      "appinstalled",
-      handleAppInstalled
-    );
-
 
     return () => {
 
@@ -90,15 +37,9 @@ function InstallApp() {
         handleBeforeInstallPrompt
       );
 
-      window.removeEventListener(
-        "appinstalled",
-        handleAppInstalled
-      );
-
     };
 
   }, []);
-
 
   // =====================================
   // INSTALL BUSGO
@@ -110,68 +51,35 @@ function InstallApp() {
       return;
     }
 
-
     installPrompt.prompt();
-
 
     const result =
       await installPrompt.userChoice;
-
 
     console.log(
       "BusGo installation result:",
       result.outcome
     );
 
-
     setInstallPrompt(null);
 
   };
 
-
   // =====================================
-  // ALREADY INSTALLED
-  // =====================================
-
-  if (installed) {
-
-    return (
-
-      <div className="install-app installed">
-
-        <span className="install-icon">
-          ✓
-        </span>
-
-        <div>
-
-          <strong>
-            BusGo App Installed
-          </strong>
-
-          <p>
-            BusGo is ready on your device.
-          </p>
-
-        </div>
-
-      </div>
-
-    );
-
-  }
-
-
-  // =====================================
-  // BROWSER DOES NOT SUPPORT PROMPT
+  // DO NOT DISPLAY ANYTHING IF:
+  //
+  // - Browser does not support installation
+  // - App is already installed
+  // - Installation prompt is unavailable
   // =====================================
 
   if (!installPrompt) {
-
     return null;
-
   }
 
+  // =====================================
+  // INSTALL UI
+  // =====================================
 
   return (
 
@@ -182,7 +90,6 @@ function InstallApp() {
         <div className="install-icon">
           🚍
         </div>
-
 
         <div className="install-text">
 
@@ -199,15 +106,12 @@ function InstallApp() {
 
       </div>
 
-
       <button
         type="button"
         onClick={installApp}
         className="install-button"
       >
-
         Install App
-
       </button>
 
     </div>
@@ -215,6 +119,5 @@ function InstallApp() {
   );
 
 }
-
 
 export default InstallApp;
