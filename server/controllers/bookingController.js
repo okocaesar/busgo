@@ -1,3 +1,4 @@
+
 const Booking = require("../models/Booking");
 const Notification = require("../models/Notification");
 
@@ -12,21 +13,30 @@ const formatPaymentDate = (paymentDate) => {
     return null;
   }
 
+
   // MYSQL DATETIME
   if (
     typeof paymentDate === "string" &&
-    /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(paymentDate)
+    /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(
+      paymentDate
+    )
   ) {
+
     return paymentDate;
+
   }
+
 
   // ISO DATE
   if (
     typeof paymentDate === "string" &&
-    /^\d{4}-\d{2}-\d{2}T/.test(paymentDate)
+    /^\d{4}-\d{2}-\d{2}T/.test(
+      paymentDate
+    )
   ) {
 
-    const date = new Date(paymentDate);
+    const date =
+      new Date(paymentDate);
 
     if (isNaN(date.getTime())) {
       return null;
@@ -39,23 +49,40 @@ const formatPaymentDate = (paymentDate) => {
 
   }
 
+
   // DD/MM/YYYY
   if (
     typeof paymentDate === "string" &&
-    /^\d{2}\/\d{2}\/\d{4}$/.test(paymentDate)
+    /^\d{2}\/\d{2}\/\d{4}$/.test(
+      paymentDate
+    )
   ) {
 
-    const [day, month, year] = paymentDate.split("/");
+    const [
+      day,
+      month,
+      year
+    ] =
+      paymentDate.split("/");
 
     return `${year}-${month}-${day} 00:00:00`;
 
   }
 
-  // JAVASCRIPT DATE
-  if (paymentDate instanceof Date) {
 
-    if (isNaN(paymentDate.getTime())) {
+  // JAVASCRIPT DATE
+  if (
+    paymentDate instanceof Date
+  ) {
+
+    if (
+      isNaN(
+        paymentDate.getTime()
+      )
+    ) {
+
       return null;
+
     }
 
     return paymentDate
@@ -65,31 +92,8 @@ const formatPaymentDate = (paymentDate) => {
 
   }
 
+
   return null;
-
-};
-
-
-// =========================================
-// PROMISE WRAPPER FOR DB CALLBACKS
-// (so we can use async/await)
-// =========================================
-
-const queryAsync = (modelFn, ...args) => {
-
-  return new Promise((resolve, reject) => {
-
-    modelFn(...args, (err, result) => {
-
-      if (err) {
-        return reject(err);
-      }
-
-      resolve(result);
-
-    });
-
-  });
 
 };
 
@@ -99,76 +103,155 @@ const queryAsync = (modelFn, ...args) => {
 // GET /api/bookings/availability
 // =========================================
 
-exports.getBookedSeats = (req, res) => {
+exports.getBookedSeats = (
+  req,
+  res
+) => {
 
-  let { busId, routeId, date } = req.query;
+  let {
+    busId,
+    routeId,
+    date
+  } = req.query;
 
-  // Support legacy URL parameters
+
+  // Legacy support
   if (!busId) {
-    busId = req.params.busId;
+    busId =
+      req.params.busId;
   }
+
 
   if (!date) {
-    date = req.params.date;
+    date =
+      req.params.date;
   }
 
-  console.log("=========================================");
-  console.log("CHECKING BOOKED SEATS");
-  console.log("Bus ID:", busId);
-  console.log("Route ID:", routeId);
-  console.log("Travel Date:", date);
-  console.log("=========================================");
 
-  // Validation
-  if (!busId || !routeId || !date) {
+  console.log(
+    "========================================="
+  );
+
+  console.log(
+    "CHECKING BOOKED SEATS"
+  );
+
+  console.log(
+    "Bus ID:",
+    busId
+  );
+
+  console.log(
+    "Route ID:",
+    routeId
+  );
+
+  console.log(
+    "Travel Date:",
+    date
+  );
+
+  console.log(
+    "========================================="
+  );
+
+
+  // =========================================
+  // VALIDATION
+  // =========================================
+
+  if (
+    !busId ||
+    !routeId ||
+    !date
+  ) {
 
     return res.status(400).json({
-      message: "Bus ID, route ID and travel date are required.",
+
+      message:
+        "Bus ID, route ID and travel date are required.",
+
       bookedSeats: []
+
     });
 
   }
 
+
   Booking.getBookedSeats(
+
     Number(busId),
+
     Number(routeId),
+
     date,
-    (err, seats) => {
+
+    (
+      err,
+      seats
+    ) => {
 
       if (err) {
 
-        console.error("Get booked seats error:", err);
+        console.error(
+          "Get booked seats error:",
+          err
+        );
 
         return res.status(500).json({
-          message: "Failed to retrieve booked seats.",
-          error: err.message,
+
+          message:
+            "Failed to retrieve booked seats.",
+
+          error:
+            err.message,
+
           bookedSeats: []
+
         });
 
       }
 
-      const bookedSeats = Array.isArray(seats)
 
-        ? seats
-            .map((seat) => Number(seat))
-            .filter(
-              (seat) =>
-                Number.isInteger(seat) && seat > 0
-            )
+      const bookedSeats =
+        Array.isArray(seats)
 
-        : [];
+          ? seats
+              .map(
+                (seat) =>
+                  Number(seat)
+              )
+              .filter(
+                (seat) =>
+                  Number.isInteger(
+                    seat
+                  ) &&
+                  seat > 0
+              )
+
+          : [];
+
 
       const uniqueBookedSeats = [
         ...new Set(bookedSeats)
       ];
 
-      console.log("BOOKED SEATS:", uniqueBookedSeats);
+
+      console.log(
+        "BOOKED SEATS:",
+        uniqueBookedSeats
+      );
+
 
       return res.status(200).json({
-        bookedSeats: uniqueBookedSeats
+
+        bookedSeats:
+          uniqueBookedSeats
+
       });
 
     }
+
   );
 
 };
@@ -179,7 +262,10 @@ exports.getBookedSeats = (req, res) => {
 // POST /api/bookings
 // =========================================
 
-exports.createBooking = async (req, res) => {
+exports.createBooking = async (
+  req,
+  res
+) => {
 
   try {
 
@@ -254,18 +340,39 @@ exports.createBooking = async (req, res) => {
 
         message:
           "Please provide all required booking information.",
+
         missing: {
 
-          ticketNumber: !ticketNumber,
-          userId: !userId,
-          name: !name,
-          phone: !phone,
-          from: !from,
-          to: !to,
-          busType: !busType,
-          seats: !Array.isArray(seats) || seats.length === 0,
-          date: !date,
-          paymentMethod: !paymentMethod
+          ticketNumber:
+            !ticketNumber,
+
+          userId:
+            !userId,
+
+          name:
+            !name,
+
+          phone:
+            !phone,
+
+          from:
+            !from,
+
+          to:
+            !to,
+
+          busType:
+            !busType,
+
+          seats:
+            !Array.isArray(seats) ||
+            seats.length === 0,
+
+          date:
+            !date,
+
+          paymentMethod:
+            !paymentMethod
 
         }
 
@@ -275,46 +382,69 @@ exports.createBooking = async (req, res) => {
 
 
     // =========================================
-    // NORMALIZE SELECTED SEATS
+    // NORMALIZE SEATS
     // =========================================
 
-    const normalizedSeats = [
-
-      ...new Set(
+    const normalizedSeats =
+      Booking.normalizeSeats(
         seats
-          .map((seat) => Number(seat))
-          .filter(
-            (seat) =>
-              Number.isInteger(seat) &&
-              seat > 0
-          )
-      )
-
-    ];
+      );
 
 
-    if (normalizedSeats.length === 0) {
+    if (
+      normalizedSeats.length === 0
+    ) {
 
       return res.status(400).json({
-        message: "Please select at least one valid seat."
+
+        message:
+          "Please select at least one valid seat."
+
       });
 
     }
 
 
-    console.log("=========================================");
-    console.log("NEW BOOKING ATTEMPT");
-    console.log("User:", userId);
-    console.log("Route:", `${from} → ${to}`);
-    console.log("Bus:", busType);
-    console.log("Date:", date);
-    console.log("Seats:", normalizedSeats);
-    console.log("=========================================");
+    console.log(
+      "========================================="
+    );
+
+    console.log(
+      "NEW BOOKING ATTEMPT"
+    );
+
+    console.log(
+      "User:",
+      userId
+    );
+
+    console.log(
+      "Route:",
+      `${from} → ${to}`
+    );
+
+    console.log(
+      "Bus:",
+      busType
+    );
+
+    console.log(
+      "Date:",
+      date
+    );
+
+    console.log(
+      "Seats:",
+      normalizedSeats
+    );
+
+    console.log(
+      "========================================="
+    );
 
 
     // =========================================
-    // LOOK UP ROUTE, BUS, AND OFFER IN PARALLEL
-    // (faster than sequential)
+    // LOOK UP ROUTE, BUS AND OFFER
     // =========================================
 
     const [
@@ -327,130 +457,262 @@ exports.createBooking = async (req, res) => {
 
     ] = await Promise.all([
 
-      // Route lookup
-      new Promise((resolve, reject) => {
 
-        Booking.findRouteId(from, to, (err, result) => {
+      // ROUTE
+      new Promise(
+        (
+          resolve,
+          reject
+        ) => {
 
-          if (err) return reject(err);
-          resolve(result);
+          Booking.findRouteId(
+            from,
+            to,
+            (
+              err,
+              result
+            ) => {
 
-        });
+              if (err) {
+                return reject(err);
+              }
 
-      }),
+              resolve(result);
 
-      // Bus lookup
-      new Promise((resolve, reject) => {
+            }
+          );
 
-        Booking.findBusId(busType, (err, result) => {
-
-          if (err) return reject(err);
-          resolve(result);
-
-        });
-
-      }),
-
-      // Offer lookup (only if offered)
-      new Promise((resolve) => {
-
-        if (!offerTitle || offerTitle === "No Offer") {
-          return resolve([]);
         }
+      ),
 
-        Booking.findOfferId(offerTitle, (err, result) => {
 
-          if (err) {
+      // BUS
+      new Promise(
+        (
+          resolve,
+          reject
+        ) => {
 
-            console.error("Offer lookup error:", err);
+          Booking.findBusId(
+            busType,
+            (
+              err,
+              result
+            ) => {
+
+              if (err) {
+                return reject(err);
+              }
+
+              resolve(result);
+
+            }
+          );
+
+        }
+      ),
+
+
+      // OFFER
+      new Promise(
+        (resolve) => {
+
+          if (
+            !offerTitle ||
+            offerTitle === "No Offer"
+          ) {
+
             return resolve([]);
 
           }
 
-          resolve(result || []);
 
-        });
+          Booking.findOfferId(
+            offerTitle,
+            (
+              err,
+              result
+            ) => {
 
-      })
+              if (err) {
+
+                console.error(
+                  "Offer lookup error:",
+                  err
+                );
+
+                return resolve([]);
+
+              }
+
+              resolve(
+                result || []
+              );
+
+            }
+          );
+
+        }
+      )
 
     ]);
 
 
-    // Validate route
-    if (!routeResults || routeResults.length === 0) {
+    // =========================================
+    // VALIDATE ROUTE
+    // =========================================
+
+    if (
+      !routeResults ||
+      routeResults.length === 0
+    ) {
 
       return res.status(400).json({
-        message: "The selected route was not found."
+
+        message:
+          "The selected route was not found."
+
       });
 
     }
 
-    const routeId = Number(routeResults[0].id);
+
+    const routeId =
+      Number(
+        routeResults[0].id
+      );
 
 
-    // Validate bus
-    if (!busResults || busResults.length === 0) {
+    // =========================================
+    // VALIDATE BUS
+    // =========================================
+
+    if (
+      !busResults ||
+      busResults.length === 0
+    ) {
 
       return res.status(400).json({
-        message: "The selected bus type was not found."
+
+        message:
+          "The selected bus type was not found."
+
       });
 
     }
 
-    const busId = Number(busResults[0].id);
 
-    const offerId = (offerResults && offerResults.length > 0)
-      ? offerResults[0].id
-      : null;
-
-
-    console.log("LOOKUP RESULTS:");
-    console.log("  Route ID:", routeId);
-    console.log("  Bus ID:", busId);
-    console.log("  Offer ID:", offerId);
+    const busId =
+      Number(
+        busResults[0].id
+      );
 
 
     // =========================================
-    // INITIAL SEAT AVAILABILITY CHECK
+    // OFFER
     // =========================================
 
-    const unavailableSeats = await new Promise(
-      (resolve, reject) => {
+    const offerId =
 
-        Booking.checkSeatsAvailability(
-          busId,
-          routeId,
-          date,
-          normalizedSeats,
-          (err, result) => {
+      offerResults &&
+      offerResults.length > 0
 
-            if (err) return reject(err);
-            resolve(result || []);
+        ? Number(
+            offerResults[0].id
+          )
 
-          }
-        );
+        : null;
 
-      }
+
+    console.log(
+      "LOOKUP RESULTS:"
+    );
+
+    console.log(
+      "Route ID:",
+      routeId
+    );
+
+    console.log(
+      "Bus ID:",
+      busId
+    );
+
+    console.log(
+      "Offer ID:",
+      offerId
     );
 
 
+    // =========================================
+    // QUICK AVAILABILITY CHECK
+    //
+    // This is only an early check.
+    //
+    // The REAL protection is inside
+    // createBookingSafely(), which runs
+    // inside a transaction.
+    // =========================================
+
+    const unavailableSeats =
+      await new Promise(
+        (
+          resolve,
+          reject
+        ) => {
+
+          Booking.checkSeatsAvailability(
+
+            busId,
+
+            routeId,
+
+            date,
+
+            normalizedSeats,
+
+            (
+              err,
+              result
+            ) => {
+
+              if (err) {
+                return reject(err);
+              }
+
+              resolve(
+                result || []
+              );
+
+            }
+
+          );
+
+        }
+      );
+
+
     if (
-      Array.isArray(unavailableSeats) &&
       unavailableSeats.length > 0
     ) {
 
       console.log(
-        "BOOKING REJECTED (Initial Check)"
+        "BOOKING REJECTED (EARLY CHECK)"
       );
 
-      console.log("Already booked seats:", unavailableSeats);
+      console.log(
+        "Already booked:",
+        unavailableSeats
+      );
+
 
       return res.status(409).json({
 
         message:
           "One or more selected seats are already booked.",
 
-        bookedSeats: unavailableSeats
+        bookedSeats:
+          unavailableSeats
 
       });
 
@@ -458,121 +720,194 @@ exports.createBooking = async (req, res) => {
 
 
     // =========================================
-    // BUILD BOOKING OBJECT
+    // BUILD BOOKING
     // =========================================
 
     const booking = {
 
       ticketNumber,
 
-      userId: Number(userId),
+      userId:
+        Number(userId),
 
       routeId,
 
       busId,
 
-      passengerName: name,
+      passengerName:
+        name,
 
-      passengerPhone: phone,
+      passengerPhone:
+        phone,
 
-      travelDate: date,
+      travelDate:
+        date,
 
-      passengers: normalizedSeats.length,
+      passengers:
+        normalizedSeats.length,
 
-      seats: normalizedSeats,
+      seats:
+        normalizedSeats,
 
       offerId,
 
-      totalPrice: Number(totalPrice) || 0,
+      totalPrice:
+        Number(totalPrice) || 0,
 
-      discount: Number(discount) || 0,
+      discount:
+        Number(discount) || 0,
 
-      totalPayment: Number(totalPayment) || 0,
+      totalPayment:
+        Number(totalPayment) || 0,
 
       paymentMethod,
 
-      paymentStatus: paymentStatus || "Successful",
+      paymentStatus:
+        paymentStatus ||
+        "Successful",
 
-      bookingStatus: "Confirmed",
+      bookingStatus:
+        "Confirmed",
 
-      paymentDate: formatPaymentDate(paymentDate)
+      paymentDate:
+        formatPaymentDate(
+          paymentDate
+        )
 
     };
 
 
-    console.log("SAVING BOOKING:", booking);
-
-
-    // =========================================
-    // CREATE BOOKING SAFELY
-    // (handles transactions + DB constraint)
-    // =========================================
-
-    const result = await new Promise(
-      (resolve, reject) => {
-
-        Booking.createBookingSafely(
-          booking,
-          (err, res) => {
-
-            if (err) return reject(err);
-            resolve(res);
-
-          }
-        );
-
-      }
+    console.log(
+      "SAVING BOOKING:",
+      booking
     );
 
 
-    console.log("=========================================");
-    console.log("BOOKING CREATED SUCCESSFULLY");
-    console.log("Booking ID:", result.insertId);
-    console.log("Seats:", normalizedSeats);
-    console.log("=========================================");
+    // =========================================
+    // FINAL SAFE BOOKING
+    //
+    // This performs the REAL race-condition
+    // protection.
+    // =========================================
+
+    const result =
+      await new Promise(
+        (
+          resolve,
+          reject
+        ) => {
+
+          Booking.createBookingSafely(
+
+            booking,
+
+            (
+              err,
+              result
+            ) => {
+
+              if (err) {
+                return reject(err);
+              }
+
+              resolve(result);
+
+            }
+
+          );
+
+        }
+      );
+
+
+    console.log(
+      "========================================="
+    );
+
+    console.log(
+      "BOOKING CREATED SUCCESSFULLY"
+    );
+
+    console.log(
+      "Booking ID:",
+      result.insertId
+    );
+
+    console.log(
+      "Seats:",
+      normalizedSeats
+    );
+
+    console.log(
+      "========================================="
+    );
 
 
     // =========================================
     // CREATE NOTIFICATION
-    // (don't block the response if it fails)
     // =========================================
 
     const notification = {
 
-      userId: Number(userId),
+      userId:
+        Number(userId),
 
-      title: "Booking Successful 🎫",
+      title:
+        "Booking Successful 🎫",
 
       message:
         `Thank you ${name}! Your booking from ${from} to ${to} has been successfully confirmed. Your ticket number is ${ticketNumber}. We wish you a safe and pleasant journey!`,
 
-      type: "booking",
+      type:
+        "booking",
 
-      isRead: 0
+      isRead:
+        0
 
     };
 
 
-    let notificationCreated = false;
+    let notificationCreated =
+      false;
+
 
     try {
 
-      await new Promise((resolve, reject) => {
+      await new Promise(
+        (
+          resolve,
+          reject
+        ) => {
 
-        Notification.create(notification, (err) => {
+          Notification.create(
+            notification,
+            (err) => {
 
-          if (err) return reject(err);
-          resolve();
+              if (err) {
+                return reject(err);
+              }
 
-        });
+              resolve();
 
-      });
+            }
+          );
 
-      notificationCreated = true;
+        }
+      );
 
-      console.log("Booking notification created successfully.");
 
-    } catch (notificationError) {
+      notificationCreated =
+        true;
+
+
+      console.log(
+        "Booking notification created successfully."
+      );
+
+
+    } catch (
+      notificationError
+    ) {
 
       console.error(
         "Notification creation error:",
@@ -588,39 +923,61 @@ exports.createBooking = async (req, res) => {
 
     return res.status(201).json({
 
-      message: "Booking saved successfully.",
+      message:
+        "Booking saved successfully.",
 
-      bookingId: result.insertId,
+      bookingId:
+        result.insertId,
 
       ticketNumber,
 
-      bookedSeats: normalizedSeats,
+      bookedSeats:
+        normalizedSeats,
 
-      notification: notificationCreated
+      notification:
+        notificationCreated
 
     });
 
+
   } catch (error) {
 
-    console.error("=========================================");
-    console.error("CREATE BOOKING ERROR:", error);
-    console.error("=========================================");
+    console.error(
+      "========================================="
+    );
+
+    console.error(
+      "CREATE BOOKING ERROR:",
+      error
+    );
+
+    console.error(
+      "========================================="
+    );
 
 
     // =========================================
-    // HANDLE DUPLICATE SEAT (from createBookingSafely)
+    // DUPLICATE SEAT
     // =========================================
 
-    if (error.code === "SEATS_ALREADY_BOOKED") {
+    if (
+      error.code ===
+      "SEATS_ALREADY_BOOKED"
+    ) {
 
-      console.log("DUPLICATE SEAT BLOCKED:", error.bookedSeats);
+      console.log(
+        "DUPLICATE SEAT BLOCKED:",
+        error.bookedSeats
+      );
+
 
       return res.status(409).json({
 
         message:
           "One or more selected seats were just booked by another user.",
 
-        bookedSeats: error.bookedSeats || []
+        bookedSeats:
+          error.bookedSeats || []
 
       });
 
@@ -628,14 +985,18 @@ exports.createBooking = async (req, res) => {
 
 
     // =========================================
-    // HANDLE BUS NOT FOUND
+    // BUS NOT FOUND
     // =========================================
 
-    if (error.code === "BUS_NOT_FOUND") {
+    if (
+      error.code ===
+      "BUS_NOT_FOUND"
+    ) {
 
       return res.status(400).json({
 
-        message: "Selected bus does not exist."
+        message:
+          "Selected bus does not exist."
 
       });
 
@@ -643,14 +1004,18 @@ exports.createBooking = async (req, res) => {
 
 
     // =========================================
-    // HANDLE NO VALID SEATS
+    // NO VALID SEATS
     // =========================================
 
-    if (error.code === "NO_VALID_SEATS") {
+    if (
+      error.code ===
+      "NO_VALID_SEATS"
+    ) {
 
       return res.status(400).json({
 
-        message: "No valid seats were selected."
+        message:
+          "No valid seats were selected."
 
       });
 
@@ -658,16 +1023,19 @@ exports.createBooking = async (req, res) => {
 
 
     // =========================================
-    // HANDLE DATABASE UNIQUE CONSTRAINT
-    // (when UNIQUE constraint catches a duplicate)
+    // DATABASE DUPLICATE
     // =========================================
 
-    if (error.code === "ER_DUP_ENTRY") {
+    if (
+      error.code ===
+      "ER_DUP_ENTRY"
+    ) {
 
       console.error(
         "DATABASE UNIQUE CONSTRAINT CAUGHT DUPLICATE:",
         error
       );
+
 
       return res.status(409).json({
 
@@ -682,14 +1050,38 @@ exports.createBooking = async (req, res) => {
 
 
     // =========================================
+    // GENERATED COLUMN ERROR
+    // =========================================
+
+    if (
+      error.code ===
+      "ER_NON_DEFAULT_VALUE_FOR_GENERATED_COLUMN"
+    ) {
+
+      return res.status(500).json({
+
+        message:
+          "Booking database configuration error. The generated seat number must not be manually inserted.",
+
+        error:
+          error.message
+
+      });
+
+    }
+
+
+    // =========================================
     // GENERIC ERROR
     // =========================================
 
     return res.status(500).json({
 
-      message: "Failed to save booking.",
+      message:
+        "Failed to save booking.",
 
-      error: error.message
+      error:
+        error.message
 
     });
 
@@ -703,43 +1095,70 @@ exports.createBooking = async (req, res) => {
 // GET /api/bookings/user/:userId
 // =========================================
 
-exports.getUserBookings = (req, res) => {
+exports.getUserBookings = (
+  req,
+  res
+) => {
 
-  const { userId } = req.params;
+  const {
+    userId
+  } = req.params;
+
 
   if (!userId) {
 
     return res.status(400).json({
-      message: "User ID is required."
+
+      message:
+        "User ID is required."
+
     });
 
   }
 
-  console.log("GET USER BOOKINGS:", userId);
 
-  Booking.findByUserId(userId, (err, results) => {
+  console.log(
+    "GET USER BOOKINGS:",
+    userId
+  );
 
-    if (err) {
 
-      console.error("Get bookings error:", err);
+  Booking.findByUserId(
+    userId,
+    (
+      err,
+      results
+    ) => {
 
-      return res.status(500).json({
+      if (err) {
 
-        message: "Failed to retrieve bookings.",
+        console.error(
+          "Get bookings error:",
+          err
+        );
 
-        error: err.message
+        return res.status(500).json({
+
+          message:
+            "Failed to retrieve bookings.",
+
+          error:
+            err.message
+
+        });
+
+      }
+
+
+      return res.json({
+
+        bookings:
+          results || []
 
       });
 
     }
-
-    return res.json({
-
-      bookings: results || []
-
-    });
-
-  });
+  );
 
 };
 
@@ -749,95 +1168,160 @@ exports.getUserBookings = (req, res) => {
 // PATCH /api/bookings/:bookingId/cancel/user/:userId
 // =========================================
 
-exports.cancelBooking = (req, res) => {
+exports.cancelBooking = (
+  req,
+  res
+) => {
 
-  const { bookingId, userId } = req.params;
+  const {
+    bookingId,
+    userId
+  } = req.params;
 
-  if (!bookingId || !userId) {
+
+  if (
+    !bookingId ||
+    !userId
+  ) {
 
     return res.status(400).json({
 
-      message: "Booking ID and User ID are required."
+      message:
+        "Booking ID and User ID are required."
 
     });
 
   }
 
-  Booking.cancelByIdAndUserId(bookingId, userId, (err, result) => {
 
-    if (err) {
+  Booking.cancelByIdAndUserId(
 
-      console.error("CANCEL BOOKING DATABASE ERROR:", err);
+    bookingId,
 
-      return res.status(500).json({
+    userId,
 
-        message: "Failed to cancel booking.",
+    (
+      err,
+      result
+    ) => {
 
-        error: err.message
-
-      });
-
-    }
-
-    if (result.affectedRows === 0) {
-
-      return res.status(404).json({
-        message: "Booking not found."
-      });
-
-    }
-
-    console.log("Booking cancelled successfully:", bookingId);
-
-    // Cancellation notification
-    const notification = {
-
-      userId: Number(userId),
-
-      title: "Booking Cancelled ❌",
-
-      message:
-        `Your BusGo booking #${bookingId} has been successfully cancelled. If you did not request this cancellation, please contact BusGo support.`,
-
-      type: "warning",
-
-      isRead: 0
-
-    };
-
-    Notification.create(notification, (notificationError) => {
-
-      if (notificationError) {
+      if (err) {
 
         console.error(
-          "Cancellation notification error:",
-          notificationError
+          "CANCEL BOOKING DATABASE ERROR:",
+          err
         );
 
-        return res.status(200).json({
+        return res.status(500).json({
 
-          message: "Booking cancelled successfully.",
+          message:
+            "Failed to cancel booking.",
 
-          bookingId,
-
-          notification: false
+          error:
+            err.message
 
         });
 
       }
 
-      return res.status(200).json({
 
-        message: "Booking cancelled successfully.",
+      // =========================================
+      // IMPORTANT
+      //
+      // If already cancelled, affectedRows = 0.
+      // =========================================
 
-        bookingId,
+      if (
+        result.affectedRows === 0
+      ) {
 
-        notification: true
+        return res.status(404).json({
 
-      });
+          message:
+            "Booking not found or already cancelled."
 
-    });
+        });
 
-  });
+      }
+
+
+      console.log(
+        "Booking cancelled successfully:",
+        bookingId
+      );
+
+
+      // =========================================
+      // CANCELLATION NOTIFICATION
+      // =========================================
+
+      const notification = {
+
+        userId:
+          Number(userId),
+
+        title:
+          "Booking Cancelled ❌",
+
+        message:
+          `Your BusGo booking #${bookingId} has been successfully cancelled. If you did not request this cancellation, please contact BusGo support.`,
+
+        type:
+          "warning",
+
+        isRead:
+          0
+
+      };
+
+
+      Notification.create(
+        notification,
+        (
+          notificationError
+        ) => {
+
+          if (
+            notificationError
+          ) {
+
+            console.error(
+              "Cancellation notification error:",
+              notificationError
+            );
+
+
+            return res.status(200).json({
+
+              message:
+                "Booking cancelled successfully.",
+
+              bookingId,
+
+              notification:
+                false
+
+            });
+
+          }
+
+
+          return res.status(200).json({
+
+            message:
+              "Booking cancelled successfully.",
+
+            bookingId,
+
+            notification:
+              true
+
+          });
+
+        }
+      );
+
+    }
+  );
 
 };
