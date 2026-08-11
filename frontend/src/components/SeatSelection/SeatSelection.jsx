@@ -26,13 +26,20 @@ function SeatSelection({
   // FAST LOOKUP USING SET (for booked seats)
   // =========================================
 
-  const bookedSet = useMemo(() => {
+const bookedSet = useMemo(() => {
 
     return new Set(
-      bookedSeats.map((seat) => Number(seat))
+        bookedSeats
+            .map((seat) => Number(seat))
+            .filter(
+                (seat) =>
+                    Number.isInteger(seat) &&
+                    seat > 0
+            )
     );
 
-  }, [bookedSeats]);
+}, [bookedSeats]);
+
 
 
   const selectedSet = useMemo(() => {
