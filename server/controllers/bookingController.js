@@ -177,6 +177,11 @@ exports.getBookedSeats = (
 
   }
 
+console.log("========== AVAILABILITY REQUEST ==========");
+console.log("busId:", busId);
+console.log("routeId:", routeId);
+console.log("date:", date);
+console.log("==========================================");
 
   Booking.getBookedSeats(
 

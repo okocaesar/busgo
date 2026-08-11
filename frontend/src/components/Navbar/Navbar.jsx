@@ -1,3 +1,4 @@
+
 import React, {
   useCallback,
   useEffect,
@@ -5,6 +6,7 @@ import React, {
 } from "react";
 
 import axios from "axios";
+
 import {
   NavLink,
   useLocation,
@@ -16,12 +18,10 @@ import { API_URL } from "../../api";
 
 import "./Navbar.css";
 
-
 function Navbar() {
 
   const navigate = useNavigate();
   const location = useLocation();
-
 
   // =========================================
   // LOGIN STATE
@@ -31,21 +31,26 @@ function Navbar() {
     localStorage.getItem("loggedIn") === "true"
   );
 
-
   // =========================================
   // MENU
   // =========================================
 
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // =========================================
+  // NAVBAR VISIBILITY
+  //
+  // false = visible
+  // true  = hidden
+  // =========================================
+
+  const [navbarHidden, setNavbarHidden] = useState(false);
 
   // =========================================
   // NOTIFICATIONS
   // =========================================
 
-  const [notifications, setNotifications] =
-    useState([]);
-
+  const [notifications, setNotifications] = useState([]);
 
   // =========================================
   // CURRENT USER
@@ -56,8 +61,7 @@ function Navbar() {
     try {
 
       return JSON.parse(
-        localStorage.getItem("currentUser") ||
-        "null"
+        localStorage.getItem("currentUser") || "null"
       );
 
     } catch (error) {
@@ -68,11 +72,8 @@ function Navbar() {
       );
 
       return null;
-
     }
-
   };
-
 
   // =========================================
   // LOAD NOTIFICATIONS
@@ -82,15 +83,12 @@ function Navbar() {
     async () => {
 
       const isUserLoggedIn =
-        localStorage.getItem("loggedIn") ===
-        "true";
+        localStorage.getItem("loggedIn") === "true";
 
-      const currentUser =
-        getCurrentUser();
+      const currentUser = getCurrentUser();
 
       const token =
         localStorage.getItem("authToken");
-
 
       // =========================================
       // USER NOT LOGGED IN
@@ -107,38 +105,24 @@ function Navbar() {
         setLoggedIn(false);
 
         return;
-
       }
-
 
       setLoggedIn(true);
 
-
       try {
 
-        const response =
-          await axios.get(
-
-            `${API_URL}/api/notifications`,
-
-            {
-
-              headers: {
-
-                Authorization:
-                  `Bearer ${token}`
-
-              }
-
+        const response = await axios.get(
+          `${API_URL}/api/notifications`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
             }
-
-          );
-
+          }
+        );
 
         setNotifications(
           response.data.notifications || []
         );
-
 
       } catch (error) {
 
@@ -146,7 +130,6 @@ function Navbar() {
           "Unable to load notifications:",
           error
         );
-
 
         // =========================================
         // SESSION EXPIRED
@@ -171,15 +154,12 @@ function Navbar() {
           setNotifications([]);
 
           setLoggedIn(false);
-
         }
-
       }
 
     },
     []
   );
-
 
   // =========================================
   // INITIAL LOAD
@@ -191,14 +171,8 @@ function Navbar() {
 
   }, [loadNotifications]);
 
-
   // =========================================
   // REFRESH WHEN ROUTE CHANGES
-  //
-  // This is important because after the user
-  // confirms a booking and returns to the
-  // dashboard, the new notification will be
-  // loaded immediately.
   // =========================================
 
   useEffect(() => {
@@ -210,11 +184,8 @@ function Navbar() {
     loadNotifications
   ]);
 
-
   // =========================================
   // REFRESH EVERY 10 SECONDS
-  //
-  // This is faster than the previous 30 seconds.
   // =========================================
 
   useEffect(() => {
@@ -223,14 +194,11 @@ function Navbar() {
       return;
     }
 
+    const interval = setInterval(() => {
 
-    const interval =
-      setInterval(() => {
+      loadNotifications();
 
-        loadNotifications();
-
-      }, 10000);
-
+    }, 10000);
 
     return () => {
 
@@ -242,7 +210,6 @@ function Navbar() {
     loggedIn,
     loadNotifications
   ]);
-
 
   // =========================================
   // REFRESH WHEN WINDOW GETS FOCUS
@@ -256,12 +223,10 @@ function Navbar() {
 
     };
 
-
     window.addEventListener(
       "focus",
       handleFocus
     );
-
 
     return () => {
 
@@ -274,6 +239,103 @@ function Navbar() {
 
   }, [loadNotifications]);
 
+  // =========================================
+  // NAVBAR SCROLL DIRECTION
+  //
+  // SCROLL DOWN
+  // → Hide navbar
+  //
+  // SCROLL UP
+  // → Show navbar
+  //
+  // AT TOP
+  // → Always show navbar
+  // =========================================
+
+  useEffect(() => {
+
+    let lastScrollY = window.scrollY;
+
+    let ticking = false;
+
+    const handleScroll = () => {
+
+      if (ticking) {
+        return;
+      }
+
+      window.requestAnimationFrame(() => {
+
+        const currentScrollY =
+          window.scrollY;
+
+        // =====================================
+        // ALWAYS SHOW AT TOP
+        // =====================================
+
+        if (currentScrollY <= 10) {
+
+          setNavbarHidden(false);
+
+        }
+
+        // =====================================
+        // SCROLLING DOWN
+        // =====================================
+
+        else if (
+          currentScrollY >
+          lastScrollY + 5
+        ) {
+
+          setNavbarHidden(true);
+
+          // Close mobile menu when scrolling
+          // down so it doesn't remain open.
+          setMenuOpen(false);
+
+        }
+
+        // =====================================
+        // SCROLLING UP
+        // =====================================
+
+        else if (
+          currentScrollY <
+          lastScrollY - 5
+        ) {
+
+          setNavbarHidden(false);
+
+        }
+
+        lastScrollY = currentScrollY;
+
+        ticking = false;
+
+      });
+
+      ticking = true;
+    };
+
+    window.addEventListener(
+      "scroll",
+      handleScroll,
+      {
+        passive: true
+      }
+    );
+
+    return () => {
+
+      window.removeEventListener(
+        "scroll",
+        handleScroll
+      );
+
+    };
+
+  }, []);
 
   // =========================================
   // UNREAD COUNT
@@ -286,7 +348,6 @@ function Navbar() {
           notification.is_read
         ) === 0
     ).length;
-
 
   // =========================================
   // LOGOUT
@@ -306,18 +367,16 @@ function Navbar() {
       "authToken"
     );
 
-
     setLoggedIn(false);
 
     setNotifications([]);
 
     setMenuOpen(false);
 
+    setNavbarHidden(false);
 
     navigate("/login");
-
   };
-
 
   // =========================================
   // CLOSE MENU
@@ -328,7 +387,6 @@ function Navbar() {
     setMenuOpen(false);
 
   };
-
 
   // =========================================
   // OPEN NOTIFICATIONS
@@ -342,15 +400,19 @@ function Navbar() {
 
   };
 
-
   // =========================================
   // NAVBAR
   // =========================================
 
   return (
 
-    <nav className="navbar">
-
+    <nav
+      className={`navbar ${
+        navbarHidden
+          ? "navbar-hidden"
+          : ""
+      }`}
+    >
 
       {/* =====================================
           LOGO
@@ -382,9 +444,7 @@ function Navbar() {
             : ""
         }`}
         onClick={() =>
-          setMenuOpen(
-            !menuOpen
-          )
+          setMenuOpen(!menuOpen)
         }
         aria-label="Toggle navigation menu"
         aria-expanded={menuOpen}
@@ -409,13 +469,11 @@ function Navbar() {
         }`}
       >
 
-
         {/* ===================================
             NAV LINKS
         =================================== */}
 
         <div className="nav-links">
-
 
           <NavLink
             to="/"
@@ -469,7 +527,6 @@ function Navbar() {
 
         <div className="auth-buttons">
 
-
           {/* =================================
               NOTIFICATION BUTTON
           ================================= */}
@@ -478,9 +535,7 @@ function Navbar() {
 
             <button
               className="notification-button"
-              onClick={
-                openNotifications
-              }
+              onClick={openNotifications}
               aria-label="Notifications"
               title={
                 unreadCount > 0
@@ -493,23 +548,14 @@ function Navbar() {
               }
             >
 
-
-              {/* BELL */}
-
-              <span
-                className="notification-icon"
-              >
+              <span className="notification-icon">
                 🔔
               </span>
 
 
-              {/* UNREAD BADGE */}
-
               {unreadCount > 0 && (
 
-                <span
-                  className="notification-badge"
-                >
+                <span className="notification-badge">
 
                   {unreadCount > 99
                     ? "99+"
@@ -534,15 +580,12 @@ function Navbar() {
               className="signup-btn"
               onClick={logout}
             >
-
               Logout
-
             </button>
 
           ) : (
 
             <>
-
 
               {/* LOGIN */}
 
@@ -551,12 +594,8 @@ function Navbar() {
                 onClick={closeMenu}
               >
 
-                <button
-                  className="login-btn"
-                >
-
+                <button className="login-btn">
                   Login
-
                 </button>
 
               </NavLink>
@@ -569,16 +608,11 @@ function Navbar() {
                 onClick={closeMenu}
               >
 
-                <button
-                  className="signup-btn"
-                >
-
+                <button className="signup-btn">
                   Register
-
                 </button>
 
               </NavLink>
-
 
             </>
 
@@ -591,8 +625,6 @@ function Navbar() {
     </nav>
 
   );
-
 }
-
 
 export default Navbar;

@@ -251,6 +251,15 @@ function Booking() {
 
       const serverSeats =
         response.data?.bookedSeats || [];
+        console.log("========== FRONTEND SEAT DEBUG ==========");
+        console.log("Selected Bus:", selectedBus);
+        console.log("Selected Route:", selectedRoute);
+        console.log("Bus ID:", selectedBus?.id);
+        console.log("Route ID:", selectedRoute?.id);
+        console.log("Travel Date:", booking.date);
+        console.log("Availability Response:", response.data);
+        console.log("Booked Seats From Server:", response.data?.bookedSeats);
+        console.log("==========================================");
 
       const normalizedServerSeats =
         normalizeSeats(serverSeats);

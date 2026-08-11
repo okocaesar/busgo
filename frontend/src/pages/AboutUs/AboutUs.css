@@ -1,246 +1,532 @@
-*{
-margin: 0;
-padding: 0;
-box-sizing: border-box;
+
+/* =========================================
+   ABOUT US PAGE
+========================================= */
+
+.about-page {
+  width: 100%;
+  overflow-x: hidden;
+  background: #ffffff;
+  color: #333;
 }
 
-body{
-font-family: Arial, Helvetica, sans-serif;
-background-color: #fff;
-color: #046c34;
-line-height: 1.6;
+/* =========================================
+   ABOUT HERO
+========================================= */
+
+.about-hero {
+  width: 100%;
+  min-height: 430px;
+
+  padding: 70px 20px;
+
+  background:
+    linear-gradient(
+      rgba(255, 255, 255, 0.82),
+      rgba(255, 255, 255, 0.82)
+    ),
+    url("../../assets/hero.jpg");
+
+  background-size: cover;
+  background-position: center;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  text-align: center;
 }
 
-/* Hero Section */
-.About-hero{
-width: 100%;
-height: 90vh;
-background:
-url("../../assets/hero.jpg");
-background-size: cover;
-background-position: center;
-display: flex;
-justify-content: center;
-align-items: center;
-text-align: center;
+.about-hero h1 {
+  margin: 0 0 10px;
+
+  color: #046c34;
+
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-weight: 800;
+
+  line-height: 1.1;
 }
 
-.overlay{
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    color: #046c34;
-    width: 100%;
+.about-hero h2 {
+  margin: 0 0 25px;
+
+  color: #222;
+
+  font-size: clamp(1.2rem, 3vw, 2rem);
+  font-weight: 600;
 }
 
-.overlay h1{
-    font-size: 4rem;
-    margin-bottom: 10px;
+.about-hero p {
+  max-width: 750px;
+
+  margin: 0 0 15px;
+
+  color: #555;
+
+  font-size: clamp(0.95rem, 2vw, 1.1rem);
+
+  line-height: 1.7;
 }
 
-.overlay p{
-    font-size: 1.3rem;
+/* =========================================
+   FEATURES
+========================================= */
+
+.about-features {
+  width: 100%;
+
+  padding: 50px 6%;
+
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+
+  gap: 25px;
+
+  flex-wrap: wrap;
+
+  background: #ffffff;
 }
 
-/* About Section */
-.about{
-padding: 15px 10%;
-display: flex;
-justify-content: center;
-align-items: center;
-text-align: center;
+.card {
+  width: 100%;
+  max-width: 350px;
+
+  padding: 28px 24px;
+
+  background: #ffffff;
+
+  border-radius: 14px;
+
+  text-align: center;
+
+  border: 1px solid #e8eee9;
+
+  box-shadow:
+    0 5px 18px rgba(0, 0, 0, 0.07);
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
-.text{
-max-width: 800px;
+.card:hover {
+  transform: translateY(-5px);
+
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.12);
 }
 
-.text h2{
-font-size: 2.5rem;
-color: #046c34;
-margin-bottom: 20px;
+.card h3 {
+  margin-bottom: 10px;
+
+  color: #046c34;
+
+  font-size: 1.2rem;
 }
 
-.text p{
-color: #555;
-margin-bottom: 15px;
-font-size: 1.05rem;
+.card p {
+  margin: 0;
+
+  color: #666;
+
+  font-size: 0.95rem;
+
+  line-height: 1.6;
 }
 
-/* Features Section */
-.features{
-padding: 7px 8%;
-display: flex;
-gap: 20px;
-justify-content: center;
-flex-wrap: wrap;
+/* =========================================
+   STATISTICS
+========================================= */
+
+.stats-container {
+  width: 100%;
+
+  padding: 45px 6%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  gap: 70px;
+
+  flex-wrap: wrap;
+
+  background: #046c34;
+
+  color: #ffffff;
+
+  text-align: center;
 }
 
-.card{
-flex: 1;
-min-width: 250px;
-max-width: 350px;
-background: #fff;
-padding: 30px;
-border-radius: 15px;
-text-align: center;
-box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-transition: 0.3s ease;
+.stat-box {
+  min-width: 130px;
 }
 
-.card:hover{
-transform: translateY(-8px);
-box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+.stat-box h2 {
+  margin: 0 0 5px;
+
+  color: #ffffff;
+
+  font-size: clamp(2rem, 4vw, 2.8rem);
+
+  font-weight: 800;
+
+  line-height: 1;
 }
 
-.card h3{
-color: #046c34;
-margin-bottom: 10px;
+.stat-box p {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: 0.95rem;
 }
 
-.card p{
-color: #666;
+/* =========================================
+   TEAM SECTION
+========================================= */
+
+.team-section {
+  width: 100%;
+
+  padding: 60px 6%;
+
+  text-align: center;
+
+  background: #ffffff;
 }
 
-/* Statistics Section */
-.stats{
-background: #046c34;
-color: white;
-padding: 70px 8%;
-display: flex;
-justify-content: space-around;
-align-items: center;
-text-align: center;
-flex-wrap: wrap;
-gap: 30px;
+.team-section > h2 {
+  margin: 0 0 10px;
+
+  color: #046c34;
+
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+
+  font-weight: 800;
 }
 
-.stat-box h2{
-font-size: 2.8rem;
-margin-bottom: 10px;
+.team-container {
+  width: 100%;
+
+  max-width: 1200px;
+
+  margin: 35px auto 0;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: stretch;
+
+  gap: 20px;
+
+  flex-wrap: wrap;
 }
 
-.stat-box p{
-font-size: 1rem;
+.member {
+  width: 210px;
+
+  padding: 20px 15px;
+
+  background: #ffffff;
+
+  border-radius: 14px;
+
+  text-align: center;
+
+  border: 1px solid #e8eee9;
+
+  box-shadow:
+    0 5px 15px rgba(0, 0, 0, 0.07);
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
-/* Team Section */
-.team{
-padding: 80px 8%;
-text-align: center;
+.member:hover {
+  transform: translateY(-5px);
+
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.12);
 }
 
-.team h2{
-color: #046c34;
-font-size: 2.5rem;
-margin-bottom: 20px;
+/* =========================================
+   MEMBER IMAGE
+========================================= */
+
+.avatar {
+  width: 100px;
+  height: 100px;
+
+  margin: 0 auto 14px;
+
+  border-radius: 50%;
+
+  overflow: hidden;
+
+  border: 3px solid #046c34;
+
+  background: #f2f8f4;
 }
 
-.team-container{
-display: flex;
-justify-content: center;
-gap: 30px;
-flex-wrap: wrap;
-margin-top: 40px;
+.avatar img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
 }
 
-.member{
-width: 280px;
-background: #fff;
-padding: 25px;
-border-radius: 15px;
-text-align: center;
-box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-transition: 0.3s ease;
+.member h3 {
+  margin: 0 0 5px;
+
+  color: #046c34;
+
+  font-size: 1rem;
+
+  font-weight: 700;
 }
 
-.member:hover{
-transform: translateY(-8px);
-box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+.member p {
+  margin: 0;
+
+  color: #666;
+
+  font-size: 0.85rem;
 }
 
-.avatar{
-width: 120px;
-height: 120px;
-border-radius: 50%;
-overflow: hidden;
-margin: 0 auto 15px;
-border: 4px solid #046c34;
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 768px) {
+
+  .about-hero {
+    min-height: 380px;
+
+    padding: 50px 18px;
+  }
+
+  .about-hero h1 {
+    font-size: 2.3rem;
+  }
+
+  .about-hero h2 {
+    font-size: 1.25rem;
+
+    margin-bottom: 18px;
+  }
+
+  .about-hero p {
+    font-size: 0.92rem;
+
+    line-height: 1.6;
+  }
+
+  /* FEATURES */
+
+  .about-features {
+    padding: 35px 15px;
+
+    gap: 15px;
+  }
+
+  .card {
+    max-width: 100%;
+
+    padding: 22px 18px;
+  }
+
+  /* STATS */
+
+  .stats-container {
+    padding: 35px 15px;
+
+    gap: 25px;
+  }
+
+  .stat-box {
+    min-width: 80px;
+
+    flex: 1;
+  }
+
+  .stat-box h2 {
+    font-size: 2rem;
+  }
+
+  .stat-box p {
+    font-size: 0.8rem;
+  }
+
+  /* TEAM */
+
+  .team-section {
+    padding: 45px 15px;
+  }
+
+  .team-container {
+    margin-top: 25px;
+
+    gap: 15px;
+  }
+
+  .member {
+    width: calc(50% - 10px);
+
+    min-width: 145px;
+
+    padding: 18px 10px;
+  }
+
+  .avatar {
+    width: 80px;
+    height: 80px;
+
+    border-width: 2px;
+  }
+
+  .member h3 {
+    font-size: 0.88rem;
+  }
+
+  .member p {
+    font-size: 0.75rem;
+  }
 }
 
-.avatar img{
-width: 100%;
-height: 100%;
-object-fit: cover;
-display: block;
-}
+/* =========================================
+   SMALL PHONES
+========================================= */
 
-.member h3{
-margin-bottom: 8px;
-color: #046c34;
-}
+@media (max-width: 480px) {
 
-.member p{
-color: #666;
-}
+  .about-hero {
+    min-height: 340px;
 
-/* CTA Section */
-.cta{
-background: #046c34;
-color: white;
-text-align: center;
-padding: 80px 8%;
-}
+    padding: 40px 15px;
+  }
 
-.cta h2{
-font-size: 2.5rem;
-margin-bottom: 20px;
-}
+  .about-hero h1 {
+    font-size: 2rem;
+  }
 
-.cta button{
-padding: 14px 30px;
-border: none;
-border-radius: 10px;
-background: white;
-color: #046c34;
-font-size: 1rem;
-font-weight: bold;
-cursor: pointer;
-transition: 0.3s ease;
-}
+  .about-hero h2 {
+    font-size: 1.1rem;
+  }
 
-.cta button:hover{
-background: #f1f5f9;
-transform: scale(1.05);
-}
+  .about-hero p {
+    font-size: 0.85rem;
 
-/* Responsive Design */
-@media (max-width: 768px){
+    line-height: 1.55;
+  }
 
+  .about-features {
+    padding: 28px 12px;
+  }
 
-.overlay h1{
-    font-size: 2.8rem;
-}
+  .card {
+    padding: 20px 15px;
 
-.overlay p{
+    border-radius: 12px;
+  }
+
+  .card h3 {
     font-size: 1rem;
+  }
+
+  .card p {
+    font-size: 0.85rem;
+  }
+
+  .stats-container {
+    padding: 30px 10px;
+
+    gap: 15px;
+  }
+
+  .stat-box h2 {
+    font-size: 1.7rem;
+  }
+
+  .stat-box p {
+    font-size: 0.72rem;
+  }
+
+  .team-section {
+    padding: 38px 10px;
+  }
+
+  .team-container {
+    gap: 12px;
+  }
+
+  .member {
+    width: calc(50% - 6px);
+
+    min-width: 135px;
+
+    padding: 15px 8px;
+  }
+
+  .avatar {
+    width: 70px;
+    height: 70px;
+
+    margin-bottom: 10px;
+  }
+
+  .member h3 {
+    font-size: 0.78rem;
+  }
+
+  .member p {
+    font-size: 0.7rem;
+  }
 }
 
-.about,
-.features,
-.stats,
-.team-container{
-    flex-direction: column;
-}
+/* =========================================
+   VERY SMALL PHONES
+========================================= */
 
-.member{
-    width: 100%;
-    max-width: 320px;
-}
+@media (max-width: 360px) {
 
-.stats{
-    gap: 40px;
-}
+  .about-hero {
+    min-height: 320px;
+
+    padding: 35px 12px;
+  }
+
+  .about-hero h1 {
+    font-size: 1.8rem;
+  }
+
+  .about-hero h2 {
+    font-size: 1rem;
+  }
+
+  .about-hero p {
+    font-size: 0.8rem;
+  }
+
+  .member {
+    min-width: 125px;
+
+    padding: 13px 6px;
+  }
+
+  .avatar {
+    width: 62px;
+    height: 62px;
+  }
+
+  .member h3 {
+    font-size: 0.72rem;
+  }
 }
