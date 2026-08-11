@@ -5,19 +5,19 @@ import { FaStar } from "react-icons/fa";
 function Testimonials() {
   const reviews = [
     {
-      name: "John Doe",
+      name: "Wesley Itoe",
       location: "Douala",
       review:
         "BusGo made booking my ticket incredibly easy. The journey was comfortable and on time.",
     },
     {
-      name: "Sarah Johnson",
+      name: "Maya Eyong",
       location: "Yaoundé",
       review:
         "I love the simple interface and fast booking process. Highly recommended!",
     },
     {
-      name: "Michael Tabi",
+      name: "Lawrence Agbor",
       location: "Bamenda",
       review:
         "Excellent customer service and reliable buses. I'll definitely use BusGo again.",

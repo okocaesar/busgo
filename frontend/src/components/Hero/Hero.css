@@ -1,112 +1,118 @@
+/* =========================================
+   HERO
+========================================= */
+
 .hero {
-
   width: 100%;
-
   min-height: 650px;
-
-  background-size: cover;
-
-  background-position: center;
-
-  background-repeat: no-repeat;
 
   position: relative;
 
-  transition:
-    background-image 1s ease-in-out;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 
+  transition: background-image 1s ease-in-out;
+
+  overflow: hidden;
 }
 
 
-/* DARK OVERLAY */
+/* =========================================
+   DARK OVERLAY
+========================================= */
 
 .overlay {
-
   width: 100%;
-
   min-height: 650px;
 
-  background:
-    linear-gradient(
-      90deg,
-      rgba(0,0,0,.75),
-      rgba(0,0,0,.45),
-      rgba(0,0,0,.20)
-    );
-
   display: flex;
-
   align-items: center;
 
   position: relative;
 
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.78) 0%,
+      rgba(0, 0, 0, 0.55) 45%,
+      rgba(0, 0, 0, 0.20) 100%
+    );
 }
 
 
-/* HERO CONTENT */
+/* =========================================
+   HERO CONTENT
+========================================= */
 
 .hero-content {
-
   width: 90%;
-
   max-width: 1200px;
 
-  margin: auto;
+  margin: 0 auto;
 
+  padding: 80px 0;
 }
 
+
+/* =========================================
+   HERO TEXT
+========================================= */
 
 .hero-text {
-
+  width: 100%;
   max-width: 650px;
 
-  color: white;
-
+  color: #fff;
 }
 
-
 .hero-text h1 {
+  margin: 0 0 25px;
 
-  font-size: 60px;
+  font-size: clamp(42px, 5vw, 60px);
 
   line-height: 1.1;
 
-  margin-bottom: 25px;
-
   font-weight: 700;
 
+  color: #fff;
 }
-
 
 .hero-text h1 span {
-
   color: #0b7d45;
-
 }
 
-
 .hero-text p {
+  max-width: 580px;
+
+  margin: 0 0 35px;
 
   font-size: 19px;
 
   line-height: 1.7;
 
-  max-width: 580px;
-
-  margin-bottom: 35px;
-
   color: #f1f1f1;
-
 }
 
 
+/* =========================================
+   BOOK NOW BUTTON
+========================================= */
+
+.hero-text a {
+  display: inline-block;
+
+  text-decoration: none;
+}
+
 .hero-text button {
+  min-width: 150px;
 
   border: none;
 
   background: #0b7d45;
 
-  color: white;
+  color: #fff;
 
   padding: 15px 35px;
 
@@ -118,17 +124,23 @@
 
   cursor: pointer;
 
-  transition: .3s ease;
-
+  transition:
+    background 0.3s ease,
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
-
 .hero-text button:hover {
-
   background: #086237;
 
   transform: translateY(-2px);
 
+  box-shadow:
+    0 8px 20px rgba(11, 125, 69, 0.25);
+}
+
+.hero-text button:active {
+  transform: translateY(0);
 }
 
 
@@ -137,28 +149,23 @@
 ========================================= */
 
 .hero-dots {
-
   position: absolute;
 
-  bottom: 35px;
-
   left: 50%;
+  bottom: 35px;
 
   transform: translateX(-50%);
 
   display: flex;
+  align-items: center;
 
   gap: 10px;
 
   z-index: 5;
-
 }
 
-
 .hero-dots .dot {
-
   width: 11px;
-
   height: 11px;
 
   padding: 0;
@@ -167,51 +174,96 @@
 
   border-radius: 50%;
 
-  background: rgba(255,255,255,.55);
+  background: rgba(255, 255, 255, 0.55);
 
   cursor: pointer;
 
-  transition: .3s ease;
-
+  transition:
+    width 0.3s ease,
+    background 0.3s ease,
+    transform 0.3s ease;
 }
 
+.hero-dots .dot:hover {
+  transform: scale(1.15);
+
+  background: rgba(255, 255, 255, 0.9);
+}
 
 .hero-dots .dot.active {
-
   width: 30px;
 
   border-radius: 10px;
 
   background: #0b7d45;
+}
+
+
+/* =========================================
+   LARGE TABLETS
+========================================= */
+
+@media (max-width: 1100px) {
+
+  .hero,
+  .overlay {
+    min-height: 600px;
+  }
+
+  .hero-content {
+    width: 88%;
+  }
+
+  .hero-text {
+    max-width: 600px;
+  }
+
+  .hero-text h1 {
+    font-size: 52px;
+  }
 
 }
 
 
 /* =========================================
-   TABLET
+   TABLETS
 ========================================= */
 
 @media (max-width: 900px) {
 
   .hero,
   .overlay {
-
     min-height: 580px;
-
   }
 
+  .hero-content {
+    width: 88%;
+
+    padding: 70px 0;
+  }
+
+  .hero-text {
+    max-width: 560px;
+  }
 
   .hero-text h1 {
+    font-size: 46px;
 
-    font-size: 48px;
-
+    margin-bottom: 20px;
   }
 
-
   .hero-text p {
-
     font-size: 17px;
 
+    line-height: 1.65;
+
+    margin-bottom: 30px;
+  }
+
+  .hero-text button {
+    padding: 14px 30px;
+
+    font-size: 16px;
   }
 
 }
@@ -225,92 +277,151 @@
 
   .hero,
   .overlay {
-
     min-height: 560px;
-
   }
-
 
   .hero {
-
-    background-position: center;
-
+    background-position: center center;
   }
 
-
   .overlay {
+    align-items: center;
 
     background:
       linear-gradient(
         90deg,
-        rgba(0,0,0,.78),
-        rgba(0,0,0,.55)
+        rgba(0, 0, 0, 0.82),
+        rgba(0, 0, 0, 0.58)
       );
-
   }
-
 
   .hero-content {
-
     width: 90%;
 
+    padding: 60px 0 80px;
   }
-
 
   .hero-text {
-
     max-width: 100%;
 
+    text-align: left;
   }
-
 
   .hero-text h1 {
-
     font-size: 40px;
 
+    line-height: 1.12;
+
+    margin-bottom: 20px;
   }
 
-
   .hero-text p {
+    max-width: 100%;
 
     font-size: 16px;
 
     line-height: 1.6;
 
+    margin-bottom: 28px;
   }
-
 
   .hero-text button {
+    min-width: 140px;
 
-    padding: 14px 30px;
+    padding: 14px 28px;
 
-    font-size: 16px;
-
+    font-size: 15px;
   }
-
 
   .hero-dots {
-
     bottom: 25px;
 
+    gap: 8px;
+  }
+
+  .hero-dots .dot {
+    width: 9px;
+    height: 9px;
+  }
+
+  .hero-dots .dot.active {
+    width: 25px;
   }
 
 }
 
-.hero-text button:hover{
 
-    background:#086237;
+/* =========================================
+   SMALL PHONES
+========================================= */
+
+@media (max-width: 480px) {
+
+  .hero,
+  .overlay {
+    min-height: 520px;
+  }
+
+  .hero-content {
+    width: 88%;
+
+    padding: 50px 0 75px;
+  }
+
+  .hero-text h1 {
+    font-size: 34px;
+
+    line-height: 1.15;
+  }
+
+  .hero-text p {
+    font-size: 15px;
+
+    line-height: 1.55;
+  }
+
+  .hero-text button {
+    width: auto;
+
+    padding: 13px 25px;
+
+    font-size: 15px;
+  }
+
+  .hero-dots {
+    bottom: 20px;
+  }
+
 }
 
-.hero-image{
 
-    width:50%;
-    display:flex;
-    justify-content:flex-end;
-}
+/* =========================================
+   VERY SMALL PHONES
+========================================= */
 
-.hero-image img{
+@media (max-width: 360px) {
 
-    width:100%;
-    max-width:700px;
+  .hero,
+  .overlay {
+    min-height: 500px;
+  }
+
+  .hero-content {
+    width: 90%;
+  }
+
+  .hero-text h1 {
+    font-size: 30px;
+  }
+
+  .hero-text p {
+    font-size: 14px;
+  }
+
+  .hero-text button {
+    padding: 12px 22px;
+
+    font-size: 14px;
+  }
+
 }

@@ -4,37 +4,27 @@
 
 .navbar,
 .navbar * {
-
   box-sizing: border-box;
-
 }
 
-
 .navbar {
-
   width: 100%;
-
   min-height: 80px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 5%;
 
   background: #fff;
 
-  display: flex;
-
-  align-items: center;
-
-  justify-content: space-between;
-
-  padding: 0 70px;
-
-  box-shadow:
-    0 2px 12px rgba(0, 0, 0, .08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 
   position: sticky;
-
   top: 0;
 
   z-index: 9999;
-
 }
 
 
@@ -43,28 +33,19 @@
 ========================================= */
 
 .logo {
-
   display: flex;
-
   align-items: center;
-
   flex-shrink: 0;
 
   text-decoration: none;
-
 }
 
-
 .logo-img {
-
-  width: 300px;
-
+  width: min(300px, 22vw);
   height: 75px;
 
   object-fit: contain;
-
   display: block;
-
 }
 
 
@@ -73,80 +54,61 @@
 ========================================= */
 
 .navbar-menu {
-
   display: flex;
-
   align-items: center;
-
   justify-content: flex-end;
 
-  gap: 45px;
+  gap: clamp(20px, 3vw, 45px);
 
+  min-width: 0;
 }
-
 
 .nav-links {
-
   display: flex;
-
   align-items: center;
 
-  gap: 40px;
-
+  gap: clamp(18px, 2.5vw, 40px);
 }
 
-
 .nav-links a {
-
   text-decoration: none;
 
   color: #222;
 
   font-size: 16px;
-
   font-weight: 500;
 
   position: relative;
 
-  transition: .3s ease;
+  transition: color 0.3s ease;
 
   white-space: nowrap;
-
 }
 
-
-.nav-links a:hover {
-
-  color: #046c34;
-
-}
-
-
+.nav-links a:hover,
 .nav-links a.active {
-
   color: #046c34;
-
 }
 
+
+/* =========================================
+   ACTIVE NAV LINK
+========================================= */
 
 .nav-links a.active::after {
-
   content: "";
 
   position: absolute;
 
   width: 100%;
-
   height: 3px;
 
   background: #046c34;
 
   left: 0;
-
   bottom: -9px;
 
   border-radius: 10px;
-
 }
 
 
@@ -155,82 +117,126 @@
 ========================================= */
 
 .auth-buttons {
-
   display: flex;
-
   align-items: center;
 
-  gap: 12px;
+  gap: 10px;
 
+  flex-shrink: 0;
 }
-
 
 .auth-buttons a {
-
   text-decoration: none;
-
 }
-
 
 .login-btn,
 .signup-btn {
-
   height: 44px;
 
   border-radius: 9px;
 
   font-size: 15px;
-
   font-weight: 600;
 
   cursor: pointer;
 
-  transition: .3s ease;
-
+  transition:
+    background 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
 }
 
-
 .login-btn {
-
-  width: 105px;
+  width: 100px;
 
   border: 2px solid #046c34;
 
   background: #fff;
 
   color: #046c34;
-
 }
 
-
 .signup-btn {
-
-  width: 115px;
+  width: 110px;
 
   border: 2px solid #046c34;
 
   background: #046c34;
 
   color: #fff;
-
 }
-
 
 .login-btn:hover {
-
   background: #046c34;
-
   color: #fff;
+}
 
+.signup-btn:hover {
+  background: #03562b;
+  border-color: #03562b;
 }
 
 
-.signup-btn:hover {
+/* =========================================
+   NOTIFICATION BUTTON
+========================================= */
 
-  background: #03562b;
+.notification-button {
+  position: relative;
 
-  border-color: #03562b;
+  width: 44px;
+  height: 44px;
 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #f2f8f4;
+
+  cursor: pointer;
+
+  transition:
+    background 0.3s ease,
+    transform 0.3s ease;
+}
+
+.notification-button:hover {
+  background: #e1f0e7;
+  transform: translateY(-1px);
+}
+
+.notification-icon {
+  font-size: 19px;
+  line-height: 1;
+}
+
+.notification-badge {
+  position: absolute;
+
+  top: -3px;
+  right: -3px;
+
+  min-width: 19px;
+  height: 19px;
+
+  padding: 0 5px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 20px;
+
+  background: #d62828;
+  color: #fff;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  border: 2px solid #fff;
 }
 
 
@@ -239,12 +245,10 @@
 ========================================= */
 
 .menu-toggle {
-
   display: none;
 
-  width: 45px;
-
-  height: 42px;
+  width: 44px;
+  height: 44px;
 
   padding: 8px;
 
@@ -255,30 +259,25 @@
   cursor: pointer;
 
   flex-direction: column;
-
   align-items: center;
-
   justify-content: center;
 
   gap: 5px;
-
 }
 
-
 .menu-toggle span {
-
   display: block;
 
   width: 26px;
-
   height: 3px;
 
   background: #046c34;
 
   border-radius: 5px;
 
-  transition: .3s ease;
-
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
 }
 
 
@@ -287,84 +286,99 @@
 ========================================= */
 
 .menu-toggle.open span:nth-child(1) {
-
-  transform:
-    translateY(8px)
-    rotate(45deg);
-
+  transform: translateY(8px) rotate(45deg);
 }
-
 
 .menu-toggle.open span:nth-child(2) {
-
   opacity: 0;
-
   transform: translateX(-10px);
+}
 
+.menu-toggle.open span:nth-child(3) {
+  transform: translateY(-8px) rotate(-45deg);
 }
 
 
-.menu-toggle.open span:nth-child(3) {
+/* =========================================
+   MEDIUM SCREENS
+========================================= */
 
-  transform:
-    translateY(-8px)
-    rotate(-45deg);
+@media (max-width: 1150px) {
+
+  .navbar {
+    padding: 0 3%;
+  }
+
+  .logo-img {
+    width: 210px;
+    height: 70px;
+  }
+
+  .navbar-menu {
+    gap: 18px;
+  }
+
+  .nav-links {
+    gap: 18px;
+  }
+
+  .nav-links a {
+    font-size: 14px;
+  }
+
+  .login-btn {
+    width: 85px;
+  }
+
+  .signup-btn {
+    width: 95px;
+  }
 
 }
 
 
 /* =========================================
-   TABLET
+   TABLETS / SMALL LAPTOPS
 ========================================= */
 
-@media (max-width: 1100px) {
+@media (max-width: 900px) {
 
   .navbar {
+    min-height: 72px;
 
-    padding: 0 35px;
-
+    padding: 0 20px;
   }
-
 
   .logo-img {
-
-    width: 220px;
-
+    width: 190px;
+    height: 65px;
   }
-
 
   .navbar-menu {
-
-    gap: 25px;
-
+    gap: 12px;
   }
-
 
   .nav-links {
-
-    gap: 25px;
-
+    gap: 13px;
   }
-
 
   .nav-links a {
-
-    font-size: 14px;
-
+    font-size: 13px;
   }
 
+  .login-btn,
+  .signup-btn {
+    height: 42px;
+
+    font-size: 13px;
+  }
 
   .login-btn {
-
-    width: 90px;
-
+    width: 80px;
   }
 
-
   .signup-btn {
-
-    width: 100px;
-
+    width: 90px;
   }
 
 }
@@ -377,69 +391,57 @@
 @media (max-width: 800px) {
 
   .navbar {
-
     min-height: 72px;
 
     padding: 0 20px;
-
   }
-
 
   .logo-img {
-
     width: 190px;
-
     height: 65px;
-
   }
 
 
-  /* SHOW HAMBURGER */
+  /* HAMBURGER */
 
   .menu-toggle {
-
     display: flex;
 
     position: relative;
 
     z-index: 10001;
-
   }
 
 
-  /* HIDDEN MENU */
+  /* MOBILE MENU */
 
   .navbar-menu {
-
     position: absolute;
 
     top: 72px;
-
     left: 0;
 
     width: 100%;
 
-    padding: 25px 20px 30px;
+    padding: 20px;
 
     background: #fff;
 
     display: flex;
-
     flex-direction: column;
 
     align-items: stretch;
 
     justify-content: flex-start;
 
-    gap: 25px;
+    gap: 20px;
 
     box-shadow:
-      0 12px 25px rgba(0,0,0,.10);
+      0 12px 25px rgba(0, 0, 0, 0.10);
 
     border-top: 1px solid #eee;
 
-    transform:
-      translateY(-20px);
+    transform: translateY(-15px);
 
     opacity: 0;
 
@@ -448,113 +450,94 @@
     pointer-events: none;
 
     transition:
-      opacity .3s ease,
-      transform .3s ease,
-      visibility .3s ease;
-
+      opacity 0.3s ease,
+      transform 0.3s ease,
+      visibility 0.3s ease;
   }
 
 
-  /* OPEN MENU */
+  /* OPEN */
 
   .navbar-menu.menu-open {
-
-    transform:
-      translateY(0);
+    transform: translateY(0);
 
     opacity: 1;
 
     visibility: visible;
 
     pointer-events: auto;
-
   }
 
 
   /* NAV LINKS */
 
   .nav-links {
-
     width: 100%;
 
     display: flex;
-
     flex-direction: column;
 
     align-items: stretch;
 
     gap: 0;
-
   }
 
-
   .nav-links a {
-
     width: 100%;
 
-    padding: 15px 5px;
+    padding: 14px 8px;
 
     border-bottom: 1px solid #eee;
 
     font-size: 15px;
-
   }
-
 
   .nav-links a:last-child {
-
     border-bottom: none;
-
   }
 
+
+  /* REMOVE DESKTOP ACTIVE LINE */
 
   .nav-links a.active::after {
-
     display: none;
-
   }
 
-
   .nav-links a.active {
-
     background: #f0f8f3;
 
     padding-left: 12px;
 
     border-radius: 7px;
-
   }
 
 
   /* AUTH */
 
   .auth-buttons {
-
     width: 100%;
 
     display: flex;
-
     flex-direction: column;
 
     gap: 10px;
-
   }
-
 
   .auth-buttons a {
-
     width: 100%;
-
   }
 
+  .notification-button {
+    width: 100%;
+    height: 46px;
+
+    border-radius: 9px;
+  }
 
   .login-btn,
   .signup-btn {
-
     width: 100%;
-
     height: 48px;
-
   }
 
 }
@@ -567,34 +550,47 @@
 @media (max-width: 480px) {
 
   .navbar {
-
     min-height: 65px;
 
     padding: 0 15px;
-
   }
-
 
   .logo-img {
-
     width: 155px;
-
     height: 60px;
-
   }
-
 
   .menu-toggle {
-
     width: 42px;
-
+    height: 42px;
   }
 
-
   .navbar-menu {
-
     top: 65px;
 
+    padding: 18px 15px 25px;
+  }
+
+}
+
+
+/* =========================================
+   VERY SMALL PHONES
+========================================= */
+
+@media (max-width: 360px) {
+
+  .navbar {
+    padding: 0 10px;
+  }
+
+  .logo-img {
+    width: 140px;
+  }
+
+  .navbar-menu {
+    padding-left: 12px;
+    padding-right: 12px;
   }
 
 }

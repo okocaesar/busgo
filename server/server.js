@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
+
 // =========================================
 // ENVIRONMENT CHECK
 // =========================================
@@ -12,12 +13,16 @@ console.log("=========================================");
 console.log("BUSGO SERVER STARTING");
 console.log("=========================================");
 
-console.log("PORT:", process.env.PORT);
+console.log(
+  "PORT:",
+  process.env.PORT
+);
 
 console.log(
   "JWT_SECRET loaded:",
   process.env.JWT_SECRET ? "YES" : "NO"
 );
+
 
 // =========================================
 // DATABASE
@@ -25,14 +30,16 @@ console.log(
 
 require("./config/database");
 
+
 // =========================================
 // EXPRESS APP
 // =========================================
 
 const app = express();
 
+
 // =========================================
-// MIDDLEWARE
+// CORS CONFIGURATION
 // =========================================
 
 const allowedOrigins = [
@@ -41,193 +48,239 @@ const allowedOrigins = [
 ];
 
 
-app.use(
-  cors({
+const corsOptions = {
 
-    origin: function(origin, callback) {
-
-
-      // Allow Postman/mobile apps/no origin requests
-      if (!origin) {
-        return callback(null, true);
-      }
+  origin: function(origin, callback) {
 
 
-      if (allowedOrigins.includes(origin)) {
+    // Allow requests without origin
+    // (Postman, mobile apps, server requests)
 
-        return callback(null, true);
+    if (!origin) {
 
-      }
+      return callback(null, true);
 
-
-      console.log(
-        "BLOCKED BY CORS:",
-        origin
-      );
+    }
 
 
-      return callback(
-        new Error(
-          "Not allowed by CORS"
-        )
-      );
+    if (allowedOrigins.includes(origin)) {
 
-    },
+      return callback(null, true);
+
+    }
 
 
-    credentials: true,
+    console.log(
+      "BLOCKED BY CORS:",
+      origin
+    );
 
 
-    methods: [
-      "GET",
-      "POST",
-      "PUT",
-      "PATCH",
-      "DELETE",
-      "OPTIONS"
-    ],
+    return callback(
+      null,
+      false
+    );
+
+  },
 
 
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization"
-    ]
-
-  })
-);
+  credentials: true,
 
 
-// Handle browser preflight requests
-app.options(
-  "*",
-  cors()
-);
+  methods: [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS"
+  ],
 
+
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization"
+  ]
+
+};
+
+
+// Apply CORS
+
+app.use(cors(corsOptions));
+
+
+// Handle preflight
+
+// app.options(
+//   "*",
+//   cors(corsOptions)
+// );
+
+
+// JSON parser
 
 app.use(
   express.json()
 );
 
-app.use(express.json());
+
 
 // =========================================
 // SERVER TEST
 // =========================================
 
-app.get("/api/server-test", (req, res) => {
-  res.status(200).json({
-    message: "BusGo server is working correctly.",
-    time: new Date().toISOString()
-  });
-});
+app.get(
+  "/api/server-test",
+  (req,res)=>{
+
+    res.status(200).json({
+
+      message:
+      "BusGo server is working correctly.",
+
+      time:
+      new Date().toISOString()
+
+    });
+
+  }
+);
+
+
 
 // =========================================
-// AUTHENTICATION ROUTES
+// ROUTES
 // =========================================
+
 
 app.use(
   "/api/auth",
   require("./routes/authRoutes")
 );
 
-// =========================================
-// BOOKING ROUTES
-// =========================================
 
 app.use(
   "/api/bookings",
   require("./routes/bookingRoutes")
 );
 
-// =========================================
-// PAYMENT ROUTES
-// =========================================
 
 app.use(
   "/api/payments",
   require("./routes/paymentRoutes")
 );
 
-// =========================================
-// NOTIFICATION TEST ROUTE
-// =========================================
-
-app.get("/api/notifications-test", (req, res) => {
-  res.status(200).json({
-    message: "BusGo notification system route is working."
-  });
-});
-
-// =========================================
-// NOTIFICATION ROUTES
-// =========================================
 
 app.use(
   "/api/notifications",
   require("./routes/notificationRoutes")
 );
 
-// =========================================
-// ADMIN ROUTES
-// =========================================
 
 app.use(
   "/api/admin",
   require("./routes/adminRoutes")
 );
 
-// =========================================
-// ROOT ROUTE
-// =========================================
 
-app.get("/", (req, res) => {
-  res.status(200).send(
-    "BusGo API Server Running"
-  );
-});
 
 // =========================================
-// 404 HANDLER
+// ROOT
 // =========================================
 
-app.use((req, res) => {
-  console.log(
-    "404 ROUTE NOT FOUND:",
-    req.method,
-    req.originalUrl
-  );
+app.get(
+  "/",
+  (req,res)=>{
 
-  res.status(404).json({
-    message: "API route not found",
-    path: req.originalUrl
-  });
-});
+    res.send(
+      "BusGo API Server Running"
+    );
 
-// =========================================
-// GLOBAL ERROR HANDLER
-// =========================================
+  }
+);
 
-app.use((err, req, res, next) => {
-  console.error(
-    "GLOBAL SERVER ERROR:",
-    err
-  );
 
-  res.status(500).json({
-    message: "Internal server error."
-  });
-});
 
 // =========================================
-// SERVER
+// 404
 // =========================================
 
-const PORT = process.env.PORT || 5000;
+app.use(
+  (req,res)=>{
 
-app.listen(PORT, () => {
-  console.log("=========================================");
-  console.log(
-    `BusGo server running on port ${PORT}`
-  );
-  console.log("=========================================");
-});
+    console.log(
+      "404:",
+      req.method,
+      req.originalUrl
+    );
+
+
+    res.status(404).json({
+
+      message:
+      "API route not found",
+
+      path:
+      req.originalUrl
+
+    });
+
+  }
+);
+
+
+
+// =========================================
+// ERROR HANDLER
+// =========================================
+
+app.use(
+  (err,req,res,next)=>{
+
+
+    console.error(
+      "SERVER ERROR:",
+      err
+    );
+
+
+    res.status(500).json({
+
+      message:
+      "Internal server error."
+
+    });
+
+
+  }
+);
+
+
+
+// =========================================
+// START SERVER
+// =========================================
+
+const PORT =
+process.env.PORT || 5000;
+
+
+app.listen(
+  PORT,
+  ()=>{
+
+    console.log(
+      "========================================="
+    );
+
+    console.log(
+      `BusGo server running on port ${PORT}`
+    );
+
+    console.log(
+      "========================================="
+    );
+
+  }
+);

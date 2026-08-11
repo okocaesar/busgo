@@ -572,141 +572,130 @@ exports.login = (req, res) => {
     password
   } = req.body;
 
+
   if (!email || !password) {
+
     return res.status(400).json({
       message:
         "Email and password are required."
     });
+
   }
+
 
   User.findByEmail(
     email,
     async (err, result) => {
 
+
       if (err) {
 
         console.error(
-          "Login database error:",
+          "LOGIN DATABASE ERROR:",
           err
         );
 
         return res.status(500).json({
           message:
-            "Database error during login."
+            "Database error."
         });
+
       }
+
 
       if (!result || result.length === 0) {
+
         return res.status(404).json({
           message:
-            "User not found."
+            "Account does not exist."
         });
+
       }
 
-      try {
 
-        const user = result[0];
+      const user = result[0];
 
-        // =========================================
-        // CHECK EMAIL VERIFICATION
-        // =========================================
 
-        if (!user.email_verified) {
-
-          return res.status(403).json({
-            message:
-              "Please verify your email before logging in.",
-            requiresVerification: true,
-            email: user.email
-          });
+      console.log(
+        "LOGIN USER:",
+        {
+          email:user.email,
+          storedPassword:user.password,
+          verified:user.email_verified
         }
+      );
 
 
-        // =========================================
-        // CHECK PASSWORD
-        // =========================================
-
-        const match =
-          await bcrypt.compare(
-            password,
-            user.password
-          );
-
-        if (!match) {
-          return res.status(401).json({
-            message:
-              "Wrong password."
-          });
-        }
+      const passwordMatch =
+        await bcrypt.compare(
+          password.trim(),
+          user.password
+        );
 
 
-        // =========================================
-        // JWT SECRET
-        // =========================================
-
-        if (!process.env.JWT_SECRET) {
-
-          console.error(
-            "JWT_SECRET is missing."
-          );
-
-          return res.status(500).json({
-            message:
-              "Server authentication configuration is missing."
-          });
-        }
+      console.log(
+        "PASSWORD MATCH:",
+        passwordMatch
+      );
 
 
-        // =========================================
-        // CREATE JWT
-        // =========================================
+      if (!passwordMatch) {
 
-        const token = jwt.sign(
+        return res.status(401).json({
+          message:
+            "Wrong password."
+        });
+
+      }
+
+
+
+      if (!user.email_verified) {
+
+        return res.status(403).json({
+          message:
+            "Please verify your email first.",
+          requiresVerification:true,
+          email:user.email
+        });
+
+      }
+
+
+
+      const token =
+        jwt.sign(
           {
-            id: user.id,
-            email: user.email,
-            role: user.role
+            id:user.id,
+            email:user.email,
+            role:user.role
           },
           process.env.JWT_SECRET,
           {
-            expiresIn: "24h"
+            expiresIn:"24h"
           }
         );
 
 
-        // =========================================
-        // SUCCESS
-        // =========================================
 
-        return res.status(200).json({
+      return res.json({
 
-          message:
-            "Login successful",
+        message:
+          "Login successful",
 
-          token,
+        token,
 
-          user: {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role
-          }
+        user:{
+          id:user.id,
+          name:user.name,
+          email:user.email,
+          role:user.role
+        }
 
-        });
+      });
 
-      } catch (error) {
-
-        console.error(
-          "Login authentication error:",
-          error
-        );
-
-        return res.status(500).json({
-          message:
-            "Authentication error during login."
-        });
-      }
 
     }
   );
+
 };
