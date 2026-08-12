@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+<meta
+ name="viewport"
+ content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+/>
+
+<meta
+ name="theme-color"
+ content="#0b7d45"
+/>
+
+  <title>
+    BusGo - Offline
+  </title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+
+      width: 100%;
+      min-height: 100%;
+
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+      background: #ffffff;
+      color: #222;
+    }
+
+    body {
+      min-height: 100vh;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 20px;
+    }
+
+    .offline-page {
+      width: 100%;
+      max-width: 420px;
+
+      text-align: center;
+    }
+
+    .offline-icon {
+      width: 95px;
+      height: 95px;
+
+      margin: 0 auto 25px;
+
+      border-radius: 50%;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background: #eaf6ef;
+
+      font-size: 45px;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+
+      padding: 7px 14px;
+
+      margin-bottom: 18px;
+
+      border-radius: 30px;
+
+      background: #fff1f1;
+
+      color: #c62828;
+
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+
+      border-radius: 50%;
+
+      background: #c62828;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+
+      color: #0b7d45;
+
+      font-size: 30px;
+      font-weight: 800;
+    }
+
+    p {
+      margin: 0 auto 25px;
+
+      max-width: 350px;
+
+      color: #666;
+
+      font-size: 15px;
+
+      line-height: 1.6;
+    }
+
+    .retry-button {
+      width: 100%;
+      max-width: 230px;
+
+      padding: 14px 20px;
+
+      border: none;
+      border-radius: 10px;
+
+      background: #0b7d45;
+      color: #ffffff;
+
+      font-size: 15px;
+      font-weight: 700;
+
+      cursor: pointer;
+
+      transition:
+        transform 0.2s ease,
+        background 0.2s ease;
+    }
+
+    .retry-button:hover {
+      background: #086638;
+
+      transform: translateY(-2px);
+    }
+
+    .offline-note {
+      margin-top: 20px;
+
+      color: #999;
+
+      font-size: 12px;
+    }
+
+    @media (max-width: 480px) {
+
+      .offline-icon {
+        width: 85px;
+        height: 85px;
+
+        font-size: 40px;
+      }
+
+      h1 {
+        font-size: 26px;
+      }
+
+      p {
+        font-size: 14px;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <main class="offline-page">
+
+
+<div class="offline-icon">
+  🚍
+</div>
+
+<div class="status">
+
+  <span class="status-dot"></span>
+
+  You're offline
+
+</div>
+
+<h1>
+  No Internet Connection
+</h1>
+
+<p>
+  BusGo needs an internet connection
+  to search routes, check seat
+  availability and make bookings.
+</p>
+
+<button
+  class="retry-button"
+  onclick="window.location.reload()"
+>
+  Try Again
+</button>
+
+<div class="offline-note">
+  Reconnect to the internet and try again.
+</div>
+
+
+  </main>
+
+</body>
+
+</html>

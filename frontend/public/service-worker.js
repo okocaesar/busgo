@@ -1,169 +1,341 @@
 /* eslint-disable no-restricted-globals */
 
-const CACHE_NAME = "busgo-cache-v4";
+// =========================================
+// BUSGO SERVICE WORKER
+// =========================================
+
+const CACHE_NAME =
+"busgo-cache-v5";
+
+const OFFLINE_PAGE =
+"/offline.html";
 
 const APP_SHELL = [
-  "/",
-  "/index.html",
-  "/icons/icon-192.jpg"
-];
 
+"/",
+
+"/index.html",
+
+"/manifest.json",
+
+"/offline.html",
+
+"/icons/icon-192.png"
+
+];
 
 // =========================================
 // INSTALL
 // =========================================
 
-self.addEventListener("install", (event) => {
-
-  event.waitUntil(
-
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-
-        return cache.addAll(APP_SHELL);
-
-      })
-
-  );
-
-  self.skipWaiting();
-
-});
+self.addEventListener(
+"install",
+(event) => {
 
 
+event.waitUntil(
+
+  caches
+    .open(CACHE_NAME)
+    .then((cache) => {
+
+      return cache.addAll(
+        APP_SHELL
+      );
+
+    })
+
+);
+
+// Activate the new service worker
+// immediately.
+
+self.skipWaiting();
+
+
+}
+);
 
 // =========================================
 // ACTIVATE
 // =========================================
 
-self.addEventListener("activate", (event) => {
-
-  event.waitUntil(
-
-    caches.keys()
-      .then((cacheNames) => {
-
-        return Promise.all(
-
-          cacheNames
-            .filter(
-              (name) =>
-                name !== CACHE_NAME
-            )
-            .map(
-              (name) =>
-                caches.delete(name)
-            )
-
-        );
-
-      })
-
-  );
+self.addEventListener(
+"activate",
+(event) => {
 
 
-  self.clients.claim();
+event.waitUntil(
 
-});
+  caches
+    .keys()
+    .then((cacheNames) => {
+
+      return Promise.all(
+
+        cacheNames
+          .filter(
+            (name) =>
+              name !== CACHE_NAME
+          )
+          .map(
+            (name) =>
+              caches.delete(name)
+          )
+
+      );
+
+    })
+
+);
+
+// Take control of existing pages.
+
+self.clients.claim();
 
 
+}
+);
 
 // =========================================
 // FETCH
 // =========================================
 
-self.addEventListener("fetch", (event) => {
+self.addEventListener(
+"fetch",
+(event) => {
 
 
-  const url = new URL(
-    event.request.url
+const request =
+  event.request;
+
+const url =
+  new URL(
+    request.url
   );
 
+// =====================================
+// IGNORE NON-HTTP REQUESTS
+// =====================================
 
-  // Ignore browser extensions
-  if (
-    url.protocol !== "http:" &&
-    url.protocol !== "https:"
-  ) {
+if (
+  url.protocol !== "http:" &&
+  url.protocol !== "https:"
+) {
 
-    return;
+  return;
 
-  }
+}
 
+// =====================================
+// ONLY HANDLE GET REQUESTS
+// =====================================
 
+if (
+  request.method !== "GET"
+) {
+
+  return;
+
+}
+
+// =====================================
+// NAVIGATION REQUEST
+//
+// Example:
+// /
+// /about
+// /routes
+// /offers
+// =====================================
+
+if (
+  request.mode ===
+  "navigate"
+) {
 
   event.respondWith(
 
-    caches.match(event.request)
+    fetch(request)
 
-      .then((cachedResponse) => {
+      .then((response) => {
 
+        // Cache successful pages.
 
-        // Return cached file
-        if (cachedResponse) {
+        if (
+          response &&
+          response.status === 200
+        ) {
 
-          return cachedResponse;
+          const responseClone =
+            response.clone();
+
+          caches
+            .open(CACHE_NAME)
+            .then((cache) => {
+
+              cache.put(
+                request,
+                responseClone
+              );
+
+            });
 
         }
 
+        return response;
 
+      })
 
-        return fetch(event.request)
+      .catch(() => {
 
-          .then((response) => {
+        // =================================
+        // INTERNET UNAVAILABLE
+        // =================================
 
+        return caches.match(
+          request
+        )
 
-            // Only cache successful responses
-            if (
-              !response ||
-              response.status !== 200 ||
-              response.type !== "basic"
-            ) {
+          .then(
+            (cachedPage) => {
 
-              return response;
+              if (cachedPage) {
+                return cachedPage;
+              }
+
+              return caches.match(
+                OFFLINE_PAGE
+              );
 
             }
-
-
-
-            const responseClone =
-              response.clone();
-
-
-
-            caches.open(CACHE_NAME)
-
-              .then((cache) => {
-
-                cache.put(
-                  event.request,
-                  responseClone
-                );
-
-              });
-
-
-
-            return response;
-
-
-          })
-
-          .catch(() => {
-
-
-            // Offline fallback
-            return caches.match(
-              "/index.html"
-            );
-
-
-          });
-
+          );
 
       })
 
   );
 
+  return;
 
-});
+}
+
+// =====================================
+// STATIC FILES / API / OTHER REQUESTS
+// =====================================
+
+event.respondWith(
+
+  caches
+    .match(request)
+
+    .then((cachedResponse) => {
+
+      // =================================
+      // USE CACHE FIRST
+      // =================================
+
+      if (cachedResponse) {
+
+        // Try to update the cached
+        // resource in the background.
+
+        fetch(request)
+          .then((networkResponse) => {
+
+            if (
+              networkResponse &&
+              networkResponse.status ===
+                200 &&
+              networkResponse.type ===
+                "basic"
+            ) {
+
+              const responseClone =
+                networkResponse.clone();
+
+              caches
+                .open(CACHE_NAME)
+                .then((cache) => {
+
+                  cache.put(
+                    request,
+                    responseClone
+                  );
+
+                });
+
+            }
+
+          })
+          .catch(() => {
+            // Internet unavailable.
+            // Cached version is already
+            // being returned.
+          });
+
+        return cachedResponse;
+
+      }
+
+      // =================================
+      // NOT IN CACHE
+      // TRY NETWORK
+      // =================================
+
+      return fetch(request)
+
+        .then((response) => {
+
+          if (
+            !response ||
+            response.status !== 200 ||
+            response.type !==
+              "basic"
+          ) {
+
+            return response;
+
+          }
+
+          const responseClone =
+            response.clone();
+
+          caches
+            .open(CACHE_NAME)
+            .then((cache) => {
+
+              cache.put(
+                request,
+                responseClone
+              );
+
+            });
+
+          return response;
+
+        })
+
+        .catch(() => {
+
+          // =================================
+          // NON-NAVIGATION OFFLINE REQUEST
+          // =================================
+
+          return new Response(
+            "",
+            {
+              status: 503,
+              statusText:
+                "BusGo is offline"
+            }
+          );
+
+        });
+
+    })
+
+);
+
+
+}
+);

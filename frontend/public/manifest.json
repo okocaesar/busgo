@@ -1,24 +1,30 @@
 {
   "short_name": "BusGo",
   "name": "BusGo Bus Ticket Reservation",
-  "description": "Book bus tickets, manage reservations and travel with BusGo.",
+  "description": "Book bus tickets, manage reservations and travel across Cameroon with BusGo.",
+
   "icons": [
     {
-      "src": "/icons/icon-192.jpg",
+      "src": "/icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
-      "purpose": "any"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-192.jpg",
-      "sizes": "192x192",
-      "type": "image/jpeg",
-      "purpose": "maskable"
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
+
   "start_url": "/",
   "scope": "/",
+
   "display": "standalone",
-  "theme_color": "#0b7d45",
+
+  "orientation": "portrait",
+
+  "theme_color": "#046c34",
   "background_color": "#ffffff"
 }

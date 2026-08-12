@@ -1021,3 +1021,623 @@ exports.denyPaymentReversal = (req, res) => {
   );
 
 };
+
+// =========================================
+// CREATE BOOKING FOR REGISTERED USER
+// POST /api/admin/bookings/create
+// =========================================
+
+exports.createBooking = (req, res) => {
+
+  const {
+    email,
+    from,
+    to,
+    date,
+    name,
+    phone,
+    busType,
+    seats,
+    totalPrice,
+    discount,
+    totalPayment,
+    paymentMethod,
+    paymentStatus
+  } = req.body;
+
+
+  // =========================================
+  // VALIDATION
+  // =========================================
+
+  if (!email || !email.trim()) {
+
+    return res.status(400).json({
+      message: "Registered user email is required."
+    });
+
+  }
+
+
+  if (!from || !to) {
+
+    return res.status(400).json({
+      message: "Departure and destination are required."
+    });
+
+  }
+
+
+  if (!date) {
+
+    return res.status(400).json({
+      message: "Travel date is required."
+    });
+
+  }
+
+
+  if (!name || !name.trim()) {
+
+    return res.status(400).json({
+      message: "Passenger name is required."
+    });
+
+  }
+
+
+  if (!busType || !busType.trim()) {
+
+    return res.status(400).json({
+      message: "Bus type is required."
+    });
+
+  }
+
+
+  if (
+    !Array.isArray(seats) ||
+    seats.length === 0
+  ) {
+
+    return res.status(400).json({
+      message: "At least one seat must be selected."
+    });
+
+  }
+
+
+  // =========================================
+  // FIND REGISTERED USER
+  // =========================================
+
+  const userSql = `
+    SELECT
+      id,
+      name,
+      email,
+      phone
+    FROM users
+    WHERE email = ?
+    LIMIT 1
+  `;
+
+
+  db.query(
+    userSql,
+    [email.trim()],
+    (userError, users) => {
+
+      if (userError) {
+
+        console.error(
+          "ADMIN CREATE BOOKING USER SEARCH ERROR:",
+          userError
+        );
+
+        return res.status(500).json({
+          message:
+            "Unable to verify the registered user.",
+          error:
+            userError.message
+        });
+
+      }
+
+
+      // =========================================
+      // USER NOT FOUND
+      // =========================================
+
+      if (
+        !users ||
+        users.length === 0
+      ) {
+
+        return res.status(404).json({
+          message:
+            "No registered user was found with this email address."
+        });
+
+      }
+
+
+      const user = users[0];
+
+
+      // =========================================
+      // FIND ROUTE
+      // =========================================
+
+      const routeSql = `
+        SELECT
+          id,
+          departure,
+          destination
+        FROM routes
+        WHERE departure = ?
+          AND destination = ?
+        LIMIT 1
+      `;
+
+
+      db.query(
+        routeSql,
+        [
+          from,
+          to
+        ],
+        (routeError, routes) => {
+
+          if (routeError) {
+
+            console.error(
+              "ADMIN CREATE BOOKING ROUTE ERROR:",
+              routeError
+            );
+
+            return res.status(500).json({
+              message:
+                "Unable to find the selected route.",
+              error:
+                routeError.message
+            });
+
+          }
+
+
+          // =========================================
+          // ROUTE NOT FOUND
+          // =========================================
+
+          if (
+            !routes ||
+            routes.length === 0
+          ) {
+
+            return res.status(404).json({
+              message:
+                "The selected route does not exist."
+            });
+
+          }
+
+
+          const route = routes[0];
+
+
+          // =========================================
+          // FIND BUS
+          // =========================================
+
+          const busSql = `
+            SELECT
+              id,
+              name
+            FROM buses
+            WHERE name = ?
+            LIMIT 1
+          `;
+
+
+          db.query(
+            busSql,
+            [busType],
+            (busError, buses) => {
+
+              if (busError) {
+
+                console.error(
+                  "ADMIN CREATE BOOKING BUS ERROR:",
+                  busError
+                );
+
+                return res.status(500).json({
+                  message:
+                    "Unable to find the selected bus.",
+                  error:
+                    busError.message
+                });
+
+              }
+
+
+              // =========================================
+              // BUS NOT FOUND
+              // =========================================
+
+              if (
+                !buses ||
+                buses.length === 0
+              ) {
+
+                return res.status(404).json({
+                  message:
+                    "The selected bus type does not exist."
+                });
+
+              }
+
+
+              const bus = buses[0];
+
+
+              // =========================================
+              // GENERATE TICKET NUMBER
+              // =========================================
+
+              const ticketNumber =
+                "BG-" +
+                Date.now() +
+                "-" +
+                Math.floor(
+                  1000 +
+                  Math.random() * 9000
+                );
+
+
+              // =========================================
+              // PREPARE BOOKING
+              // =========================================
+
+              const booking = {
+
+                ticketNumber,
+
+                userId:
+                  user.id,
+
+                routeId:
+                  route.id,
+
+                busId:
+                  bus.id,
+
+                passengerName:
+                  name.trim(),
+
+                passengerPhone:
+                  phone ||
+                  user.phone ||
+                  "",
+
+                travelDate:
+                  date,
+
+                seats,
+
+                offerId:
+                  null,
+
+                totalPrice:
+                  Number(totalPrice || 0),
+
+                discount:
+                  Number(discount || 0),
+
+                totalPayment:
+                  Number(totalPayment || 0),
+
+                paymentMethod:
+                  paymentMethod ||
+                  "Cash",
+
+                paymentStatus:
+                  paymentStatus ||
+                  "Pending",
+
+                bookingStatus:
+                  "Confirmed",
+
+                paymentDate:
+                  paymentStatus === "Successful"
+                    ? new Date()
+                    : null
+
+              };
+
+
+              // =========================================
+              // CREATE BOOKING SAFELY
+              //
+              // REUSES THE EXISTING
+              // TRANSACTION + SEAT LOCKING SYSTEM
+              // =========================================
+
+              const Booking =
+                require("../models/Booking");
+
+
+              Booking.createBookingSafely(
+                booking,
+                (bookingError, result) => {
+
+                  if (bookingError) {
+
+                    console.error(
+                      "ADMIN CREATE BOOKING ERROR:",
+                      bookingError
+                    );
+
+
+                    // =========================================
+                    // SEAT CONFLICT
+                    // =========================================
+
+                    if (
+                      bookingError.code ===
+                      "SEATS_ALREADY_BOOKED"
+                    ) {
+
+                      return res.status(409).json({
+
+                        message:
+                          bookingError.message,
+
+                        bookedSeats:
+                          bookingError.bookedSeats ||
+                          []
+
+                      });
+
+                    }
+
+
+                    // =========================================
+                    // BUS NOT FOUND
+                    // =========================================
+
+                    if (
+                      bookingError.code ===
+                      "BUS_NOT_FOUND"
+                    ) {
+
+                      return res.status(404).json({
+
+                        message:
+                          "Selected bus does not exist."
+
+                      });
+
+                    }
+
+
+                    // =========================================
+                    // INVALID SEATS
+                    // =========================================
+
+                    if (
+                      bookingError.code ===
+                      "NO_VALID_SEATS"
+                    ) {
+
+                      return res.status(400).json({
+
+                        message:
+                          bookingError.message
+
+                      });
+
+                    }
+
+
+                    return res.status(500).json({
+
+                      message:
+                        "Unable to create the booking.",
+
+                      error:
+                        bookingError.message
+
+                    });
+
+                  }
+
+
+                  // =========================================
+                  // BOOKING CREATED
+                  // =========================================
+
+                  const bookingId =
+                    result.insertId;
+
+
+                  // =========================================
+                  // CREATE IN-APP NOTIFICATION
+                  // =========================================
+
+                  const notificationSql = `
+                    INSERT INTO notifications
+                    (
+                      user_id,
+                      title,
+                      message,
+                      type,
+                      is_read
+                    )
+
+                    VALUES (?, ?, ?, ?, 0)
+                  `;
+
+
+                  const notificationTitle =
+                    "Booking Registered Successfully 🎫";
+
+
+                  const notificationMessage =
+                    `Hello ${user.name || name}, your BusGo booking has been registered successfully. Ticket ${ticketNumber}: ${from} to ${to} on ${date}.`;
+
+
+                  db.query(
+                    notificationSql,
+                    [
+                      user.id,
+                      notificationTitle,
+                      notificationMessage,
+                      "booking"
+                    ],
+                    (notificationError) => {
+
+                      if (notificationError) {
+
+                        console.error(
+                          "ADMIN CREATE BOOKING NOTIFICATION ERROR:",
+                          notificationError
+                        );
+
+                      }
+
+
+                      // =========================================
+                      // RESPONSE
+                      // =========================================
+
+                      return res.status(201).json({
+
+                        message:
+                          "Booking registered successfully.",
+
+                        booking: {
+
+                          id:
+                            bookingId,
+
+                          ticketNumber,
+
+                          userId:
+                            user.id,
+
+                          userName:
+                            user.name,
+
+                          userEmail:
+                            user.email,
+
+                          from:
+                            route.departure,
+
+                          to:
+                            route.destination,
+
+                          date,
+
+                          passengerName:
+                            booking.passengerName,
+
+                          passengerPhone:
+                            booking.passengerPhone,
+
+                          busType:
+                            bus.name,
+
+                          seats:
+                            result.bookedSeats,
+
+                          totalPrice:
+                            booking.totalPrice,
+
+                          discount:
+                            booking.discount,
+
+                          totalPayment:
+                            booking.totalPayment,
+
+                          paymentMethod:
+                            booking.paymentMethod,
+
+                          paymentStatus:
+                            booking.paymentStatus,
+
+                          bookingStatus:
+                            booking.bookingStatus
+
+                        },
+
+                        notification:
+                          !notificationError
+
+                      });
+
+                    }
+                  );
+
+                }
+              );
+
+            }
+          );
+
+        }
+      );
+
+    }
+  );
+
+};
+
+// =========================================
+// GET ALL ROUTES FOR ADMIN
+// GET /api/admin/routes
+// =========================================
+
+exports.getRoutes = (req, res) => {
+
+  const sql = `
+    SELECT
+      *
+    FROM routes
+    ORDER BY id DESC
+  `;
+
+  db.query(
+    sql,
+    (err, results) => {
+
+      if (err) {
+
+        console.error(
+          "ADMIN ROUTES DATABASE ERROR:",
+          err
+        );
+
+        return res.status(500).json({
+          message:
+            "Unable to load routes.",
+
+          error:
+            err.message
+        });
+
+      }
+
+      return res.status(200).json({
+
+        routes:
+          results || []
+
+      });
+
+    }
+  );
+
+};

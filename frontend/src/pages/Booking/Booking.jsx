@@ -19,7 +19,6 @@ import buses from "../../data/buses";
 import SeatSelection from "../../components/SeatSelection/SeatSelection";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
-import BackButton from "../../components/BackButton/BackButton";
 
 import "./Booking.css";
 
@@ -1147,15 +1146,7 @@ function Booking() {
 
       <section className="booking-page">
 
-        {/* =====================================
-            BACK BUTTON
-        ===================================== */}
-
-        <div className="booking-top">
-
-          <BackButton />
-
-        </div>
+    
 
         {/* =====================================
             HEADER

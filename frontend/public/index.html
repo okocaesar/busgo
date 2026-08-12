@@ -1,48 +1,222 @@
 <!DOCTYPE html>
+
 <html lang="en">
-  <head>
+
+<head>
+
   <meta charset="utf-8" />
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
-  />
+<meta
+ name="viewport"
+ content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
+/>
 
-  <meta
-    name="theme-color"
-    content="#0b7d45"
-  />
+<meta
+ name="theme-color"
+ content="#0b7d45"
+/>
 
-  <meta
-    name="description"
-    content="BusGo - Book bus tickets, manage your reservations and travel with ease."
-  />
-
-  <link
-    rel="icon"
-    href="%PUBLIC_URL%/icons/icon-192.jpg"
-  />
-
-  <link
-    rel="apple-touch-icon"
-    href="%PUBLIC_URL%/icons/icon-192.jpg"
-  />
+<meta
+ name="description"
+ content="BusGo Bus Ticket Reservation"
+/>
 
   <link
     rel="manifest"
     href="%PUBLIC_URL%/manifest.json"
   />
 
-  <title>BusGo - Bus Ticket Reservation</title>
+  <title>BusGo</title>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+    }
+
+    body {
+      background: #ffffff;
+    }
+
+    /* =====================================
+       BUSGO INITIAL SPLASH SCREEN
+    ===================================== */
+
+    #app-splash {
+      position: fixed;
+      inset: 0;
+
+      z-index: 999999;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background: #ffffff;
+
+      transition:
+        opacity 0.4s ease,
+        visibility 0.4s ease;
+    }
+
+    #app-splash.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .splash-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      text-align: center;
+
+      padding: 30px;
+    }
+
+    .splash-logo {
+      width: 120px;
+      height: 120px;
+
+      object-fit: contain;
+
+      margin-bottom: 20px;
+
+      animation: splashLogo 1.5s ease-in-out infinite;
+    }
+
+    .splash-title {
+      margin: 0;
+
+      color: #0b7d45;
+
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+      font-size: 32px;
+      font-weight: 800;
+
+      letter-spacing: -0.5px;
+    }
+
+    .splash-text {
+      margin: 8px 0 25px;
+
+      color: #666;
+
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+      font-size: 14px;
+    }
+
+    .splash-loader {
+      width: 42px;
+      height: 42px;
+
+      border: 4px solid #e5eee9;
+
+      border-top-color: #0b7d45;
+
+      border-radius: 50%;
+
+      animation: splashSpin 0.8s linear infinite;
+    }
+
+    @keyframes splashSpin {
+
+      to {
+        transform: rotate(360deg);
+      }
+
+    }
+
+    @keyframes splashLogo {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.05);
+      }
+
+    }
+
+    @media (max-width: 480px) {
+
+      .splash-logo {
+        width: 100px;
+        height: 100px;
+      }
+
+      .splash-title {
+        font-size: 28px;
+      }
+
+      .splash-text {
+        font-size: 13px;
+      }
+
+    }
+
+  </style>
+
 </head>
 
-  <body>
+<body>
 
-    <noscript>
-      You need to enable JavaScript to run BusGo.
-    </noscript>
+  <!-- =====================================
+       INITIAL BUSGO SPLASH
+  ====================================== -->
 
-    <div id="root"></div>
+  <div id="app-splash">
 
-  </body>
+
+<div class="splash-content">
+
+  <img
+    src="%PUBLIC_URL%/icons/icon-192.png"
+    alt="BusGo"
+    class="splash-logo"
+  />
+
+  <h1 class="splash-title">
+    BusGo
+  </h1>
+
+  <p class="splash-text">
+    Travel smarter across Cameroon
+  </p>
+
+  <div class="splash-loader"></div>
+
+</div>
+
+
+  </div>
+
+  <noscript>
+    You need to enable JavaScript to run BusGo.
+  </noscript>
+
+  <div id="root"></div>
+
+</body>
+
 </html>

@@ -38,6 +38,12 @@
   text-align: center;
 }
 
+.page-back {
+  width: 90%;
+  max-width: 1200px;
+  margin: 20px auto 0;
+}
+
 .about-hero h1 {
   margin: 0 0 10px;
 

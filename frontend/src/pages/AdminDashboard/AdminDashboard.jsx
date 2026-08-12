@@ -23,11 +23,18 @@ import {
   FiCheckCircle,
   FiXCircle,
   FiDollarSign,
-  FiUserPlus
+  FiUserPlus,
+  FiGlobe,
+  FiSun,
+  FiMoon,
+  FiMonitor,
+  FiInfo,
+  FiExternalLink
 } from "react-icons/fi";
 
 import { API_URL } from "../../api";
 import logo from "../../assets/logo.png";
+import packageJson from "../../../package.json";
 
 import "./AdminDashboard.css";
 
@@ -36,26 +43,75 @@ function AdminDashboard() {
 
   const navigate = useNavigate();
 
+  const [sidebarOpen, setSidebarOpen] =
+  useState(false);
+
+  
+
+  // =========================================
+// ADMIN THEME
+// =========================================
+
+const [theme, setTheme] = useState(
+  localStorage.getItem("busgo-admin-theme") || "light"
+);
+
+// =========================================
+// LANGUAGE
+// =========================================
+
+const [language, setLanguage] = useState(
+  localStorage.getItem("busgo-admin-language") || "English"
+);
+
 
   // =========================================
   // ADMIN DATA
   // =========================================
+// =========================================
+// ADMIN DATA
+// =========================================
 
-  const [stats, setStats] = useState(null);
+const [stats, setStats] = useState(null);
 
-  const [users, setUsers] = useState([]);
+const [users, setUsers] = useState([]);
 
-  const [bookings, setBookings] = useState([]);
+const [bookings, setBookings] = useState([]);
 
-  const [payments, setPayments] = useState([]);
+const [payments, setPayments] = useState([]);
 
-  const [activeTab, setActiveTab] =
-    useState("dashboard");
+const [routes, setRoutes] = useState([]);
 
-  const [error, setError] = useState("");
+const [activeTab, setActiveTab] =
+  useState("dashboard");
 
-  const [sidebarOpen, setSidebarOpen] =
-    useState(false);
+const [error, setError] = useState("");
+  
+
+  // =========================================
+// ADMIN CREATE BOOKING
+// =========================================
+
+const [adminBooking, setAdminBooking] = useState({
+  userId: "",
+  name: "",
+  email: "",
+  phone: "",
+  from: "",
+  to: "",
+  busType: "",
+  seats: 1,
+  date: ""
+});
+
+const [creatingBooking, setCreatingBooking] =
+  useState(false);
+
+const [bookingSuccess, setBookingSuccess] =
+  useState("");
+
+const [bookingError, setBookingError] =
+  useState("");
 
 
   // =========================================
@@ -126,17 +182,14 @@ function AdminDashboard() {
   statsResponse,
   usersResponse,
   bookingsResponse,
-  paymentsResponse
+  paymentsResponse,
+  routesResponse
 ] = await Promise.all([
-
   api.get("/stats"),
-
   api.get("/users"),
-
   api.get("/bookings"),
-
-  api.get("/payments")
-
+  api.get("/payments"),
+  api.get("/routes")
 ]);
 
 
@@ -157,6 +210,10 @@ function AdminDashboard() {
       setPayments(
         paymentsResponse.data.payments || []
       );
+
+      setRoutes(
+  routesResponse.data.routes || []
+);
 
 
     } catch (requestError) {
@@ -535,6 +592,22 @@ const denyPaymentReversal = async (
 
   };
 
+// =========================================
+// HANDLE ADMIN BOOKING INPUT
+// =========================================
+
+const handleAdminBookingChange = (e) => {
+  const { name, value } = e.target;
+
+  setAdminBooking((currentBooking) => ({
+    ...currentBooking,
+    [name]: value
+  }));
+
+  setBookingSuccess("");
+  setBookingError("");
+};
+
 
   // =========================================
   // SEND NOTIFICATION
@@ -700,6 +773,114 @@ const denyPaymentReversal = async (
 
 
   // =========================================
+// CREATE BOOKING FROM ADMIN DASHBOARD
+// =========================================
+
+const createAdminBooking = async (e) => {
+  e.preventDefault();
+
+  setBookingSuccess("");
+  setBookingError("");
+
+  if (!adminBooking.userId) {
+    setBookingError("Please select a customer.");
+    return;
+  }
+
+  if (!adminBooking.from || !adminBooking.to) {
+    setBookingError(
+      "Please select departure and destination."
+    );
+    return;
+  }
+
+  if (adminBooking.from === adminBooking.to) {
+    setBookingError(
+      "Departure and destination cannot be the same."
+    );
+    return;
+  }
+
+  if (!adminBooking.busType) {
+    setBookingError("Please select a bus type.");
+    return;
+  }
+
+  if (!adminBooking.date) {
+    setBookingError("Please select a travel date.");
+    return;
+  }
+
+  const token =
+    localStorage.getItem("authToken");
+
+  if (!token) {
+    navigate("/login");
+    return;
+  }
+
+  try {
+    setCreatingBooking(true);
+
+    const api = axios.create({
+      baseURL: `${API_URL}/api/admin`,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    const response = await api.post(
+      "/bookings",
+      {
+        userId: adminBooking.userId,
+        name: adminBooking.name,
+        email: adminBooking.email,
+        phone: adminBooking.phone,
+        from: adminBooking.from,
+        to: adminBooking.to,
+        busType: adminBooking.busType,
+        seats: Number(adminBooking.seats),
+        date: adminBooking.date
+      }
+    );
+
+    setBookingSuccess(
+      response.data.message ||
+      "Booking created successfully."
+    );
+
+    setAdminBooking({
+      userId: "",
+      name: "",
+      email: "",
+      phone: "",
+      from: "",
+      to: "",
+      busType: "",
+      seats: 1,
+      date: ""
+    });
+
+    await loadAdminData();
+
+  } catch (requestError) {
+    console.error(
+      "CREATE ADMIN BOOKING ERROR:",
+      requestError
+    );
+
+    setBookingError(
+      requestError.response?.data?.message ||
+      "Unable to create booking."
+    );
+
+  } finally {
+    setCreatingBooking(false);
+  }
+};
+
+  // =========================================
   // FORMAT MONEY
   // =========================================
 
@@ -711,27 +892,71 @@ const denyPaymentReversal = async (
 
 
   // =========================================
-  // LOGOUT
-  // =========================================
+// CHANGE ADMIN THEME
+// =========================================
 
-  const handleLogout = () => {
+const changeTheme = (newTheme) => {
 
-    localStorage.removeItem(
-      "authToken"
-    );
+  setTheme(newTheme);
 
-    localStorage.removeItem(
-      "loggedIn"
-    );
+  localStorage.setItem(
+    "busgo-admin-theme",
+    newTheme
+  );
 
-    localStorage.removeItem(
-      "currentUser"
-    );
+};
 
 
-    navigate("/login");
+// =========================================
+// CHANGE LANGUAGE
+// =========================================
 
-  };
+const changeLanguage = (newLanguage) => {
+
+  setLanguage(newLanguage);
+
+  localStorage.setItem(
+    "busgo-admin-language",
+    newLanguage
+  );
+
+};
+
+
+// =========================================
+// VIEW BUSGO AS CLIENT
+// =========================================
+
+const viewSiteAsClient = () => {
+
+  setSidebarOpen(false);
+
+  navigate("/");
+
+};
+
+
+// =========================================
+// LOGOUT FROM SETTINGS
+// =========================================
+
+const logoutFromSettings = () => {
+
+  localStorage.removeItem(
+    "authToken"
+  );
+
+  localStorage.removeItem(
+    "loggedIn"
+  );
+
+  localStorage.removeItem(
+    "currentUser"
+  );
+
+  navigate("/login");
+
+};
 
 
   // =========================================
@@ -747,11 +972,10 @@ const denyPaymentReversal = async (
     },
 
     {
-      id: "buses",
-      label: "Buses",
-      icon: <FiTruck />,
-      future: true
-    },
+  id: "create-booking",
+  label: "Create Booking",
+  icon: <FiCalendar />
+},
 
     {
       id: "routes",
@@ -794,8 +1018,7 @@ const denyPaymentReversal = async (
     {
       id: "settings",
       label: "Settings",
-      icon: <FiSettings />,
-      future: true
+      icon: <FiSettings />
     }
 
   ];
@@ -856,6 +1079,8 @@ const denyPaymentReversal = async (
 
         <div className="admin-main">
 
+          
+
           <div className="admin-error-card">
 
             <FiXCircle />
@@ -887,7 +1112,7 @@ const denyPaymentReversal = async (
 
   return (
 
-    <div className="admin-shell">
+    <div className={`admin-shell admin-theme-${theme}`}>
 
 
       {/* =====================================
@@ -1002,30 +1227,7 @@ const denyPaymentReversal = async (
 
         {/* LOGOUT */}
 
-        <div className="sidebar-bottom">
-
-          <button
-            type="button"
-            className="sidebar-link logout-link"
-            onClick={handleLogout}
-          >
-
-            <span className="sidebar-icon">
-
-              <FiLogOut />
-
-            </span>
-
-
-            <span>
-
-              Logout
-
-            </span>
-
-          </button>
-
-        </div>
+        
 
 
       </aside>
@@ -1036,6 +1238,20 @@ const denyPaymentReversal = async (
       ===================================== */}
 
       <div className="admin-main">
+
+        {/* =====================================
+          MOBILE ADMIN MENU BUTTON
+        ===================================== */}
+
+<button
+  type="button"
+  className="admin-mobile-menu-btn"
+  onClick={() => setSidebarOpen(true)}
+  aria-label="Open admin menu"
+>
+  <FiGrid />
+  <span>Admin Menu</span>
+</button>
 
 
         {/* =====================================
@@ -1461,6 +1677,439 @@ const denyPaymentReversal = async (
             </>
 
           )}
+
+          {/* ===================================
+    CREATE BOOKING
+=================================== */}
+
+{activeTab === "create-booking" && (
+
+  <section className="admin-table-card create-booking-panel">
+
+    <div className="section-heading">
+
+      <div>
+        <h1>
+          Create Booking
+        </h1>
+
+        <p>
+          Create a BusGo booking on behalf of a customer.
+        </p>
+      </div>
+
+      <div className="notification-heading-icon">
+        <FiCalendar />
+      </div>
+
+    </div>
+
+
+    {bookingSuccess && (
+
+      <div className="admin-notification-success">
+
+        <FiCheckCircle />
+
+        <span>
+          {bookingSuccess}
+        </span>
+
+      </div>
+
+    )}
+
+
+    {bookingError && (
+
+      <div className="admin-notification-error">
+
+        <FiXCircle />
+
+        <span>
+          {bookingError}
+        </span>
+
+      </div>
+
+    )}
+
+
+    <form
+      className="admin-notification-form"
+      onSubmit={createAdminBooking}
+    >
+
+      {/* CUSTOMER */}
+
+      <div className="admin-form-group">
+
+        <label>
+          Customer
+        </label>
+
+        <select
+          name="userId"
+          value={adminBooking.userId}
+          onChange={(e) => {
+
+            const selectedUser =
+              users.find(
+                user =>
+                  String(user.id) ===
+                  String(e.target.value)
+              );
+
+            setAdminBooking({
+              ...adminBooking,
+              userId: e.target.value,
+              name: selectedUser?.name || "",
+              email: selectedUser?.email || "",
+              phone: selectedUser?.phone || ""
+            });
+
+            setBookingSuccess("");
+            setBookingError("");
+
+          }}
+        >
+
+          <option value="">
+            Select customer
+          </option>
+
+          {users
+            .filter(
+              user =>
+                user.role !== "admin"
+            )
+            .map(user => (
+
+              <option
+                key={user.id}
+                value={user.id}
+              >
+                {user.name} — {user.email}
+              </option>
+
+            ))}
+
+        </select>
+
+      </div>
+
+
+      {/* CUSTOMER INFORMATION */}
+
+      <div className="form-grid">
+
+        <div className="admin-form-group">
+
+          <label>
+            Customer Name
+          </label>
+
+          <input
+            type="text"
+            value={adminBooking.name}
+            readOnly
+          />
+
+        </div>
+
+
+        <div className="admin-form-group">
+
+          <label>
+            Phone
+          </label>
+
+          <input
+            type="text"
+            value={adminBooking.phone}
+            readOnly
+          />
+
+        </div>
+
+      </div>
+
+
+      {/* ROUTE */}
+
+      <div className="form-grid">
+
+        <div className="admin-form-group">
+
+          <label>
+            Departure
+          </label>
+
+          <select
+            name="from"
+            value={adminBooking.from}
+            onChange={handleAdminBookingChange}
+          >
+
+            <option value="">
+  Select departure
+</option>
+
+{[
+  ...new Set(
+    routes.map(
+      route => route.departure
+    )
+  )
+].map(city => (
+  <option
+    key={city}
+    value={city}
+  >
+    {city}
+  </option>
+))}
+
+            <option value="Mamfe">
+              Mamfe
+            </option>
+
+            <option value="Douala">
+              Douala
+            </option>
+
+            <option value="Yaoundé">
+              Yaoundé
+            </option>
+
+            <option value="Buea">
+              Buea
+            </option>
+
+            <option value="Bamenda">
+              Bamenda
+            </option>
+
+            <option value="Bafoussam">
+              Bafoussam
+            </option>
+
+            <option value="Garoua">
+              Garoua
+            </option>
+
+            <option value="Maroua">
+              Maroua
+            </option>
+
+            <option value="Ngaoundéré">
+              Ngaoundéré
+            </option>
+
+            <option value="Bertoua">
+              Bertoua
+            </option>
+
+            <option value="Ebolowa">
+              Ebolowa
+            </option>
+
+            <option value="Limbe">
+              Limbe
+            </option>
+
+            <option value="Kribi">
+              Kribi
+            </option>
+
+            <option value="Kumba">
+              Kumba
+            </option>
+
+            <option value="Dschang">
+              Dschang
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div className="admin-form-group">
+
+          <label>
+            Destination
+          </label>
+
+          <select
+            name="to"
+            value={adminBooking.to}
+            onChange={handleAdminBookingChange}
+          >
+
+            <option value="">
+              Select destination
+            </option>
+
+            <option value="Mamfe">
+              Mamfe
+            </option>
+
+            <option value="Douala">
+              Douala
+            </option>
+
+            <option value="Yaoundé">
+              Yaoundé
+            </option>
+
+            <option value="Buea">
+              Buea
+            </option>
+
+            <option value="Bamenda">
+              Bamenda
+            </option>
+
+            <option value="Bafoussam">
+              Bafoussam
+            </option>
+
+            <option value="Garoua">
+              Garoua
+            </option>
+
+            <option value="Maroua">
+              Maroua
+            </option>
+
+            <option value="Ngaoundéré">
+              Ngaoundéré
+            </option>
+
+            <option value="Bertoua">
+              Bertoua
+            </option>
+
+            <option value="Ebolowa">
+              Ebolowa
+            </option>
+
+            <option value="Limbe">
+              Limbe
+            </option>
+
+            <option value="Kribi">
+              Kribi
+            </option>
+
+            <option value="Kumba">
+              Kumba
+            </option>
+
+            <option value="Dschang">
+              Dschang
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+
+      {/* BUS + SEATS + DATE */}
+
+      <div className="form-grid">
+
+        <div className="admin-form-group">
+
+          <label>
+            Bus Type
+          </label>
+
+          <select
+            name="busType"
+            value={adminBooking.busType}
+            onChange={handleAdminBookingChange}
+          >
+
+            <option value="">
+              Select bus type
+            </option>
+
+            <option value="Shuttle">
+              Shuttle
+            </option>
+
+            <option value="Standard">
+              Standard
+            </option>
+
+            <option value="VIP Coach">
+              VIP Coach
+            </option>
+
+          </select>
+
+        </div>
+
+
+        <div className="admin-form-group">
+
+          <label>
+            Seats
+          </label>
+
+          <input
+            type="number"
+            name="seats"
+            min="1"
+            max="10"
+            value={adminBooking.seats}
+            onChange={handleAdminBookingChange}
+          />
+
+        </div>
+
+
+        <div className="admin-form-group">
+
+          <label>
+            Travel Date
+          </label>
+
+          <input
+            type="date"
+            name="date"
+            value={adminBooking.date}
+            onChange={handleAdminBookingChange}
+          />
+
+        </div>
+
+      </div>
+
+
+      <button
+        type="submit"
+        className="send-notification-btn"
+        disabled={creatingBooking}
+      >
+
+        <FiCalendar />
+
+        {creatingBooking
+          ? "Creating Booking..."
+          : "Create Booking"}
+
+      </button>
+
+    </form>
+
+  </section>
+
+)}
 
 
           {/* ===================================
@@ -2455,15 +3104,380 @@ const denyPaymentReversal = async (
   </section>
 
 )}
+
+{/* ===================================
+    SETTINGS
+=================================== */}
+
+{activeTab === "settings" && (
+
+  <section className="admin-settings">
+
+    {/* SETTINGS HEADER */}
+
+    <div className="settings-heading">
+
+      <div>
+
+        <h1>
+          Settings
+        </h1>
+
+        <p>
+          Manage your BusGo administrator preferences.
+        </p>
+
+      </div>
+
+      <div className="settings-heading-icon">
+        <FiSettings />
+      </div>
+
+    </div>
+
+
+    {/* =================================
+        APPEARANCE
+    ================================= */}
+
+    <div className="settings-card">
+
+      <div className="settings-card-header">
+
+        <div className="settings-card-icon">
+          <FiMonitor />
+        </div>
+
+        <div>
+
+          <h2>
+            Appearance
+          </h2>
+
+          <p>
+            Choose how the admin dashboard looks.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div className="settings-options">
+
+        <button
+          type="button"
+          className={`settings-option ${
+            theme === "light"
+              ? "selected"
+              : ""
+          }`}
+          onClick={() =>
+            changeTheme("light")
+          }
+        >
+
+          <span className="settings-option-icon">
+            <FiSun />
+          </span>
+
+          <span className="settings-option-text">
+
+            <strong>
+              Light Mode
+            </strong>
+
+            <small>
+              Use the light BusGo dashboard theme.
+            </small>
+
+          </span>
+
+          <span className="settings-radio">
+            {theme === "light" ? "✓" : ""}
+          </span>
+
+        </button>
+
+
+        <button
+          type="button"
+          className={`settings-option ${
+            theme === "dark"
+              ? "selected"
+              : ""
+          }`}
+          onClick={() =>
+            changeTheme("dark")
+          }
+        >
+
+          <span className="settings-option-icon">
+            <FiMoon />
+          </span>
+
+          <span className="settings-option-text">
+
+            <strong>
+              Dark Mode
+            </strong>
+
+            <small>
+              Use a darker interface for the dashboard.
+            </small>
+
+          </span>
+
+          <span className="settings-radio">
+            {theme === "dark" ? "✓" : ""}
+          </span>
+
+        </button>
+
+      </div>
+
+    </div>
+
+
+    {/* =================================
+        LANGUAGE
+    ================================= */}
+
+    <div className="settings-card">
+
+      <div className="settings-card-header">
+
+        <div className="settings-card-icon">
+          <FiGlobe />
+        </div>
+
+        <div>
+
+          <h2>
+            Language
+          </h2>
+
+          <p>
+            Choose your preferred dashboard language.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div className="settings-language">
+
+        <label htmlFor="admin-language">
+          Dashboard Language
+        </label>
+
+        <select
+          id="admin-language"
+          value={language}
+          onChange={(e) =>
+            changeLanguage(e.target.value)
+          }
+        >
+
+          <option value="English">
+            English
+          </option>
+
+          <option value="Français">
+            Français
+          </option>
+
+        </select>
+
+        <small>
+          Language preference is saved on this device.
+        </small>
+
+      </div>
+
+    </div>
+
+
+    {/* =================================
+        CLIENT VIEW
+    ================================= */}
+
+    <div className="settings-card">
+
+      <div className="settings-card-header">
+
+        <div className="settings-card-icon">
+          <FiExternalLink />
+        </div>
+
+        <div>
+
+          <h2>
+            Client View
+          </h2>
+
+          <p>
+            Open the public BusGo website as a normal client.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <button
+        type="button"
+        className="settings-action-btn client-view-btn"
+        onClick={viewSiteAsClient}
+      >
+
+        <FiExternalLink />
+
+        View Site as Client
+
+      </button>
+
+    </div>
+
+
+    {/* =================================
+        ABOUT APP
+    ================================= */}
+
+    <div className="settings-card">
+
+      <div className="settings-card-header">
+
+        <div className="settings-card-icon">
+          <FiInfo />
+        </div>
+
+        <div>
+
+          <h2>
+            About BusGo
+          </h2>
+
+          <p>
+            Information about the current BusGo application.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div className="about-app-info">
+
+        <div className="about-app-row">
+
+          <span>
+            Application
+          </span>
+
+          <strong>
+            BusGo
+          </strong>
+
+        </div>
+
+
+        <div className="about-app-row">
+
+          <span>
+            Version
+          </span>
+
+          <strong>
+            v{packageJson.version}
+          </strong>
+
+        </div>
+
+
+        <div className="about-app-row">
+
+          <span>
+            Application Type
+          </span>
+
+          <strong>
+            Progressive Web App
+          </strong>
+
+        </div>
+
+
+        <div className="about-app-row">
+
+          <span>
+            Platform
+          </span>
+
+          <strong>
+            BusGo Web App
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    {/* =================================
+        ACCOUNT
+    ================================= */}
+
+    <div className="settings-card settings-danger-card">
+
+      <div className="settings-card-header">
+
+        <div className="settings-card-icon danger">
+          <FiLogOut />
+        </div>
+
+        <div>
+
+          <h2>
+            Account
+          </h2>
+
+          <p>
+            Sign out of the BusGo administrator account.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <button
+        type="button"
+        className="settings-action-btn logout-settings-btn"
+        onClick={logoutFromSettings}
+      >
+
+        <FiLogOut />
+
+        Logout
+
+      </button>
+
+    </div>
+
+  </section>
+
+)}
+
           {/* ===================================
               FUTURE ADMIN SECTIONS
           =================================== */}
 
           {[
-            "buses",
             "routes",
-            "reports",
-            "settings"
+            "reports"
           ].includes(activeTab) && (
 
             <section className="coming-soon-card">

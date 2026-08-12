@@ -1,14 +1,22 @@
+
+/* =========================================
+   BUSGO BACK BUTTON
+   ========================================= */
+
 .back-button {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
 
-  padding: 10px 16px;
+  gap: 7px;
 
-  border: 1px solid #d9e2dc;
-  border-radius: 8px;
+  height: 42px;
+  padding: 0 16px;
 
-  background: #ffffff;
+  border: 1.5px solid #0b7d45;
+  border-radius: 12px;
+
+  background: rgba(255, 255, 255, 0.96);
   color: #0b7d45;
 
   font-size: 14px;
@@ -16,12 +24,36 @@
 
   cursor: pointer;
 
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.08);
+
   transition:
     background 0.2s ease,
     color 0.2s ease,
     transform 0.2s ease,
     box-shadow 0.2s ease;
+
+  -webkit-tap-highlight-color: transparent;
 }
+
+
+/* =========================================
+   ICON
+   ========================================= */
+
+.back-button svg {
+  width: 18px;
+  height: 18px;
+
+  flex-shrink: 0;
+
+  stroke-width: 2.5;
+}
+
+
+/* =========================================
+   HOVER
+   ========================================= */
 
 .back-button:hover {
   background: #0b7d45;
@@ -29,23 +61,70 @@
 
   transform: translateX(-2px);
 
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 7px 18px rgba(11, 125, 69, 0.22);
 }
 
-.back-button svg {
-  font-size: 13px;
+
+/* =========================================
+   ACTIVE / PRESS
+   ========================================= */
+
+.back-button:active {
+  transform: scale(0.94);
+  box-shadow:
+    0 3px 8px rgba(11, 125, 69, 0.15);
 }
 
 
 /* =========================================
    MOBILE
-========================================= */
+   ========================================= */
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
 
   .back-button {
-    padding: 9px 13px;
+    height: 38px;
+
+    padding: 0 13px;
+
+    gap: 6px;
+
+    border-radius: 10px;
+
     font-size: 13px;
+
+    box-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.10);
+  }
+
+  .back-button svg {
+    width: 17px;
+    height: 17px;
+  }
+
+}
+
+
+/* =========================================
+   VERY SMALL PHONES
+   ========================================= */
+
+@media (max-width: 380px) {
+
+  .back-button {
+    height: 36px;
+
+    padding: 0 11px;
+
+    font-size: 12px;
+
+    border-radius: 9px;
+  }
+
+  .back-button svg {
+    width: 16px;
+    height: 16px;
   }
 
 }

@@ -1,29 +1,51 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { FaArrowLeft } from "react-icons/fa";
+import { FiArrowLeft } from "react-icons/fi";
+
 import "./BackButton.css";
 
-function BackButton({ fallback = "/" }) {
-  const navigate = useNavigate();
+function BackButton() {
 
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate(fallback);
-    }
-  };
+const navigate = useNavigate();
 
-  return (
-    <button
-      type="button"
-      className="back-button"
-      onClick={handleBack}
-    >
-      <FaArrowLeft />
-      <span>Back</span>
-    </button>
-  );
+const handleBack = () => {
+
+
+// Go to previous page when possible
+if (window.history.length > 1) {
+
+  navigate(-1);
+
+} else {
+
+  // Fallback
+  navigate("/");
+
+}
+
+
+};
+
+return (
+
+
+<button
+  type="button"
+  className="back-button"
+  onClick={handleBack}
+>
+
+  <FiArrowLeft />
+
+  <span>
+    Back
+  </span>
+
+</button>
+
+
+);
+
 }
 
 export default BackButton;

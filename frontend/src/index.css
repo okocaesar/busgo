@@ -167,3 +167,60 @@ body {
     padding-top: 62px;
   }
 }
+
+
+
+/* =========================================
+   GLOBAL BUSGO BACK BUTTON
+   ========================================= */
+
+.global-mobile-back {
+  position: sticky;
+
+  top: 95px;
+  left: 25px;
+
+  z-index: 9990;
+}
+
+
+/* =========================================
+   TABLET
+   ========================================= */
+
+@media (max-width: 900px) {
+
+  .global-mobile-back {
+    top: 88px;
+    left: 20px;
+  }
+
+}
+
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 600px) {
+
+  .global-mobile-back {
+    top: 78px;
+    left: 12px;
+  }
+
+}
+
+
+/* =========================================
+   SMALL PHONES
+   ========================================= */
+
+@media (max-width: 380px) {
+
+  .global-mobile-back {
+    top: 72px;
+    left: 10px;
+  }
+
+}
