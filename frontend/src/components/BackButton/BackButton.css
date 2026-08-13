@@ -128,3 +128,14 @@
   }
 
 }
+
+/* =========================================
+   BACK BUTTON — MOBILE ONLY
+========================================= */
+
+/* Hide back button on desktop */
+@media (min-width: 801px) {
+  .global-mobile-back {
+    display: none !important;
+  }
+}

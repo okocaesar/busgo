@@ -1,5 +1,9 @@
 const db = require("../config/database");
 
+const {
+  sendBookingTicketEmail
+} = require("../services/emailService");
+
 // =========================================
 // GET ADMIN STATISTICS
 // GET /api/admin/stats
@@ -1302,59 +1306,85 @@ exports.createBooking = (req, res) => {
 
               const booking = {
 
-                ticketNumber,
+  ticketNumber,
 
-                userId:
-                  user.id,
+  userId:
+    user.id,
 
-                routeId:
-                  route.id,
+  routeId:
+    route.id,
 
-                busId:
-                  bus.id,
+  busId:
+    bus.id,
 
-                passengerName:
-                  name.trim(),
+  passengerName:
+    name.trim(),
 
-                passengerPhone:
-                  phone ||
-                  user.phone ||
-                  "",
+  passengerPhone:
+    phone ||
+    user.phone ||
+    "",
 
-                travelDate:
-                  date,
+  travelDate:
+    date,
 
-                seats,
+  seats,
 
-                offerId:
-                  null,
+  offerId:
+    null,
 
-                totalPrice:
-                  Number(totalPrice || 0),
+  totalPrice:
+    Number(totalPrice || 0),
 
-                discount:
-                  Number(discount || 0),
+  discount:
+    Number(discount || 0),
 
-                totalPayment:
-                  Number(totalPayment || 0),
+  // =========================================
+  // ADMIN CASH BOOKING
+  //
+  // IMPORTANT:
+  // Admin-created bookings skip online payment.
+  //
+  // The database records total_payment as 0
+  // because no online payment transaction was
+  // made.
+  // =========================================
 
-                paymentMethod:
-                  paymentMethod ||
-                  "Cash",
+  totalPayment:
+    0,
 
-                paymentStatus:
-                  paymentStatus ||
-                  "Pending",
+  // =========================================
+  // CASH PAYMENT
+  // =========================================
 
-                bookingStatus:
-                  "Confirmed",
+  paymentMethod:
+    "Cash",
 
-                paymentDate:
-                  paymentStatus === "Successful"
-                    ? new Date()
-                    : null
+  // =========================================
+  // CASH RECEIVED BY ADMIN
+  //
+  // We consider the ticket paid because the
+  // admin has received cash directly.
+  // =========================================
 
-              };
+  paymentStatus:
+    "Successful",
+
+  // =========================================
+  // TICKET IS ACTIVE IMMEDIATELY
+  // =========================================
+
+  bookingStatus:
+    "Confirmed",
+
+  // =========================================
+  // ADMIN CASH PAYMENT TIME
+  // =========================================
+
+  paymentDate:
+    new Date()
+
+};
 
 
               // =========================================
@@ -1481,105 +1511,216 @@ exports.createBooking = (req, res) => {
 
 
                   const notificationTitle =
-                    "Booking Registered Successfully 🎫";
+  "BusGo Ticket Created Successfully 🎫";
 
 
-                  const notificationMessage =
-                    `Hello ${user.name || name}, your BusGo booking has been registered successfully. Ticket ${ticketNumber}: ${from} to ${to} on ${date}.`;
+const notificationMessage =
+  `Hello ${user.name || name}, your BusGo ticket ${ticketNumber} has been created successfully. ` +
+  `Your trip is from ${from} to ${to} on ${date}. ` +
+  `Passenger: ${booking.passengerName}. ` +
+  `Seat(s): ${result.bookedSeats.join(", ")}. ` +
+  `Bus: ${bus.name}. ` +
+  `Payment method: Cash. ` +
+  `Your ticket is confirmed. Please keep this ticket information safe for your journey.`;
 
 
                   db.query(
-                    notificationSql,
-                    [
-                      user.id,
-                      notificationTitle,
-                      notificationMessage,
-                      "booking"
-                    ],
-                    (notificationError) => {
+  notificationSql,
+  [
+    user.id,
+    notificationTitle,
+    notificationMessage,
+    "booking"
+  ],
+  async (notificationError) => {
 
-                      if (notificationError) {
+    // =========================================
+    // NOTIFICATION ERROR
+    // =========================================
 
-                        console.error(
-                          "ADMIN CREATE BOOKING NOTIFICATION ERROR:",
-                          notificationError
-                        );
+    if (notificationError) {
 
-                      }
+      console.error(
+        "ADMIN CREATE BOOKING NOTIFICATION ERROR:",
+        notificationError
+      );
+
+    }
 
 
-                      // =========================================
-                      // RESPONSE
-                      // =========================================
+    // =========================================
+    // SEND TICKET EMAIL
+    //
+    // IMPORTANT:
+    // The booking has already been successfully
+    // committed to the database at this point.
+    //
+    // Therefore the email is only sent AFTER
+    // the ticket actually exists.
+    // =========================================
 
-                      return res.status(201).json({
+    let emailSent = false;
 
-                        message:
-                          "Booking registered successfully.",
+    try {
 
-                        booking: {
+      await sendBookingTicketEmail({
 
-                          id:
-                            bookingId,
+        userName:
+          user.name ||
+          name,
 
-                          ticketNumber,
+        userEmail:
+          user.email,
 
-                          userId:
-                            user.id,
+        ticketNumber,
 
-                          userName:
-                            user.name,
+        from:
+          route.departure,
 
-                          userEmail:
-                            user.email,
+        to:
+          route.destination,
 
-                          from:
-                            route.departure,
+        travelDate:
+          date,
 
-                          to:
-                            route.destination,
+        passengerName:
+          booking.passengerName,
 
-                          date,
+        passengerPhone:
+          booking.passengerPhone,
 
-                          passengerName:
-                            booking.passengerName,
+        busName:
+          bus.name,
 
-                          passengerPhone:
-                            booking.passengerPhone,
+        seats:
+          result.bookedSeats,
 
-                          busType:
-                            bus.name,
+        totalPrice:
+          booking.totalPrice,
 
-                          seats:
-                            result.bookedSeats,
+        discount:
+          booking.discount,
 
-                          totalPrice:
-                            booking.totalPrice,
+        paymentMethod:
+          booking.paymentMethod,
 
-                          discount:
-                            booking.discount,
+        paymentStatus:
+          booking.paymentStatus
 
-                          totalPayment:
-                            booking.totalPayment,
+      });
 
-                          paymentMethod:
-                            booking.paymentMethod,
+      emailSent = true;
 
-                          paymentStatus:
-                            booking.paymentStatus,
 
-                          bookingStatus:
-                            booking.bookingStatus
+      console.log(
+        "ADMIN BOOKING TICKET EMAIL SENT:",
+        {
+          ticketNumber,
+          email:
+            user.email
+        }
+      );
 
-                        },
+    } catch (emailError) {
 
-                        notification:
-                          !notificationError
+      // =========================================
+      // EMAIL ERROR
+      //
+      // IMPORTANT:
+      // Do NOT cancel/delete the booking.
+      //
+      // The ticket was already successfully
+      // created. Only the email failed.
+      // =========================================
 
-                      });
+      console.error(
+        "ADMIN CREATE BOOKING EMAIL ERROR:",
+        emailError
+      );
 
-                    }
-                  );
+    }
+
+
+    // =========================================
+    // RESPONSE
+    // =========================================
+
+    return res.status(201).json({
+
+      message:
+        "Booking registered successfully.",
+
+      booking: {
+
+        id:
+          bookingId,
+
+        ticketNumber,
+
+        userId:
+          user.id,
+
+        userName:
+          user.name,
+
+        userEmail:
+          user.email,
+
+        from:
+          route.departure,
+
+        to:
+          route.destination,
+
+        date,
+
+        passengerName:
+          booking.passengerName,
+
+        passengerPhone:
+          booking.passengerPhone,
+
+        busType:
+          bus.name,
+
+        seats:
+          result.bookedSeats,
+
+        totalPrice:
+          booking.totalPrice,
+
+        discount:
+          booking.discount,
+
+        // =========================================
+        // IMPORTANT
+        // ADMIN CASH BOOKING
+        // =========================================
+
+        totalPayment:
+          0,
+
+        paymentMethod:
+          "Cash",
+
+        paymentStatus:
+          "Successful",
+
+        bookingStatus:
+          "Confirmed"
+
+      },
+
+      notification:
+        !notificationError,
+
+      email:
+        emailSent
+
+    });
+
+  }
+);
 
                 }
               );

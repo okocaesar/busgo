@@ -7,20 +7,10 @@
   padding: 0;
   min-height: 100vh;
   width: 100%;
-}
-
-/* =========================================
-   GLOBAL ADMIN DASHBOARD
-========================================= */
-
-.admin-shell {
-  min-height: 100vh;
-
   background: #f6f8fb;
-
   display: flex;
-
   position: relative;
+  box-sizing: border-box;
 }
 
 
@@ -30,7 +20,6 @@
 
 .admin-sidebar {
   position: fixed;
-
   top: 0;
   left: 0;
 
@@ -38,11 +27,9 @@
   height: 100vh;
 
   background: #ffffff;
-
   border-right: 1px solid #e8edf2;
 
   display: flex;
-
   flex-direction: column;
 
   z-index: 1000;
@@ -51,6 +38,8 @@
   overflow-x: hidden;
 
   box-sizing: border-box;
+
+  transition: transform 0.3s ease;
 }
 
 
@@ -60,17 +49,14 @@
 
 .sidebar-top {
   min-height: 110px;
-
   padding: 18px 24px;
 
   display: flex;
-
   align-items: center;
 
   border-bottom: 1px solid #f0f2f5;
 
   position: relative;
-
   box-sizing: border-box;
 }
 
@@ -81,22 +67,17 @@
 
 .sidebar-brand {
   width: 100%;
-
   display: flex;
-
   align-items: center;
 }
 
 
 .sidebar-logo {
   width: 165px;
-
   height: auto;
-
   max-height: 78px;
 
   object-fit: contain;
-
   object-position: left center;
 
   display: block;
@@ -113,7 +94,6 @@
   padding: 22px 14px;
 
   display: flex;
-
   flex-direction: column;
 
   gap: 6px;
@@ -128,15 +108,12 @@
 
 .sidebar-link {
   width: 100%;
-
   min-height: 46px;
 
   border: none;
-
   outline: none;
 
   background: transparent;
-
   color: #667085;
 
   border-radius: 10px;
@@ -144,15 +121,12 @@
   padding: 0 14px;
 
   display: flex;
-
   align-items: center;
 
   gap: 13px;
 
   font-family: inherit;
-
   font-size: 14px;
-
   font-weight: 600;
 
   text-align: left;
@@ -168,14 +142,12 @@
 
 .sidebar-link:hover {
   background: #f0f8f4;
-
   color: #087f4f;
 }
 
 
 .sidebar-link.active {
   background: #087f4f;
-
   color: #ffffff;
 
   box-shadow:
@@ -185,7 +157,6 @@
 
 .sidebar-link.active:hover {
   background: #087f4f;
-
   color: #ffffff;
 }
 
@@ -196,13 +167,10 @@
 
 .sidebar-icon {
   width: 20px;
-
   height: 20px;
 
   display: flex;
-
   align-items: center;
-
   justify-content: center;
 
   flex-shrink: 0;
@@ -254,7 +222,6 @@
 
 .logout-link:hover {
   background: #fff1f0;
-
   color: #d92d20;
 }
 
@@ -269,26 +236,38 @@
   position: absolute;
 
   top: 18px;
-
   right: 14px;
 
-  width: 34px;
-
-  height: 34px;
+  width: 38px;
+  height: 38px;
 
   border: none;
 
   background: #f2f4f7;
-
   color: #344054;
 
-  border-radius: 8px;
+  border-radius: 10px;
 
   cursor: pointer;
 
   align-items: center;
-
   justify-content: center;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+.sidebar-close:hover {
+  background: #e4e7ec;
+  transform: rotate(90deg);
+}
+
+
+.sidebar-close svg {
+  width: 20px;
+  height: 20px;
 }
 
 
@@ -306,7 +285,6 @@
   min-height: 100vh;
 
   display: flex;
-
   flex-direction: column;
 }
 
@@ -330,6 +308,7 @@
 
 .dashboard-heading {
   display: flex;
+
   align-items: center;
   justify-content: space-between;
 
@@ -345,7 +324,6 @@
   color: #172b22;
 
   font-size: 30px;
-
   font-weight: 700;
 }
 
@@ -367,7 +345,6 @@
   border: none;
 
   background: #087f4f;
-
   color: #ffffff;
 
   border-radius: 9px;
@@ -377,7 +354,6 @@
   display: inline-flex;
 
   align-items: center;
-
   justify-content: center;
 
   gap: 8px;
@@ -385,7 +361,6 @@
   font-family: inherit;
 
   font-size: 14px;
-
   font-weight: 600;
 
   cursor: pointer;
@@ -398,8 +373,79 @@
 
 .refresh-btn:hover {
   background: #066d43;
+  transform: translateY(-1px);
+}
+
+
+/* =========================================
+   HAMBURGER MENU BUTTON
+========================================= */
+
+.admin-mobile-menu-btn {
+  display: none;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  width: fit-content;
+
+  padding: 11px 16px;
+
+  margin: 15px 20px 0;
+
+  border: none;
+
+  border-radius: 10px;
+
+  background: #0b7d45;
+  color: #ffffff;
+
+  font-family: inherit;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 5px 15px rgba(11, 125, 69, 0.18);
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+.admin-mobile-menu-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+
+.admin-mobile-menu-btn:hover {
+  background: #096b3b;
 
   transform: translateY(-1px);
+
+  box-shadow:
+    0 7px 18px rgba(11, 125, 69, 0.25);
+}
+
+
+.admin-mobile-menu-btn:active {
+  transform: scale(0.97);
+}
+
+
+/* =========================================
+   MOBILE SIDEBAR OVERLAY
+========================================= */
+
+.admin-sidebar-overlay {
+  display: none;
 }
 
 
@@ -439,7 +485,6 @@
   display: flex;
 
   justify-content: space-between;
-
   align-items: center;
 
   gap: 12px;
@@ -452,14 +497,12 @@
   color: #667085;
 
   font-size: 13px;
-
   font-weight: 600;
 }
 
 
 .stat-icon {
   width: 40px;
-
   height: 40px;
 
   border-radius: 10px;
@@ -467,7 +510,6 @@
   display: flex;
 
   align-items: center;
-
   justify-content: center;
 
   flex-shrink: 0;
@@ -478,28 +520,24 @@
 
 .stat-icon.blue {
   background: #e9f2ff;
-
   color: #1769aa;
 }
 
 
 .stat-icon.green {
   background: #e6f7ef;
-
   color: #087f4f;
 }
 
 
 .stat-icon.purple {
   background: #f0eaff;
-
   color: #6941c6;
 }
 
 
 .stat-icon.orange {
   background: #fff1df;
-
   color: #d97706;
 }
 
@@ -566,7 +604,6 @@
   display: flex;
 
   justify-content: space-between;
-
   align-items: flex-start;
 
   gap: 15px;
@@ -603,7 +640,6 @@
   font-family: inherit;
 
   font-size: 13px;
-
   font-weight: 700;
 
   cursor: pointer;
@@ -639,19 +675,16 @@
 
 .booking-avatar {
   width: 38px;
-
   height: 38px;
 
   border-radius: 10px;
 
   background: #eaf7f1;
-
   color: #087f4f;
 
   display: flex;
 
   align-items: center;
-
   justify-content: center;
 
   flex-shrink: 0;
@@ -664,7 +697,6 @@
   flex: 1;
 
   display: flex;
-
   flex-direction: column;
 
   gap: 4px;
@@ -751,7 +783,6 @@
 
 .summary-icon {
   width: 38px;
-
   height: 38px;
 
   background: #f1f7f4;
@@ -763,7 +794,6 @@
   display: flex;
 
   align-items: center;
-
   justify-content: center;
 
   flex-shrink: 0;
@@ -801,7 +831,6 @@
   display: inline-flex;
 
   align-items: center;
-
   justify-content: center;
 
   border-radius: 20px;
@@ -809,7 +838,6 @@
   padding: 5px 9px;
 
   font-size: 11px;
-
   font-weight: 700;
 
   white-space: nowrap;
@@ -818,21 +846,18 @@
 
 .status.confirmed {
   color: #087f4f;
-
   background: #e0f7eb;
 }
 
 
 .status.cancelled {
   color: #b42318;
-
   background: #ffe5e5;
 }
 
 
 .status.pending {
   color: #b54708;
-
   background: #fff3e0;
 }
 
@@ -861,7 +886,6 @@
   display: flex;
 
   justify-content: space-between;
-
   align-items: center;
 
   gap: 20px;
@@ -904,7 +928,6 @@
   color: #087f4f;
 
   font-size: 13px;
-
   font-weight: 700;
 }
 
@@ -947,7 +970,6 @@
   color: #667085;
 
   font-size: 11px;
-
   font-weight: 700;
 
   text-transform: uppercase;
@@ -996,7 +1018,6 @@
   font-family: inherit;
 
   font-size: 12px;
-
   font-weight: 700;
 
   cursor: pointer;
@@ -1005,14 +1026,12 @@
 
 .confirm-status-btn {
   background: #e0f7eb;
-
   color: #087f4f;
 }
 
 
 .cancel-status-btn {
   background: #fff0ef;
-
   color: #b42318;
 }
 
@@ -1042,25 +1061,21 @@
 
 .user-avatar {
   width: 34px;
-
   height: 34px;
 
   border-radius: 50%;
 
   background: #e7f5ee;
-
   color: #087f4f;
 
   display: flex;
 
   align-items: center;
-
   justify-content: center;
 
   flex-shrink: 0;
 
   font-size: 13px;
-
   font-weight: 700;
 }
 
@@ -1077,18 +1092,15 @@
   border-radius: 15px;
 
   background: #f2f4f7;
-
   color: #667085;
 
   font-size: 11px;
-
   font-weight: 700;
 }
 
 
 .role-badge.admin-role {
   background: #e0f7eb;
-
   color: #087f4f;
 }
 
@@ -1104,19 +1116,16 @@
 
 .notification-heading-icon {
   width: 46px;
-
   height: 46px;
 
   border-radius: 12px;
 
   background: #e8f7f0;
-
   color: #087f4f;
 
   display: flex;
 
   align-items: center;
-
   justify-content: center;
 
   font-size: 20px;
@@ -1163,7 +1172,6 @@
   color: #344054;
 
   font-size: 13px;
-
   font-weight: 700;
 }
 
@@ -1180,7 +1188,6 @@
   border-radius: 9px;
 
   background: #ffffff;
-
   color: #344054;
 
   padding: 12px 14px;
@@ -1233,14 +1240,12 @@
   margin-bottom: 20px;
 
   font-size: 13px;
-
   font-weight: 600;
 }
 
 
 .admin-notification-success {
   background: #e8f7ef;
-
   color: #087f4f;
 
   border: 1px solid #c9ead8;
@@ -1249,7 +1254,6 @@
 
 .admin-notification-error {
   background: #fff0ef;
-
   color: #b42318;
 
   border: 1px solid #ffd4d0;
@@ -1272,13 +1276,11 @@
   border-radius: 9px;
 
   background: #087f4f;
-
   color: #ffffff;
 
   display: inline-flex;
 
   align-items: center;
-
   justify-content: center;
 
   gap: 8px;
@@ -1286,7 +1288,6 @@
   font-family: inherit;
 
   font-size: 14px;
-
   font-weight: 700;
 
   cursor: pointer;
@@ -1334,7 +1335,6 @@
   flex-direction: column;
 
   align-items: center;
-
   justify-content: center;
 
   text-align: center;
@@ -1345,19 +1345,16 @@
 
 .coming-soon-icon {
   width: 70px;
-
   height: 70px;
 
   border-radius: 18px;
 
   background: #e8f7f0;
-
   color: #087f4f;
 
   display: flex;
 
   align-items: center;
-
   justify-content: center;
 
   font-size: 30px;
@@ -1438,7 +1435,6 @@
   border-radius: 8px;
 
   background: #087f4f;
-
   color: #ffffff;
 
   padding: 11px 18px;
@@ -1469,7 +1465,6 @@
   display: flex;
 
   align-items: center;
-
   justify-content: space-between;
 
   color: #98a2b3;
@@ -1477,266 +1472,6 @@
   font-size: 13px;
 
   box-sizing: border-box;
-}
-
-
-/* =========================================
-   DESKTOP FOOTER ALIGNMENT
-========================================= */
-
-@media (min-width: 901px) {
-
-  .admin-footer {
-    margin-left: 0;
-  }
-
-}
-
-
-/* =========================================
-   MOBILE OVERLAY
-========================================= */
-
-.admin-sidebar-overlay {
-  display: none;
-}
-
-
-/* =========================================
-   TABLET
-========================================= */
-
-@media (max-width: 1100px) {
-
-  .admin-stats {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
-  }
-
-
-  .dashboard-overview-grid {
-    grid-template-columns: 1fr;
-  }
-
-}
-
-
-/* =========================================
-   MOBILE SIDEBAR
-========================================= */
-
-@media (max-width: 900px) {
-
-  .admin-sidebar {
-
-    width: 250px;
-
-    transform: translateX(-100%);
-
-    transition:
-      transform 0.25s ease;
-
-    box-shadow:
-      8px 0 30px rgba(16, 24, 40, 0.12);
-
-  }
-
-
-  .admin-sidebar.sidebar-open {
-
-    transform: translateX(0);
-
-  }
-
-
-  .sidebar-close {
-
-    display: flex;
-
-  }
-
-
-  .admin-sidebar-overlay {
-
-    display: block;
-
-    position: fixed;
-
-    inset: 0;
-
-    background:
-      rgba(16, 24, 40, 0.45);
-
-    z-index: 999;
-
-  }
-
-
-  .admin-main {
-
-    margin-left: 0;
-
-  }
-
-
-  .admin-content {
-
-    padding: 30px 20px;
-
-  }
-
-
-  .admin-footer {
-
-    padding: 0 20px;
-
-  }
-
-
-  .dashboard-heading {
-
-    align-items: flex-start;
-
-    flex-direction: column;
-
-  }
-
-
-  .refresh-btn {
-
-    width: fit-content;
-
-  }
-
-}
-
-
-/* =========================================
-   SMALL MOBILE
-========================================= */
-
-@media (max-width: 600px) {
-
-  .admin-content {
-
-    padding: 24px 15px;
-
-  }
-
-
-  .admin-stats {
-
-    grid-template-columns: 1fr;
-
-  }
-
-
-  .sidebar-logo {
-
-    width: 145px;
-
-    max-height: 70px;
-
-  }
-
-  @media (max-width: 600px) {
-
-  .admin-mobile-menu-btn {
-    margin: 12px 15px;
-
-    padding: 10px 14px;
-
-    font-size: 13px;
-
-    border-radius: 10px;
-  }
-
-}
-
-
-  .form-grid {
-
-    grid-template-columns: 1fr;
-
-  }
-
-
-  .section-heading {
-
-    align-items: flex-start;
-
-    flex-direction: column;
-
-  }
-
-
-  .admin-table-card {
-
-    padding: 17px;
-
-  }
-
-
-  .dashboard-heading h1 {
-
-    font-size: 25px;
-
-  }
-
-
-  .dashboard-card-header {
-
-    flex-direction: column;
-
-  }
-
-
-  .recent-booking {
-
-    align-items: flex-start;
-
-    padding: 14px 0;
-
-  }
-
-
-  .booking-right {
-
-    align-items: flex-end;
-
-  }
-
-
-  .admin-footer {
-
-    min-height: auto;
-
-    padding: 15px;
-
-    flex-direction: column;
-
-    justify-content: center;
-
-    gap: 5px;
-
-    text-align: center;
-
-  }
-
-
-  .send-notification-btn {
-
-    width: 100%;
-
-  }
-
-
-  .notification-heading-icon {
-
-    display: none;
-
-  }
-
 }
 
 
@@ -1751,31 +1486,43 @@
 
 .payment-summary {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
   gap: 16px;
+
   margin: 25px 0;
 }
 
 
 .payment-summary-card {
   background: #f1f8f4;
+
   border: 1px solid #dceee3;
+
   border-radius: 12px;
+
   padding: 18px;
 }
 
 
 .payment-summary-card span {
   display: block;
+
   color: #647067;
+
   font-size: 13px;
+
   margin-bottom: 8px;
 }
 
 
 .payment-summary-card strong {
   display: block;
+
   color: #08743e;
+
   font-size: 25px;
 }
 
@@ -1819,7 +1566,9 @@
 
 .payment-user {
   display: flex;
+
   flex-direction: column;
+
   gap: 4px;
 }
 
@@ -1840,6 +1589,7 @@
 
 .payment-status {
   display: inline-flex;
+
   align-items: center;
   justify-content: center;
 
@@ -1848,7 +1598,6 @@
   border-radius: 20px;
 
   font-size: 12px;
-
   font-weight: 700;
 
   white-space: nowrap;
@@ -1891,7 +1640,9 @@
 
 .payment-actions {
   display: flex;
+
   align-items: center;
+
   gap: 7px;
 }
 
@@ -1901,7 +1652,6 @@
   display: inline-flex;
 
   align-items: center;
-
   justify-content: center;
 
   gap: 6px;
@@ -1913,7 +1663,6 @@
   padding: 8px 11px;
 
   font-size: 12px;
-
   font-weight: 700;
 
   cursor: pointer;
@@ -1948,154 +1697,590 @@
 
 .no-payment-action {
   color: #9aa49d;
+
   font-weight: 600;
 }
 
 
 .empty-payment {
   text-align: center !important;
+
   padding: 40px !important;
+
   color: #7a857e;
 }
 
 
 /* =========================================
-   RESPONSIVE PAYMENTS
+   ADMIN SETTINGS
 ========================================= */
 
-@media (max-width: 1000px) {
+.admin-settings {
+  width: 100%;
 
-  .payment-summary {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  max-width: 1100px;
 
+  margin: 0 auto;
 }
 
 
-@media (max-width: 600px) {
+.settings-heading {
+  display: flex;
 
-  .payment-summary {
-    grid-template-columns: 1fr;
-  }
+  align-items: center;
+  justify-content: space-between;
 
+  gap: 20px;
 
-  .payment-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-
-  .accept-reversal-btn,
-  .deny-reversal-btn {
-    width: 100%;
-  }
-
+  margin-bottom: 30px;
 }
 
-/* =========================================
-   ADMIN MOBILE MENU BUTTON
-========================================= */
 
-.admin-mobile-menu-btn {
-  display: none;
+.settings-heading h1 {
+  margin: 0;
+
+  font-size: 30px;
+
+  color: #12372a;
+}
+
+
+.settings-heading p {
+  margin: 6px 0 0;
+
+  color: #718096;
+
+  font-size: 14px;
+}
+
+
+.settings-heading-icon {
+  width: 52px;
+  height: 52px;
+
+  border-radius: 14px;
+
+  background: #e8f6ef;
+  color: #0b7d45;
+
+  display: flex;
 
   align-items: center;
   justify-content: center;
 
-  gap: 8px;
+  font-size: 24px;
+}
 
-  padding: 11px 16px;
 
-  border: none;
+/* =========================================
+   SETTINGS CARD
+========================================= */
+
+.settings-card {
+  background: #ffffff;
+
+  border: 1px solid #e8edf0;
+
+  border-radius: 18px;
+
+  padding: 24px;
+
+  margin-bottom: 20px;
+
+  box-shadow:
+    0 5px 20px rgba(0, 0, 0, 0.04);
+}
+
+
+.settings-card-header {
+  display: flex;
+
+  align-items: center;
+
+  gap: 15px;
+
+  margin-bottom: 22px;
+}
+
+
+.settings-card-icon {
+  width: 46px;
+  height: 46px;
+
+  min-width: 46px;
+
+  border-radius: 12px;
+
+  background: #e8f6ef;
+  color: #0b7d45;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 21px;
+}
+
+
+.settings-card-header h2 {
+  margin: 0;
+
+  color: #1a202c;
+
+  font-size: 18px;
+}
+
+
+.settings-card-header p {
+  margin: 4px 0 0;
+
+  color: #718096;
+
+  font-size: 13px;
+}
+
+
+/* =========================================
+   SETTINGS OPTIONS
+========================================= */
+
+.settings-options {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, 1fr);
+
+  gap: 15px;
+}
+
+
+.settings-option {
+  width: 100%;
+
+  min-height: 85px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 16px;
+
+  border: 1px solid #e3e8ec;
+
+  border-radius: 14px;
+
+  background: #ffffff;
+
+  cursor: pointer;
+
+  text-align: left;
+
+  transition: 0.25s ease;
+}
+
+
+.settings-option:hover {
+  border-color: #0b7d45;
+
+  transform: translateY(-2px);
+}
+
+
+.settings-option.selected {
+  border: 2px solid #0b7d45;
+
+  background: #f0faf5;
+}
+
+
+.settings-option-icon {
+  width: 40px;
+  height: 40px;
+
+  min-width: 40px;
+
   border-radius: 10px;
 
-  background: #0b7d45;
+  background: #e8f6ef;
+  color: #0b7d45;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  font-size: 19px;
+}
+
+
+.settings-option-text {
+  flex: 1;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+
+.settings-option-text strong {
+  color: #1a202c;
+
+  font-size: 14px;
+}
+
+
+.settings-option-text small {
+  color: #718096;
+
+  font-size: 12px;
+}
+
+
+.settings-radio {
+  width: 24px;
+  height: 24px;
+
+  border-radius: 50%;
+
+  border: 2px solid #cbd5e0;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
   color: #ffffff;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+
+.settings-option.selected .settings-radio {
+  background: #0b7d45;
+
+  border-color: #0b7d45;
+}
+
+
+/* =========================================
+   LANGUAGE
+========================================= */
+
+.settings-language {
+  max-width: 500px;
+}
+
+
+.settings-language label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #2d3748;
+
+  font-size: 14px;
+
+  font-weight: 600;
+}
+
+
+.settings-language select {
+  width: 100%;
+
+  padding: 13px 15px;
+
+  border: 1px solid #dce3e8;
+
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  color: #2d3748;
+
+  font-size: 14px;
+
+  outline: none;
+
+  cursor: pointer;
+}
+
+
+.settings-language select:focus {
+  border-color: #0b7d45;
+
+  box-shadow:
+    0 0 0 3px rgba(11, 125, 69, 0.1);
+}
+
+
+.settings-language small {
+  display: block;
+
+  margin-top: 7px;
+
+  color: #718096;
+
+  font-size: 12px;
+}
+
+
+/* =========================================
+   SETTINGS ACTION BUTTONS
+========================================= */
+
+.settings-action-btn {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  min-height: 44px;
+
+  padding: 11px 18px;
+
+  border: none;
+
+  border-radius: 10px;
 
   font-size: 14px;
   font-weight: 600;
 
   cursor: pointer;
 
-  box-shadow: 0 5px 15px rgba(11, 125, 69, 0.18);
-
-  transition:
-    transform 0.2s ease,
-    background 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: 0.25s ease;
 }
 
-.admin-mobile-menu-btn svg {
-  width: 18px;
-  height: 18px;
+
+.client-view-btn {
+  background: #0b7d45;
+  color: #ffffff;
 }
 
-.admin-mobile-menu-btn:hover {
-  background: #096b3b;
+
+.client-view-btn:hover {
+  background: #086238;
 
   transform: translateY(-2px);
 
   box-shadow:
-    0 7px 20px rgba(11, 125, 69, 0.25);
-}
-
-.admin-mobile-menu-btn:active {
-  transform: scale(0.96);
-}
-
-.admin-mobile-menu-btn svg {
-  width: 18px;
-  height: 18px;
-}
-
-.admin-mobile-menu-btn:hover {
-  background: #096b3b;
-  transform: translateY(-1px);
-  box-shadow: 0 7px 18px rgba(11, 125, 69, 0.25);
-}
-
-.admin-mobile-menu-btn:active {
-  transform: scale(0.97);
+    0 7px 18px rgba(11, 125, 69, 0.2);
 }
 
 
 /* =========================================
-   MOBILE ADMIN SIDEBAR
+   ABOUT APP
 ========================================= */
 
-.admin-sidebar-overlay {
-  display: none;
+.about-app-info {
+  border: 1px solid #edf1f3;
+
+  border-radius: 12px;
+
+  overflow: hidden;
+}
+
+
+.about-app-row {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 15px 17px;
+
+  border-bottom: 1px solid #edf1f3;
+}
+
+
+.about-app-row:last-child {
+  border-bottom: none;
+}
+
+
+.about-app-row span {
+  color: #718096;
+
+  font-size: 14px;
+}
+
+
+.about-app-row strong {
+  color: #2d3748;
+
+  font-size: 14px;
+
+  text-align: right;
 }
 
 
 /* =========================================
-   TABLET + MOBILE
+   SETTINGS LOGOUT
+========================================= */
+
+.settings-danger-card {
+  border-color: #f0dede;
+}
+
+
+.settings-card-icon.danger {
+  background: #fff1f1;
+
+  color: #d64545;
+}
+
+
+.logout-settings-btn {
+  background: #fff1f1;
+
+  color: #d64545;
+
+  border: 1px solid #f3cccc;
+}
+
+
+.logout-settings-btn:hover {
+  background: #d64545;
+
+  color: #ffffff;
+
+  transform: translateY(-2px);
+}
+
+
+/* =========================================
+   DARK MODE
+========================================= */
+
+.admin-theme-dark {
+  background: #111827;
+
+  color: #f7fafc;
+}
+
+
+.admin-theme-dark .admin-main,
+.admin-theme-dark .admin-content {
+  background: #111827;
+}
+
+
+.admin-theme-dark .settings-card,
+.admin-theme-dark .settings-option {
+  background: #1f2937;
+
+  border-color: #374151;
+}
+
+
+.admin-theme-dark .settings-heading h1,
+.admin-theme-dark .settings-card-header h2,
+.admin-theme-dark .settings-option-text strong,
+.admin-theme-dark .about-app-row strong {
+  color: #f7fafc;
+}
+
+
+.admin-theme-dark .settings-heading p,
+.admin-theme-dark .settings-card-header p,
+.admin-theme-dark .settings-option-text small,
+.admin-theme-dark .about-app-row span,
+.admin-theme-dark .settings-language small {
+  color: #9ca3af;
+}
+
+
+.admin-theme-dark .settings-option.selected {
+  background: #163b2a;
+
+  border-color: #0b7d45;
+}
+
+
+.admin-theme-dark .settings-language select {
+  background: #111827;
+
+  color: #f7fafc;
+
+  border-color: #374151;
+}
+
+
+.admin-theme-dark .about-app-info {
+  border-color: #374151;
+}
+
+
+.admin-theme-dark .about-app-row {
+  border-color: #374151;
+}
+
+
+.admin-theme-dark .settings-heading-icon,
+.admin-theme-dark .settings-card-icon,
+.admin-theme-dark .settings-option-icon {
+  background: #163b2a;
+
+  color: #4ade80;
+}
+
+
+/* =========================================
+   TABLET
+========================================= */
+
+@media (max-width: 1100px) {
+
+  .admin-stats {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+
+  .dashboard-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  .payment-summary {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+}
+
+
+/* =========================================
+   MOBILE / TABLET SIDEBAR
 ========================================= */
 
 @media (max-width: 900px) {
 
+  /* HAMBURGER */
+
   .admin-mobile-menu-btn {
     display: inline-flex;
-    margin: 15px 20px 0;
   }
 
 
-  /* -----------------------------------------
-     SIDEBAR
-  ----------------------------------------- */
+  /* SIDEBAR */
 
   .admin-sidebar {
-    position: fixed;
-
-    top: 0;
-    left: 0;
-
     width: 280px;
-    height: 100vh;
-
-    z-index: 1000;
 
     transform: translateX(-105%);
+
+    box-shadow:
+      8px 0 30px rgba(0, 0, 0, 0.15);
 
     transition:
       transform 0.3s cubic-bezier(
@@ -2104,24 +2289,17 @@
         0.2,
         1
       );
-
-    box-shadow:
-      8px 0 30px rgba(0, 0, 0, 0.15);
-
-    overflow-y: auto;
   }
 
 
-  /* SIDEBAR OPEN */
+  /* OPEN SIDEBAR */
 
   .admin-sidebar.sidebar-open {
     transform: translateX(0);
   }
 
 
-  /* -----------------------------------------
-     DARK OVERLAY
-  ----------------------------------------- */
+  /* OVERLAY */
 
   .admin-sidebar-overlay {
     display: block;
@@ -2136,150 +2314,105 @@
 
     backdrop-filter: blur(2px);
 
-    animation: adminOverlayFade 0.25s ease;
+    animation:
+      adminOverlayFade 0.25s ease;
   }
 
 
-  /* -----------------------------------------
-     CLOSE BUTTON
-  ----------------------------------------- */
+  /* CLOSE BUTTON */
 
   .sidebar-close {
     display: flex;
-    align-items: center;
-    justify-content: center;
-
-    width: 38px;
-    height: 38px;
-
-    border: none;
-    border-radius: 10px;
-
-    background: rgba(255, 255, 255, 0.1);
-
-    color: #ffffff;
-
-    cursor: pointer;
-
-    transition:
-      background 0.2s ease,
-      transform 0.2s ease;
-  }
-
-  .sidebar-close:hover {
-    background: rgba(255, 255, 255, 0.18);
-    transform: rotate(90deg);
-  }
-
-  .sidebar-close svg {
-    width: 20px;
-    height: 20px;
   }
 
 
-  /* -----------------------------------------
-     ADMIN MAIN
-  ----------------------------------------- */
+  /* MAIN */
 
   .admin-main {
-    width: 0;
+    width: 100%;
+
     min-width: 0;
+
+    margin-left: 0;
   }
 
+
+  /* CONTENT */
 
   .admin-content {
     width: 100%;
-    padding-left: 15px;
-    padding-right: 15px;
+
+    padding:
+      30px 20px;
   }
 
 
-  /* -----------------------------------------
-     SIDEBAR LINKS
-  ----------------------------------------- */
-
-  .sidebar-navigation {
-    padding: 15px;
-  }
-
-  .sidebar-link {
-    width: 100%;
-
-    min-height: 48px;
-
-    border-radius: 10px;
-
-    margin-bottom: 6px;
-
-    transition:
-      background 0.2s ease,
-      transform 0.2s ease;
-  }
-
-  .sidebar-link:active {
-    transform: scale(0.98);
-  }
-
-
-  /* -----------------------------------------
-     FOOTER
-  ----------------------------------------- */
+  /* FOOTER */
 
   .admin-footer {
     padding-left: 20px;
     padding-right: 20px;
   }
 
+
+  /* NAVIGATION */
+
+  .sidebar-navigation {
+    padding: 15px;
+  }
+
+
+  .sidebar-link {
+    min-height: 48px;
+
+    margin-bottom: 6px;
+  }
+
+
+  .sidebar-link:active {
+    transform: scale(0.98);
+  }
+
+
+  /* DASHBOARD HEADING */
+
+  .dashboard-heading {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+
+  .refresh-btn {
+    width: fit-content;
+  }
+
 }
 
 
 /* =========================================
-   PHONE
+   MOBILE
 ========================================= */
 
 @media (max-width: 600px) {
+
+  .admin-mobile-menu-btn {
+    margin: 12px 15px 0;
+
+    padding: 11px 16px;
+
+    border-radius: 12px;
+  }
+
 
   .admin-sidebar {
     width: min(85vw, 300px);
   }
 
 
-  .admin-mobile-menu-btn {
-  width: auto;
-  display: inline-flex;
-
-  margin: 12px 15px 0;
-
-  padding: 11px 16px;
-
-  border-radius: 12px;
-}
-
-
   .admin-content {
-    padding: 12px;
+    padding: 24px 15px;
   }
-
-
-  .dashboard-heading {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-  }
-
-
-  .refresh-btn {
-  width: auto;
-  min-width: 110px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  gap: 7px;
-
-  white-space: nowrap;
-}
 
 
   .admin-stats {
@@ -2292,15 +2425,62 @@
   }
 
 
+  .dashboard-heading {
+    flex-direction: row;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 12px;
+  }
+
+
+  .dashboard-heading > div {
+    min-width: 0;
+  }
+
+
+  .dashboard-heading h1 {
+    font-size: 1.7rem;
+  }
+
+
+  .dashboard-heading p {
+    font-size: 0.85rem;
+  }
+
+
+  .refresh-btn {
+    flex-shrink: 0;
+
+    width: auto;
+
+    min-width: 100px;
+
+    padding: 9px 12px;
+
+    font-size: 13px;
+  }
+
+
   .section-heading {
     flex-direction: column;
+
     align-items: flex-start;
+
     gap: 15px;
+  }
+
+
+  .admin-table-card {
+    padding: 17px;
   }
 
 
   .admin-table-scroll {
     overflow-x: auto;
+
     -webkit-overflow-scrolling: touch;
   }
 
@@ -2310,490 +2490,134 @@
   }
 
 
-  .admin-footer {
+  .dashboard-card-header {
     flex-direction: column;
+  }
+
+
+  .recent-booking {
+    align-items: flex-start;
+
+    padding: 14px 0;
+  }
+
+
+  .booking-right {
+    align-items: flex-end;
+  }
+
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  .payment-summary {
+    grid-template-columns: 1fr;
+  }
+
+
+  .payment-actions {
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+
+
+  .accept-reversal-btn,
+  .deny-reversal-btn {
+    width: 100%;
+  }
+
+
+  .admin-footer {
+    min-height: auto;
+
+    padding: 15px;
+
+    flex-direction: column;
+
+    justify-content: center;
+
     gap: 6px;
+
     text-align: center;
   }
 
-}
 
-
-/* =========================================
-   SIDEBAR ANIMATION
-========================================= */
-
-@keyframes adminOverlayFade {
-
-  from {
-    opacity: 0;
+  .send-notification-btn {
+    width: 100%;
   }
 
-  to {
-    opacity: 1;
+
+  .notification-heading-icon {
+    display: none;
   }
 
-}
 
-@media (max-width: 600px) {
-
-  .dashboard-heading {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-
-    gap: 12px;
-  }
-
-  .dashboard-heading > div {
-    min-width: 0;
-  }
-
-  .dashboard-heading h1 {
-    font-size: 1.7rem;
-  }
-
-  .dashboard-heading p {
-    font-size: 0.85rem;
-  }
-
-  .refresh-btn {
-    flex-shrink: 0;
-
-    width: auto;
-    min-width: 100px;
-
-    padding: 9px 12px;
-
-    font-size: 13px;
-  }
-
-}
-
-/* =========================================
-   ADMIN SETTINGS
-========================================= */
-
-.admin-settings {
-  width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
-}
-
-
-/* =========================================
-   SETTINGS HEADER
-========================================= */
-
-.settings-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.settings-heading h1 {
-  margin: 0;
-  font-size: 30px;
-  color: #12372a;
-}
-
-.settings-heading p {
-  margin: 6px 0 0;
-  color: #718096;
-  font-size: 14px;
-}
-
-.settings-heading-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  background: #e8f6ef;
-  color: #0b7d45;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-}
-
-
-/* =========================================
-   SETTINGS CARD
-========================================= */
-
-.settings-card {
-  background: #ffffff;
-  border: 1px solid #e8edf0;
-  border-radius: 18px;
-  padding: 24px;
-  margin-bottom: 20px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.04);
-}
-
-.settings-card-header {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 22px;
-}
-
-.settings-card-icon {
-  width: 46px;
-  height: 46px;
-  min-width: 46px;
-  border-radius: 12px;
-  background: #e8f6ef;
-  color: #0b7d45;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 21px;
-}
-
-.settings-card-header h2 {
-  margin: 0;
-  color: #1a202c;
-  font-size: 18px;
-}
-
-.settings-card-header p {
-  margin: 4px 0 0;
-  color: #718096;
-  font-size: 13px;
-}
-
-
-/* =========================================
-   APPEARANCE OPTIONS
-========================================= */
-
-.settings-options {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
-}
-
-.settings-option {
-  width: 100%;
-  min-height: 85px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px;
-  border: 1px solid #e3e8ec;
-  border-radius: 14px;
-  background: #ffffff;
-  cursor: pointer;
-  text-align: left;
-  transition: 0.25s ease;
-}
-
-.settings-option:hover {
-  border-color: #0b7d45;
-  transform: translateY(-2px);
-}
-
-.settings-option.selected {
-  border: 2px solid #0b7d45;
-  background: #f0faf5;
-}
-
-.settings-option-icon {
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  border-radius: 10px;
-  background: #e8f6ef;
-  color: #0b7d45;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 19px;
-}
-
-.settings-option-text {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.settings-option-text strong {
-  color: #1a202c;
-  font-size: 14px;
-}
-
-.settings-option-text small {
-  color: #718096;
-  font-size: 12px;
-}
-
-.settings-radio {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 2px solid #cbd5e0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.settings-option.selected .settings-radio {
-  background: #0b7d45;
-  border-color: #0b7d45;
-}
-
-
-/* =========================================
-   LANGUAGE
-========================================= */
-
-.settings-language {
-  max-width: 500px;
-}
-
-.settings-language label {
-  display: block;
-  margin-bottom: 8px;
-  color: #2d3748;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.settings-language select {
-  width: 100%;
-  padding: 13px 15px;
-  border: 1px solid #dce3e8;
-  border-radius: 10px;
-  background: #ffffff;
-  color: #2d3748;
-  font-size: 14px;
-  outline: none;
-  cursor: pointer;
-}
-
-.settings-language select:focus {
-  border-color: #0b7d45;
-  box-shadow: 0 0 0 3px rgba(11, 125, 69, 0.1);
-}
-
-.settings-language small {
-  display: block;
-  margin-top: 7px;
-  color: #718096;
-  font-size: 12px;
-}
-
-
-/* =========================================
-   ACTION BUTTONS
-========================================= */
-
-.settings-action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  min-height: 44px;
-  padding: 11px 18px;
-  border: none;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.25s ease;
-}
-
-.client-view-btn {
-  background: #0b7d45;
-  color: #ffffff;
-}
-
-.client-view-btn:hover {
-  background: #086238;
-  transform: translateY(-2px);
-  box-shadow: 0 7px 18px rgba(11, 125, 69, 0.2);
-}
-
-
-/* =========================================
-   ABOUT APP
-========================================= */
-
-.about-app-info {
-  border: 1px solid #edf1f3;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.about-app-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 15px 17px;
-  border-bottom: 1px solid #edf1f3;
-}
-
-.about-app-row:last-child {
-  border-bottom: none;
-}
-
-.about-app-row span {
-  color: #718096;
-  font-size: 14px;
-}
-
-.about-app-row strong {
-  color: #2d3748;
-  font-size: 14px;
-  text-align: right;
-}
-
-
-/* =========================================
-   LOGOUT
-========================================= */
-
-.settings-danger-card {
-  border-color: #f0dede;
-}
-
-.settings-card-icon.danger {
-  background: #fff1f1;
-  color: #d64545;
-}
-
-.logout-settings-btn {
-  background: #fff1f1;
-  color: #d64545;
-  border: 1px solid #f3cccc;
-}
-
-.logout-settings-btn:hover {
-  background: #d64545;
-  color: #ffffff;
-  transform: translateY(-2px);
-}
-
-
-/* =========================================
-   DARK MODE
-========================================= */
-
-.admin-theme-dark {
-  background: #111827;
-  color: #f7fafc;
-}
-
-.admin-theme-dark .admin-main,
-.admin-theme-dark .admin-content {
-  background: #111827;
-}
-
-.admin-theme-dark .settings-card,
-.admin-theme-dark .settings-option {
-  background: #1f2937;
-  border-color: #374151;
-}
-
-.admin-theme-dark .settings-heading h1,
-.admin-theme-dark .settings-card-header h2,
-.admin-theme-dark .settings-option-text strong,
-.admin-theme-dark .about-app-row strong {
-  color: #f7fafc;
-}
-
-.admin-theme-dark .settings-heading p,
-.admin-theme-dark .settings-card-header p,
-.admin-theme-dark .settings-option-text small,
-.admin-theme-dark .about-app-row span,
-.admin-theme-dark .settings-language small {
-  color: #9ca3af;
-}
-
-.admin-theme-dark .settings-option.selected {
-  background: #163b2a;
-  border-color: #0b7d45;
-}
-
-.admin-theme-dark .settings-language select {
-  background: #111827;
-  color: #f7fafc;
-  border-color: #374151;
-}
-
-.admin-theme-dark .about-app-info {
-  border-color: #374151;
-}
-
-.admin-theme-dark .about-app-row {
-  border-color: #374151;
-}
-
-.admin-theme-dark .settings-heading-icon,
-.admin-theme-dark .settings-card-icon,
-.admin-theme-dark .settings-option-icon {
-  background: #163b2a;
-  color: #4ade80;
-}
-
-
-/* =========================================
-   MOBILE SETTINGS
-========================================= */
-
-@media (max-width: 768px) {
+  /* SETTINGS */
 
   .admin-settings {
     width: 100%;
   }
 
+
   .settings-heading {
     align-items: flex-start;
+
     margin-bottom: 20px;
   }
+
 
   .settings-heading h1 {
     font-size: 25px;
   }
 
+
   .settings-heading-icon {
     width: 44px;
     height: 44px;
+
     min-width: 44px;
+
     font-size: 20px;
   }
 
+
   .settings-card {
     padding: 18px;
+
     border-radius: 15px;
   }
+
 
   .settings-options {
     grid-template-columns: 1fr;
   }
 
+
   .settings-option {
     min-height: 75px;
   }
 
+
   .about-app-row {
     align-items: flex-start;
+
     flex-direction: column;
+
     gap: 5px;
   }
+
 
   .about-app-row strong {
     text-align: left;
   }
 
+
   .settings-action-btn {
     width: auto;
+
     max-width: 100%;
   }
 
@@ -2806,28 +2630,74 @@
 
 @media (max-width: 480px) {
 
+  .admin-content {
+    padding: 20px 12px;
+  }
+
+
+  .dashboard-heading h1 {
+    font-size: 22px;
+  }
+
+
+  .dashboard-heading p {
+    font-size: 13px;
+  }
+
+
+  .refresh-btn {
+    min-width: 90px;
+
+    padding: 8px 10px;
+
+    font-size: 12px;
+  }
+
+
   .settings-heading h1 {
     font-size: 22px;
   }
+
 
   .settings-heading p {
     font-size: 13px;
   }
 
+
   .settings-card {
     padding: 15px;
   }
+
 
   .settings-card-header {
     align-items: flex-start;
   }
 
+
   .settings-option {
     padding: 13px;
   }
 
+
   .settings-option-text small {
     line-height: 1.4;
+  }
+
+}
+
+
+/* =========================================
+   SIDEBAR OVERLAY ANIMATION
+========================================= */
+
+@keyframes adminOverlayFade {
+
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
   }
 
 }

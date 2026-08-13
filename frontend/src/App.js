@@ -2,7 +2,9 @@ import {
   BrowserRouter,
   Routes,
   Route,
-  useLocation
+  useLocation,
+  Navigate,
+  Outlet
 } from "react-router-dom";
 
 import Home from "./pages/Home/Home";
@@ -20,6 +22,52 @@ import VerifyOTP from "./pages/VerifyOTP/VerifyOTP";
 import Notifications from "./pages/Notifications/Notifications";
 
 import BackButton from "./components/BackButton/BackButton";
+import AdminRoute from "./components/AdminRoute/AdminRoute";
+
+
+// =========================================
+// CLIENT ROUTE
+// =========================================
+// Prevent ADMIN users from accessing
+// normal client pages.
+//
+// Normal users and logged-out visitors
+// can continue using the normal website.
+//
+// Admin users are redirected to /admin.
+// =========================================
+
+function ClientRoute() {
+
+  const currentUser = JSON.parse(
+    localStorage.getItem("currentUser") || "null"
+  );
+
+  // =======================================
+  // ADMIN USERS
+  // =======================================
+
+  if (
+    currentUser &&
+    currentUser.role === "admin"
+  ) {
+
+    return (
+      <Navigate
+        to="/admin"
+        replace
+      />
+    );
+
+  }
+
+  // =======================================
+  // NORMAL USERS / PUBLIC USERS
+  // =======================================
+
+  return <Outlet />;
+
+}
 
 
 // =========================================
@@ -39,14 +87,39 @@ function MobileBackButton() {
     location.pathname === "/" ||
     location.pathname === "/admin"
   ) {
+
     return null;
+
   }
 
   return (
-    <div className="global-mobile-back">
-      <BackButton />
+
+    <div
+      className="global-mobile-back"
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100%",
+        zIndex: 10000,
+        pointerEvents: "none"
+      }}
+    >
+
+      <div
+        style={{
+          pointerEvents: "auto"
+        }}
+      >
+
+        <BackButton />
+
+      </div>
+
     </div>
+
   );
+
 }
 
 
@@ -57,6 +130,7 @@ function MobileBackButton() {
 function App() {
 
   return (
+
     <BrowserRouter>
 
       {/* =====================================
@@ -71,128 +145,194 @@ function App() {
 
 
       {/* =====================================
-          ROUTES
+          PAGE WRAPPER
       ===================================== */}
 
-      <Routes>
+      <div className="app-page-wrapper">
 
-        {/* HOME */}
-
-        <Route
-          path="/"
-          element={<Home />}
-        />
+        <Routes>
 
 
-        {/* ROUTES */}
+          {/* ===================================
+              CLIENT / PUBLIC ROUTES
+          ===================================
 
-        <Route
-          path="/routes"
-          element={<RoutesPage />}
-        />
+              ClientRoute prevents an admin
+              from entering these pages.
+          =================================== */}
 
-
-        {/* LOGIN */}
-
-        <Route
-          path="/login"
-          element={<Login />}
-        />
+          <Route element={<ClientRoute />}>
 
 
-        {/* REGISTER */}
+            {/* ================================
+                HOME
+            ================================= */}
 
-        <Route
-          path="/register"
-          element={<Register />}
-        />
-
-
-        {/* VERIFY OTP */}
-
-        <Route
-          path="/verify-otp"
-          element={<VerifyOTP />}
-        />
+            <Route
+              path="/"
+              element={<Home />}
+            />
 
 
-        {/* BOOKING */}
+            {/* ================================
+                ROUTES
+            ================================= */}
 
-        <Route
-          path="/booking"
-          element={<Booking />}
-        />
-
-
-        {/* OFFERS */}
-
-        <Route
-          path="/offers"
-          element={<Offers />}
-        />
+            <Route
+              path="/routes"
+              element={<RoutesPage />}
+            />
 
 
-        {/* ABOUT */}
+            {/* ================================
+                LOGIN
+            ================================= */}
 
-        <Route
-          path="/about"
-          element={<About />}
-        />
-
-
-        {/* CONFIRMATION */}
-
-        <Route
-          path="/confirmation"
-          element={<Confirmation />}
-        />
+            <Route
+              path="/login"
+              element={<Login />}
+            />
 
 
-        {/* DASHBOARD */}
+            {/* ================================
+                REGISTER
+            ================================= */}
 
-        <Route
-          path="/dashboard"
-          element={<Dashboard />}
-        />
-
-
-        {/* PAYMENT */}
-
-        <Route
-          path="/payment"
-          element={<Payment />}
-        />
+            <Route
+              path="/register"
+              element={<Register />}
+            />
 
 
-        {/* ADMIN DASHBOARD */}
+            {/* ================================
+                VERIFY OTP
+            ================================= */}
 
-        <Route
-          path="/admin"
-          element={<AdminDashboard />}
-        />
-
-
-        {/* NOTIFICATIONS */}
-
-        <Route
-          path="/notifications"
-          element={<Notifications />}
-        />
+            <Route
+              path="/verify-otp"
+              element={<VerifyOTP />}
+            />
 
 
-        {/* PAGE NOT FOUND */}
+            {/* ================================
+                BOOKING
+            ================================= */}
 
-        <Route
-          path="*"
-          element={
-            <h1>Page Not Found</h1>
-          }
-        />
+            <Route
+              path="/booking"
+              element={<Booking />}
+            />
 
-      </Routes>
+
+            {/* ================================
+                OFFERS
+            ================================= */}
+
+            <Route
+              path="/offers"
+              element={<Offers />}
+            />
+
+
+            {/* ================================
+                ABOUT
+            ================================= */}
+
+            <Route
+              path="/about"
+              element={<About />}
+            />
+
+
+            {/* ================================
+                CONFIRMATION
+            ================================= */}
+
+            <Route
+              path="/confirmation"
+              element={<Confirmation />}
+            />
+
+
+            {/* ================================
+                DASHBOARD
+            ================================= */}
+
+            <Route
+              path="/dashboard"
+              element={<Dashboard />}
+            />
+
+
+            {/* ================================
+                PAYMENT
+            ================================= */}
+
+            <Route
+              path="/payment"
+              element={<Payment />}
+            />
+
+
+            {/* ================================
+                NOTIFICATIONS
+            ================================= */}
+
+            <Route
+              path="/notifications"
+              element={<Notifications />}
+            />
+
+
+            {/* ================================
+                PAGE NOT FOUND
+            ================================= */}
+
+            <Route
+              path="*"
+              element={
+                <h1>
+                  Page Not Found
+                </h1>
+              }
+            />
+
+
+          </Route>
+
+
+          {/* ===================================
+              ADMIN ROUTES
+          ===================================
+
+              AdminRoute verifies:
+              - authToken exists
+              - currentUser exists
+              - currentUser.role === "admin"
+
+              Normal users cannot enter /admin.
+          =================================== */}
+
+          <Route element={<AdminRoute />}>
+
+
+            <Route
+              path="/admin"
+              element={<AdminDashboard />}
+            />
+
+
+          </Route>
+
+
+        </Routes>
+
+      </div>
 
     </BrowserRouter>
+
   );
+
 }
 
 

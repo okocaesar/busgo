@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 
 const User = require("../models/User");
 const sendEmail = require("../utils/sendEmail");
+const sendWhatsApp = require("../utils/sendWhatsApp");
 
 
 // =========================================
@@ -10,9 +11,228 @@ const sendEmail = require("../utils/sendEmail");
 // =========================================
 
 const generateOTP = () => {
+
   return Math.floor(
     100000 + Math.random() * 900000
   ).toString();
+
+};
+
+
+// =========================================
+// SEND OTP
+//
+// PRIMARY:
+// WhatsApp
+//
+// FALLBACK:
+// Email
+//
+// OTP VALIDITY:
+// 10 MINUTES
+// =========================================
+
+const sendOTP = async ({
+  user,
+  otp
+}) => {
+
+  // =========================================
+  // WHATSAPP MESSAGE
+  // =========================================
+
+  const whatsappMessage = `
+BusGo Verification Code
+
+Hello ${user.name},
+
+Your BusGo verification code is:
+
+${otp}
+
+This code expires in 10 minutes.
+
+If you did not request this code, please ignore this message.
+
+BusGo Bus Transport Reservation
+  `.trim();
+
+
+  // =========================================
+  // TRY WHATSAPP FIRST
+  // =========================================
+
+  try {
+
+    if (user.phone) {
+
+      await sendWhatsApp({
+
+        to: user.phone,
+
+        message:
+          whatsappMessage
+
+      });
+
+
+      console.log(
+        "OTP SENT VIA WHATSAPP:",
+        user.phone
+      );
+
+
+      return {
+        channel: "whatsapp"
+      };
+
+    }
+
+  } catch (whatsappError) {
+
+    console.error(
+      "WHATSAPP OTP FAILED:"
+    );
+
+    console.error(
+      whatsappError.message
+    );
+
+    console.log(
+      "FALLING BACK TO EMAIL..."
+    );
+
+  }
+
+
+  // =========================================
+  // WHATSAPP FAILED
+  //
+  // SEND EMAIL
+  // =========================================
+
+  try {
+
+    await sendEmail({
+
+      to: user.email,
+
+      subject:
+        "BusGo - Your Verification Code",
+
+      html: `
+
+        <div style="
+          font-family: Arial, sans-serif;
+          max-width: 600px;
+          margin: auto;
+          padding: 30px;
+          color: #222;
+        ">
+
+          <h1 style="
+            color: #0b7d45;
+            margin-bottom: 10px;
+          ">
+            BUSGO
+          </h1>
+
+          <h2>
+            Verify your BusGo account
+          </h2>
+
+          <p>
+            Hello ${user.name},
+          </p>
+
+          <p>
+            We were unable to deliver your
+            verification code through WhatsApp.
+          </p>
+
+          <p>
+            Therefore, we have sent your
+            verification code to this email.
+          </p>
+
+          <p>
+            Your verification code is:
+          </p>
+
+          <div style="
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 8px;
+            padding: 20px;
+            background: #f3f8f5;
+            text-align: center;
+            margin: 20px 0;
+            border-radius: 10px;
+            color: #0b7d45;
+          ">
+
+            ${otp}
+
+          </div>
+
+          <p>
+            This code expires in
+            <strong>10 minutes</strong>.
+          </p>
+
+          <p>
+            If you did not request this code,
+            you can safely ignore this email.
+          </p>
+
+          <hr style="
+            margin: 30px 0;
+            border: none;
+            border-top: 1px solid #ddd;
+          " />
+
+          <p style="
+            color: #777;
+            font-size: 13px;
+            text-align: center;
+          ">
+
+            BusGo Bus Transport Reservation
+
+          </p>
+
+        </div>
+
+      `
+
+    });
+
+
+    console.log(
+      "OTP SENT VIA EMAIL:",
+      user.email
+    );
+
+
+    return {
+      channel: "email"
+    };
+
+
+  } catch (emailError) {
+
+    console.error(
+      "EMAIL OTP FAILED:",
+      emailError
+    );
+
+
+    throw new Error(
+      "Unable to send verification code through WhatsApp or email."
+    );
+
+  }
+
 };
 
 
@@ -29,271 +249,351 @@ exports.register = async (req, res) => {
     password
   } = req.body;
 
-  if (!name || !email || !phone || !password) {
+
+  // =========================================
+  // VALIDATION
+  // =========================================
+
+  if (
+    !name ||
+    !email ||
+    !phone ||
+    !password
+  ) {
+
     return res.status(400).json({
+
       message:
         "Please provide name, email, phone and password."
+
     });
+
   }
+
 
   try {
 
-    // Check if user already exists
-    User.findByEmail(email, async (findError, users) => {
+    // =========================================
+    // CHECK EXISTING USER
+    // =========================================
 
-      if (findError) {
-        console.error(
-          "Registration lookup error:",
-          findError
-        );
+    User.findByEmail(
+      email,
+      async (
+        findError,
+        users
+      ) => {
 
-        return res.status(500).json({
-          message: "Unable to check existing account."
-        });
-      }
+        if (findError) {
 
-      // =========================================
-      // EXISTING USER
-      // =========================================
+          console.error(
+            "Registration lookup error:",
+            findError
+          );
 
-      if (users && users.length > 0) {
+          return res.status(500).json({
 
-        const existingUser = users[0];
-
-        if (existingUser.email_verified) {
-          return res.status(409).json({
             message:
-              "An account with this email already exists."
+              "Unable to check existing account."
+
           });
+
         }
 
-        // Existing but not verified
-        const otp = generateOTP();
 
-        const otpExpiresAt = new Date(
-          Date.now() + 10 * 60 * 1000
-        );
+        // =========================================
+        // EXISTING USER
+        // =========================================
 
-        User.updateOTP(
-          existingUser.id,
-          otp,
-          otpExpiresAt,
-          async (updateError) => {
+        if (
+          users &&
+          users.length > 0
+        ) {
 
-            if (updateError) {
+          const existingUser =
+            users[0];
+
+
+          // =========================================
+          // ALREADY VERIFIED
+          // =========================================
+
+          if (
+            existingUser.email_verified
+          ) {
+
+            return res.status(409).json({
+
+              message:
+                "An account with this email already exists."
+
+            });
+
+          }
+
+
+          // =========================================
+          // EXISTING BUT NOT VERIFIED
+          // =========================================
+
+          const otp =
+            generateOTP();
+
+
+          const otpExpiresAt =
+            new Date(
+              Date.now() +
+              10 * 60 * 1000
+            );
+
+
+          User.updateOTP(
+
+            existingUser.id,
+
+            otp,
+
+            otpExpiresAt,
+
+            async (
+              updateError
+            ) => {
+
+              if (updateError) {
+
+                console.error(
+                  "OTP update error:",
+                  updateError
+                );
+
+                return res.status(500).json({
+
+                  message:
+                    "Unable to generate verification code."
+
+                });
+
+              }
+
+
+              try {
+
+                const delivery =
+                  await sendOTP({
+
+                    user: {
+                      id:
+                        existingUser.id,
+
+                      name:
+                        name ||
+
+                        existingUser.name,
+
+                      email:
+                        existingUser.email,
+
+                      phone:
+                        phone ||
+
+                        existingUser.phone
+
+                    },
+
+                    otp
+
+                  });
+
+
+                return res.status(200).json({
+
+                  message:
+                    delivery.channel ===
+                    "whatsapp"
+
+                      ? "A verification code has been sent to your WhatsApp."
+
+                      : "WhatsApp delivery was unavailable. A verification code has been sent to your email.",
+
+                  requiresVerification:
+                    true,
+
+                  email:
+                    existingUser.email,
+
+                  otpChannel:
+                    delivery.channel
+
+                });
+
+
+              } catch (deliveryError) {
+
+                console.error(
+                  "OTP delivery error:",
+                  deliveryError
+                );
+
+                return res.status(500).json({
+
+                  message:
+                    "Unable to send verification code."
+
+                });
+
+              }
+
+            }
+
+          );
+
+
+          return;
+
+        }
+
+
+        // =========================================
+        // NEW USER
+        // =========================================
+
+        const hashedPassword =
+          await bcrypt.hash(
+            password,
+            10
+          );
+
+
+        const otp =
+          generateOTP();
+
+
+        const otpExpiresAt =
+          new Date(
+            Date.now() +
+            10 * 60 * 1000
+          );
+
+
+        User.create(
+
+          {
+
+            name,
+
+            email,
+
+            phone,
+
+            password:
+              hashedPassword,
+
+            emailVerified:
+              0,
+
+            otpCode:
+              otp,
+
+            otpExpiresAt
+
+          },
+
+          async (
+            err,
+            result
+          ) => {
+
+            if (err) {
+
               console.error(
-                "OTP update error:",
-                updateError
+                "Registration database error:",
+                err
               );
 
               return res.status(500).json({
+
                 message:
-                  "Unable to generate verification code."
+                  err.message
+
               });
+
             }
+
+
+            // =========================================
+            // SEND OTP
+            // =========================================
 
             try {
 
-              await sendEmail({
-                to: email,
-                subject: "BusGo Email Verification",
-                html: `
-                  <div style="
-                    font-family: Arial, sans-serif;
-                    max-width: 600px;
-                    margin: auto;
-                    padding: 30px;
-                  ">
+              const delivery =
+                await sendOTP({
 
-                    <h1 style="color:#0b7d45;">
-                      BUSGO
-                    </h1>
+                  user: {
 
-                    <h2>
-                      Verify your email
-                    </h2>
+                    id:
+                      result.insertId,
 
-                    <p>
-                      Hello ${name},
-                    </p>
+                    name,
 
-                    <p>
-                      Your BusGo verification code is:
-                    </p>
+                    email,
 
-                    <div style="
-                      font-size:32px;
-                      font-weight:bold;
-                      letter-spacing:8px;
-                      padding:20px;
-                      background:#f3f8f5;
-                      text-align:center;
-                      margin:20px 0;
-                    ">
-                      ${otp}
-                    </div>
+                    phone
 
-                    <p>
-                      This code expires in
-                      <strong>10 minutes</strong>.
-                    </p>
+                  },
 
-                    <p>
-                      If you did not request this,
-                      you can safely ignore this email.
-                    </p>
+                  otp
 
-                  </div>
-                `
-              });
+                });
 
-              return res.status(200).json({
+
+              return res.status(201).json({
+
                 message:
-                  "A new verification code has been sent to your email.",
-                requiresVerification: true,
-                email
+                  delivery.channel ===
+                  "whatsapp"
+
+                    ? "Registration successful. Please check your WhatsApp for the verification code."
+
+                    : "Registration successful. WhatsApp delivery was unavailable, so the verification code was sent to your email.",
+
+                userId:
+                  result.insertId,
+
+                requiresVerification:
+                  true,
+
+                email,
+
+                otpChannel:
+                  delivery.channel
+
               });
 
-            } catch (emailError) {
+
+            } catch (deliveryError) {
 
               console.error(
-                "OTP email error:",
-                emailError
+                "OTP sending error:",
+                deliveryError
               );
 
               return res.status(500).json({
+
                 message:
-                  "Unable to send verification email."
+                  "Account created, but we could not send the verification code."
+
               });
+
             }
+
           }
+
         );
 
-        return;
       }
 
-
-      // =========================================
-      // NEW USER
-      // =========================================
-
-      const hashedPassword =
-        await bcrypt.hash(password, 10);
-
-      const otp = generateOTP();
-
-      const otpExpiresAt = new Date(
-        Date.now() + 10 * 60 * 1000
-      );
-
-      User.create(
-        {
-          name,
-          email,
-          phone,
-          password: hashedPassword,
-          emailVerified: 0,
-          otpCode: otp,
-          otpExpiresAt
-        },
-
-        async (err, result) => {
-
-          if (err) {
-
-            console.error(
-              "Registration database error:",
-              err
-            );
-
-            return res.status(500).json({
-              message: err.message
-            });
-          }
-
-          try {
-
-            await sendEmail({
-              to: email,
-              subject: "BusGo Email Verification",
-              html: `
-                <div style="
-                  font-family: Arial, sans-serif;
-                  max-width: 600px;
-                  margin: auto;
-                  padding: 30px;
-                ">
-
-                  <h1 style="color:#0b7d45;">
-                    BUSGO
-                  </h1>
-
-                  <h2>
-                    Welcome to BusGo!
-                  </h2>
-
-                  <p>
-                    Hello ${name},
-                  </p>
-
-                  <p>
-                    Thank you for creating a BusGo account.
-                  </p>
-
-                  <p>
-                    Your email verification code is:
-                  </p>
-
-                  <div style="
-                    font-size:32px;
-                    font-weight:bold;
-                    letter-spacing:8px;
-                    padding:20px;
-                    background:#f3f8f5;
-                    text-align:center;
-                    margin:20px 0;
-                  ">
-                    ${otp}
-                  </div>
-
-                  <p>
-                    This code expires in
-                    <strong>10 minutes</strong>.
-                  </p>
-
-                  <p>
-                    Please enter this code in BusGo
-                    to activate your account.
-                  </p>
-
-                </div>
-              `
-            });
-
-            return res.status(201).json({
-              message:
-                "Registration successful. Please check your email for the verification code.",
-              userId: result.insertId,
-              requiresVerification: true,
-              email
-            });
-
-          } catch (emailError) {
-
-            console.error(
-              "Email sending error:",
-              emailError
-            );
-
-            return res.status(500).json({
-              message:
-                "Account created, but we could not send the verification email."
-            });
-          }
-        }
-      );
-
-    });
+    );
 
   } catch (error) {
 
@@ -303,34 +603,62 @@ exports.register = async (req, res) => {
     );
 
     return res.status(500).json({
-      message: error.message
+
+      message:
+        error.message
+
     });
+
   }
+
 };
 
 
 // =========================================
-// VERIFY EMAIL OTP
+// VERIFY OTP
+//
+// OTP CAN COME FROM:
+// WhatsApp OR EMAIL
+//
+// SAME OTP
 // =========================================
 
-exports.verifyOTP = (req, res) => {
+exports.verifyOTP = (
+  req,
+  res
+) => {
 
   const {
     email,
     otp
   } = req.body;
 
-  if (!email || !otp) {
+
+  if (
+    !email ||
+    !otp
+  ) {
+
     return res.status(400).json({
+
       message:
         "Email and verification code are required."
+
     });
+
   }
 
+
   User.verifyOTP(
+
     email,
+
     otp,
-    (err, results) => {
+
+    (
+      err,
+      results
+    ) => {
 
       if (err) {
 
@@ -340,23 +668,41 @@ exports.verifyOTP = (req, res) => {
         );
 
         return res.status(500).json({
+
           message:
             "Unable to verify your code."
+
         });
+
       }
 
-      if (!results || results.length === 0) {
+
+      if (
+        !results ||
+        results.length === 0
+      ) {
+
         return res.status(400).json({
+
           message:
             "Invalid or expired verification code."
+
         });
+
       }
 
-      const user = results[0];
+
+      const user =
+        results[0];
+
 
       User.markEmailVerified(
+
         user.id,
-        (updateError) => {
+
+        (
+          updateError
+        ) => {
 
           if (updateError) {
 
@@ -366,22 +712,33 @@ exports.verifyOTP = (req, res) => {
             );
 
             return res.status(500).json({
+
               message:
-                "Unable to verify your email."
+                "Unable to verify your account."
+
             });
+
           }
 
+
           return res.status(200).json({
+
             message:
-              "Email verified successfully. You can now login.",
-            verified: true
+              "Account verified successfully. You can now login.",
+
+            verified:
+              true
+
           });
 
         }
+
       );
 
     }
+
   );
+
 };
 
 
@@ -389,183 +746,204 @@ exports.verifyOTP = (req, res) => {
 // RESEND OTP
 // =========================================
 
-exports.resendOTP = (req, res) => {
+exports.resendOTP = (
+  req,
+  res
+) => {
 
-  const { email } = req.body;
+  const {
+    email
+  } = req.body;
+
 
   if (!email) {
+
     return res.status(400).json({
-      message: "Email is required."
+
+      message:
+        "Email is required."
+
     });
+
   }
 
+
   User.findByEmail(
+
     email,
-    async (err, results) => {
+
+    async (
+      err,
+      results
+    ) => {
 
       if (err) {
+
         console.error(
           "Resend OTP database error:",
           err
         );
 
         return res.status(500).json({
-          message: "Unable to find your account."
+
+          message:
+            "Unable to find your account."
+
         });
+
       }
 
-      if (!results || results.length === 0) {
+
+      if (
+        !results ||
+        results.length === 0
+      ) {
+
         return res.status(404).json({
-          message: "No account was found with this email."
+
+          message:
+            "No account was found with this email."
+
         });
+
       }
 
-      const user = results[0];
 
-      // Already verified
-      if (user.email_verified) {
+      const user =
+        results[0];
+
+
+      // =========================================
+      // ALREADY VERIFIED
+      // =========================================
+
+      if (
+        user.email_verified
+      ) {
+
         return res.status(400).json({
-          message: "This email is already verified."
+
+          message:
+            "This account is already verified."
+
         });
+
       }
 
-      // Generate new OTP
-      const otp = generateOTP();
 
-      // OTP expires in 10 minutes
-      const otpExpiresAt = new Date(
-        Date.now() + 10 * 60 * 1000
-      );
+      // =========================================
+      // GENERATE NEW OTP
+      // =========================================
+
+      const otp =
+        generateOTP();
+
+
+      // =========================================
+      // OTP EXPIRES IN 10 MINUTES
+      // =========================================
+
+      const otpExpiresAt =
+        new Date(
+
+          Date.now() +
+          10 * 60 * 1000
+
+        );
+
 
       User.updateOTP(
+
         user.id,
+
         otp,
+
         otpExpiresAt,
-        async (updateError) => {
+
+        async (
+          updateError
+        ) => {
 
           if (updateError) {
+
             console.error(
               "Resend OTP update error:",
               updateError
             );
 
             return res.status(500).json({
+
               message:
                 "Unable to generate a new verification code."
+
             });
+
           }
+
 
           try {
 
-            await sendEmail({
-              to: user.email,
+            const delivery =
+              await sendOTP({
 
-              subject:
-                "BusGo - Your New Verification Code",
+                user,
 
-              html: `
-                <div style="
-                  font-family: Arial, sans-serif;
-                  max-width: 600px;
-                  margin: auto;
-                  padding: 30px;
-                  color: #222;
-                ">
+                otp
 
-                  <h1 style="
-                    color: #0b7d45;
-                    margin-bottom: 10px;
-                  ">
-                    BUSGO
-                  </h1>
+              });
 
-                  <h2>
-                    Your new verification code
-                  </h2>
-
-                  <p>
-                    Hello ${user.name},
-                  </p>
-
-                  <p>
-                    You requested a new BusGo
-                    email verification code.
-                  </p>
-
-                  <p>
-                    Your new verification code is:
-                  </p>
-
-                  <div style="
-                    font-size: 32px;
-                    font-weight: bold;
-                    letter-spacing: 8px;
-                    padding: 20px;
-                    background: #f3f8f5;
-                    text-align: center;
-                    margin: 20px 0;
-                    border-radius: 10px;
-                    color: #0b7d45;
-                  ">
-                    ${otp}
-                  </div>
-
-                  <p>
-                    This code will expire in
-                    <strong>10 minutes</strong>.
-                  </p>
-
-                  <p>
-                    If you did not request this code,
-                    you can safely ignore this email.
-                  </p>
-
-                  <hr style="
-                    margin: 30px 0;
-                    border: none;
-                    border-top: 1px solid #ddd;
-                  " />
-
-                  <p style="
-                    color: #777;
-                    font-size: 13px;
-                    text-align: center;
-                  ">
-                    BusGo Bus Transport Reservation
-                  </p>
-
-                </div>
-              `
-            });
 
             return res.status(200).json({
+
               message:
-                "A new verification code has been sent to your email."
+                delivery.channel ===
+                "whatsapp"
+
+                  ? "A new verification code has been sent to your WhatsApp."
+
+                  : "WhatsApp delivery was unavailable. A new verification code has been sent to your email.",
+
+              otpChannel:
+                delivery.channel
+
             });
 
-          } catch (emailError) {
+
+          } catch (deliveryError) {
 
             console.error(
-              "Resend OTP email error:",
-              emailError
+              "Resend OTP delivery error:",
+              deliveryError
             );
 
             return res.status(500).json({
+
               message:
-                "Unable to send the verification email."
+                "Unable to send the verification code."
+
             });
+
           }
+
         }
+
       );
+
     }
+
   );
+
 };
+
 
 // =========================================
 // LOGIN
 // =========================================
 
-exports.login = (req, res) => {
+exports.login = (
+  req,
+  res
+) => {
 
   const {
     email,
@@ -573,20 +951,33 @@ exports.login = (req, res) => {
   } = req.body;
 
 
-  if (!email || !password) {
+  // =========================================
+  // VALIDATION
+  // =========================================
+
+  if (
+    !email ||
+    !password
+  ) {
 
     return res.status(400).json({
+
       message:
         "Email and password are required."
+
     });
 
   }
 
 
   User.findByEmail(
-    email,
-    async (err, result) => {
 
+    email,
+
+    async (
+      err,
+      result
+    ) => {
 
       if (err) {
 
@@ -596,87 +987,123 @@ exports.login = (req, res) => {
         );
 
         return res.status(500).json({
+
           message:
             "Database error."
+
         });
 
       }
 
 
-      if (!result || result.length === 0) {
+      // =========================================
+      // ACCOUNT NOT FOUND
+      // =========================================
+
+      if (
+        !result ||
+        result.length === 0
+      ) {
 
         return res.status(404).json({
+
           message:
             "Account does not exist."
+
         });
 
       }
 
 
-      const user = result[0];
+      const user =
+        result[0];
 
 
-      console.log(
-        "LOGIN USER:",
-        {
-          email:user.email,
-          storedPassword:user.password,
-          verified:user.email_verified
-        }
-      );
-
+      // =========================================
+      // PASSWORD CHECK
+      // =========================================
 
       const passwordMatch =
         await bcrypt.compare(
+
           password.trim(),
+
           user.password
+
         );
-
-
-      console.log(
-        "PASSWORD MATCH:",
-        passwordMatch
-      );
 
 
       if (!passwordMatch) {
 
         return res.status(401).json({
+
           message:
             "Wrong password."
+
         });
 
       }
 
 
+      // =========================================
+      // ACCOUNT VERIFICATION
+      // =========================================
 
-      if (!user.email_verified) {
+      if (
+        !user.email_verified
+      ) {
 
         return res.status(403).json({
+
           message:
-            "Please verify your email first.",
-          requiresVerification:true,
-          email:user.email
+            "Please verify your account first.",
+
+          requiresVerification:
+            true,
+
+          email:
+            user.email
+
         });
 
       }
 
 
+      // =========================================
+      // GENERATE JWT
+      // =========================================
 
       const token =
         jwt.sign(
+
           {
-            id:user.id,
-            email:user.email,
-            role:user.role
+
+            id:
+              user.id,
+
+            email:
+              user.email,
+
+            role:
+              user.role
+
           },
+
           process.env.JWT_SECRET,
+
           {
-            expiresIn:"24h"
+
+            expiresIn:
+              "24h"
+
           }
+
         );
 
 
+      // =========================================
+      // LOGIN RESPONSE
+      // =========================================
 
       return res.json({
 
@@ -685,17 +1112,26 @@ exports.login = (req, res) => {
 
         token,
 
-        user:{
-          id:user.id,
-          name:user.name,
-          email:user.email,
-          role:user.role
+        user: {
+
+          id:
+            user.id,
+
+          name:
+            user.name,
+
+          email:
+            user.email,
+
+          role:
+            user.role
+
         }
 
       });
 
-
     }
+
   );
 
 };

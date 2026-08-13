@@ -224,3 +224,17 @@ body {
   }
 
 }
+
+/* =========================================
+   PAGE TOP SPACING RESET
+   ========================================= */
+
+.app-page-wrapper {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* Pages that contain the fixed navbar */
+.app-page-wrapper > * {
+  margin-top: 0;
+}

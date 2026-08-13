@@ -9,7 +9,6 @@ import { useNavigate } from "react-router-dom";
 
 import {
   FiGrid,
-  FiTruck,
   FiMap,
   FiCalendar,
   FiUsers,
@@ -20,6 +19,7 @@ import {
   FiBell,
   FiRefreshCw,
   FiX,
+  FiMenu,
   FiCheckCircle,
   FiXCircle,
   FiDollarSign,
@@ -43,75 +43,76 @@ function AdminDashboard() {
 
   const navigate = useNavigate();
 
-  const [sidebarOpen, setSidebarOpen] =
-  useState(false);
+  // =========================================
+  // SIDEBAR
+  // =========================================
 
-  
+  const [sidebarOpen, setSidebarOpen] =
+    useState(false);
+
 
   // =========================================
-// ADMIN THEME
-// =========================================
+  // ADMIN THEME
+  // =========================================
 
-const [theme, setTheme] = useState(
-  localStorage.getItem("busgo-admin-theme") || "light"
-);
+  const [theme, setTheme] = useState(
+    localStorage.getItem("busgo-admin-theme") || "light"
+  );
 
-// =========================================
-// LANGUAGE
-// =========================================
 
-const [language, setLanguage] = useState(
-  localStorage.getItem("busgo-admin-language") || "English"
-);
+  // =========================================
+  // LANGUAGE
+  // =========================================
+
+  const [language, setLanguage] = useState(
+    localStorage.getItem("busgo-admin-language") || "English"
+  );
 
 
   // =========================================
   // ADMIN DATA
   // =========================================
-// =========================================
-// ADMIN DATA
-// =========================================
 
-const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState(null);
 
-const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState([]);
 
-const [bookings, setBookings] = useState([]);
+  const [bookings, setBookings] = useState([]);
 
-const [payments, setPayments] = useState([]);
+  const [payments, setPayments] = useState([]);
 
-const [routes, setRoutes] = useState([]);
+  const [routes, setRoutes] = useState([]);
 
-const [activeTab, setActiveTab] =
-  useState("dashboard");
+  const [activeTab, setActiveTab] =
+    useState("dashboard");
 
-const [error, setError] = useState("");
-  
+  const [error, setError] = useState("");
+
 
   // =========================================
-// ADMIN CREATE BOOKING
-// =========================================
+  // ADMIN CREATE BOOKING
+  // =========================================
 
-const [adminBooking, setAdminBooking] = useState({
-  userId: "",
-  name: "",
-  email: "",
-  phone: "",
-  from: "",
-  to: "",
-  busType: "",
-  seats: 1,
-  date: ""
-});
+  const [adminBooking, setAdminBooking] = useState({
+    userId: "",
+    name: "",
+    email: "",
+    phone: "",
+    from: "",
+    to: "",
+    busType: "",
+    seats: 1,
+    date: ""
+  });
 
-const [creatingBooking, setCreatingBooking] =
-  useState(false);
+  const [creatingBooking, setCreatingBooking] =
+    useState(false);
 
-const [bookingSuccess, setBookingSuccess] =
-  useState("");
+  const [bookingSuccess, setBookingSuccess] =
+    useState("");
 
-const [bookingError, setBookingError] =
-  useState("");
+  const [bookingError, setBookingError] =
+    useState("");
 
 
   // =========================================
@@ -179,18 +180,18 @@ const [bookingError, setBookingError] =
 
 
       const [
-  statsResponse,
-  usersResponse,
-  bookingsResponse,
-  paymentsResponse,
-  routesResponse
-] = await Promise.all([
-  api.get("/stats"),
-  api.get("/users"),
-  api.get("/bookings"),
-  api.get("/payments"),
-  api.get("/routes")
-]);
+        statsResponse,
+        usersResponse,
+        bookingsResponse,
+        paymentsResponse,
+        routesResponse
+      ] = await Promise.all([
+        api.get("/stats"),
+        api.get("/users"),
+        api.get("/bookings"),
+        api.get("/payments"),
+        api.get("/routes")
+      ]);
 
 
       setStats(
@@ -207,13 +208,15 @@ const [bookingError, setBookingError] =
         bookingsResponse.data.bookings || []
       );
 
+
       setPayments(
         paymentsResponse.data.payments || []
       );
 
+
       setRoutes(
-  routesResponse.data.routes || []
-);
+        routesResponse.data.routes || []
+      );
 
 
     } catch (requestError) {
@@ -401,164 +404,165 @@ const [bookingError, setBookingError] =
 
   };
 
+
   // =========================================
-// ACCEPT PAYMENT REVERSAL
-// =========================================
+  // ACCEPT PAYMENT REVERSAL
+  // =========================================
 
-const acceptPaymentReversal = async (
-  paymentId
-) => {
+  const acceptPaymentReversal = async (
+    paymentId
+  ) => {
 
-  const token =
-    localStorage.getItem("authToken");
+    const token =
+      localStorage.getItem("authToken");
 
 
-  if (!token) {
+    if (!token) {
 
-    navigate("/login");
+      navigate("/login");
 
-    return;
+      return;
 
-  }
+    }
 
 
-  if (
-    !window.confirm(
-      "Are you sure you want to accept this payment reversal?"
-    )
-  ) {
+    if (
+      !window.confirm(
+        "Are you sure you want to accept this payment reversal?"
+      )
+    ) {
 
-    return;
+      return;
 
-  }
+    }
 
 
-  try {
+    try {
 
-    const api = axios.create({
+      const api = axios.create({
 
-      baseURL:
-        `${API_URL}/api/admin`,
+        baseURL:
+          `${API_URL}/api/admin`,
 
-      headers: {
+        headers: {
 
-        Authorization:
-          `Bearer ${token}`
+          Authorization:
+            `Bearer ${token}`
 
-      }
+        }
 
-    });
+      });
 
 
-    await api.patch(
-      `/payments/${paymentId}/accept-reversal`
-    );
+      await api.patch(
+        `/payments/${paymentId}/accept-reversal`
+      );
 
 
-    await loadAdminData();
+      await loadAdminData();
 
 
-    alert(
-      "Payment reversal accepted successfully."
-    );
+      alert(
+        "Payment reversal accepted successfully."
+      );
 
 
-  } catch (requestError) {
+    } catch (requestError) {
 
-    console.error(
-      "ACCEPT REVERSAL ERROR:",
-      requestError
-    );
+      console.error(
+        "ACCEPT REVERSAL ERROR:",
+        requestError
+      );
 
 
-    alert(
-      requestError.response?.data?.message ||
-      "Unable to accept payment reversal."
-    );
+      alert(
+        requestError.response?.data?.message ||
+        "Unable to accept payment reversal."
+      );
 
-  }
+    }
 
-};
+  };
 
 
-// =========================================
-// DENY PAYMENT REVERSAL
-// =========================================
+  // =========================================
+  // DENY PAYMENT REVERSAL
+  // =========================================
 
-const denyPaymentReversal = async (
-  paymentId
-) => {
+  const denyPaymentReversal = async (
+    paymentId
+  ) => {
 
-  const token =
-    localStorage.getItem("authToken");
+    const token =
+      localStorage.getItem("authToken");
 
 
-  if (!token) {
+    if (!token) {
 
-    navigate("/login");
+      navigate("/login");
 
-    return;
+      return;
 
-  }
+    }
 
 
-  if (
-    !window.confirm(
-      "Are you sure you want to deny this payment reversal?"
-    )
-  ) {
+    if (
+      !window.confirm(
+        "Are you sure you want to deny this payment reversal?"
+      )
+    ) {
 
-    return;
+      return;
 
-  }
+    }
 
 
-  try {
+    try {
 
-    const api = axios.create({
+      const api = axios.create({
 
-      baseURL:
-        `${API_URL}/api/admin`,
+        baseURL:
+          `${API_URL}/api/admin`,
 
-      headers: {
+        headers: {
 
-        Authorization:
-          `Bearer ${token}`
+          Authorization:
+            `Bearer ${token}`
 
-      }
+        }
 
-    });
+      });
 
 
-    await api.patch(
-      `/payments/${paymentId}/deny-reversal`
-    );
+      await api.patch(
+        `/payments/${paymentId}/deny-reversal`
+      );
 
 
-    await loadAdminData();
+      await loadAdminData();
 
 
-    alert(
-      "Payment reversal request denied."
-    );
+      alert(
+        "Payment reversal request denied."
+      );
 
 
-  } catch (requestError) {
+    } catch (requestError) {
 
-    console.error(
-      "DENY REVERSAL ERROR:",
-      requestError
-    );
+      console.error(
+        "DENY REVERSAL ERROR:",
+        requestError
+      );
 
 
-    alert(
-      requestError.response?.data?.message ||
-      "Unable to deny payment reversal."
-    );
+      alert(
+        requestError.response?.data?.message ||
+        "Unable to deny payment reversal."
+      );
 
-  }
+    }
 
-};
+  };
 
 
   // =========================================
@@ -592,21 +596,35 @@ const denyPaymentReversal = async (
 
   };
 
-// =========================================
-// HANDLE ADMIN BOOKING INPUT
-// =========================================
 
-const handleAdminBookingChange = (e) => {
-  const { name, value } = e.target;
+  // =========================================
+  // HANDLE ADMIN BOOKING INPUT
+  // =========================================
 
-  setAdminBooking((currentBooking) => ({
-    ...currentBooking,
-    [name]: value
-  }));
+  const handleAdminBookingChange = (e) => {
 
-  setBookingSuccess("");
-  setBookingError("");
-};
+    const {
+      name,
+      value
+    } = e.target;
+
+
+    setAdminBooking(
+      (currentBooking) => ({
+
+        ...currentBooking,
+
+        [name]: value
+
+      })
+    );
+
+
+    setBookingSuccess("");
+
+    setBookingError("");
+
+  };
 
 
   // =========================================
@@ -632,9 +650,7 @@ const handleAdminBookingChange = (e) => {
     ) {
 
       setNotificationError(
-
         "Please enter a notification title."
-
       );
 
       return;
@@ -647,9 +663,7 @@ const handleAdminBookingChange = (e) => {
     ) {
 
       setNotificationError(
-
         "Please enter a notification message."
-
       );
 
       return;
@@ -773,112 +787,218 @@ const handleAdminBookingChange = (e) => {
 
 
   // =========================================
-// CREATE BOOKING FROM ADMIN DASHBOARD
-// =========================================
+  // CREATE BOOKING FROM ADMIN DASHBOARD
+  // =========================================
 
-const createAdminBooking = async (e) => {
-  e.preventDefault();
+  const createAdminBooking = async (e) => {
 
-  setBookingSuccess("");
-  setBookingError("");
+    e.preventDefault();
 
-  if (!adminBooking.userId) {
-    setBookingError("Please select a customer.");
-    return;
-  }
 
-  if (!adminBooking.from || !adminBooking.to) {
-    setBookingError(
-      "Please select departure and destination."
-    );
-    return;
-  }
+    setBookingSuccess("");
 
-  if (adminBooking.from === adminBooking.to) {
-    setBookingError(
-      "Departure and destination cannot be the same."
-    );
-    return;
-  }
+    setBookingError("");
 
-  if (!adminBooking.busType) {
-    setBookingError("Please select a bus type.");
-    return;
-  }
 
-  if (!adminBooking.date) {
-    setBookingError("Please select a travel date.");
-    return;
-  }
+    if (!adminBooking.userId) {
 
-  const token =
-    localStorage.getItem("authToken");
+      setBookingError(
+        "Please select a customer."
+      );
 
-  if (!token) {
-    navigate("/login");
-    return;
-  }
+      return;
 
-  try {
-    setCreatingBooking(true);
+    }
 
-    const api = axios.create({
-      baseURL: `${API_URL}/api/admin`,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
-      }
-    });
 
-    const response = await api.post(
-      "/bookings",
-      {
-        userId: adminBooking.userId,
-        name: adminBooking.name,
-        email: adminBooking.email,
-        phone: adminBooking.phone,
-        from: adminBooking.from,
-        to: adminBooking.to,
-        busType: adminBooking.busType,
-        seats: Number(adminBooking.seats),
-        date: adminBooking.date
-      }
-    );
+    if (
+      !adminBooking.from ||
+      !adminBooking.to
+    ) {
 
-    setBookingSuccess(
-      response.data.message ||
-      "Booking created successfully."
-    );
+      setBookingError(
+        "Please select departure and destination."
+      );
 
-    setAdminBooking({
-      userId: "",
-      name: "",
-      email: "",
-      phone: "",
-      from: "",
-      to: "",
-      busType: "",
-      seats: 1,
-      date: ""
-    });
+      return;
 
-    await loadAdminData();
+    }
 
-  } catch (requestError) {
-    console.error(
-      "CREATE ADMIN BOOKING ERROR:",
-      requestError
-    );
 
-    setBookingError(
-      requestError.response?.data?.message ||
-      "Unable to create booking."
-    );
+    if (
+      adminBooking.from ===
+      adminBooking.to
+    ) {
 
-  } finally {
-    setCreatingBooking(false);
-  }
-};
+      setBookingError(
+        "Departure and destination cannot be the same."
+      );
+
+      return;
+
+    }
+
+
+    if (!adminBooking.busType) {
+
+      setBookingError(
+        "Please select a bus type."
+      );
+
+      return;
+
+    }
+
+
+    if (!adminBooking.date) {
+
+      setBookingError(
+        "Please select a travel date."
+      );
+
+      return;
+
+    }
+
+
+    const token =
+      localStorage.getItem("authToken");
+
+
+    if (!token) {
+
+      navigate("/login");
+
+      return;
+
+    }
+
+
+    try {
+
+      setCreatingBooking(true);
+
+
+      const api = axios.create({
+
+        baseURL:
+          `${API_URL}/api/admin`,
+
+        headers: {
+
+          Authorization:
+            `Bearer ${token}`,
+
+          "Content-Type":
+            "application/json"
+
+        }
+
+      });
+
+
+      const response =
+        await api.post(
+
+          "/bookings",
+
+          {
+
+            userId:
+              adminBooking.userId,
+
+            name:
+              adminBooking.name,
+
+            email:
+              adminBooking.email,
+
+            phone:
+              adminBooking.phone,
+
+            from:
+              adminBooking.from,
+
+            to:
+              adminBooking.to,
+
+            busType:
+              adminBooking.busType,
+
+            seats:
+              Number(adminBooking.seats),
+
+            date:
+              adminBooking.date
+
+          }
+
+        );
+
+
+      setBookingSuccess(
+
+        response.data.message ||
+
+        "Booking created successfully."
+
+      );
+
+
+      setAdminBooking({
+
+        userId: "",
+
+        name: "",
+
+        email: "",
+
+        phone: "",
+
+        from: "",
+
+        to: "",
+
+        busType: "",
+
+        seats: 1,
+
+        date: ""
+
+      });
+
+
+      await loadAdminData();
+
+
+    } catch (requestError) {
+
+      console.error(
+
+        "CREATE ADMIN BOOKING ERROR:",
+
+        requestError
+
+      );
+
+
+      setBookingError(
+
+        requestError.response?.data?.message ||
+
+        "Unable to create booking."
+
+      );
+
+
+    } finally {
+
+      setCreatingBooking(false);
+
+    }
+
+  };
+
 
   // =========================================
   // FORMAT MONEY
@@ -892,71 +1012,71 @@ const createAdminBooking = async (e) => {
 
 
   // =========================================
-// CHANGE ADMIN THEME
-// =========================================
+  // CHANGE ADMIN THEME
+  // =========================================
 
-const changeTheme = (newTheme) => {
+  const changeTheme = (newTheme) => {
 
-  setTheme(newTheme);
+    setTheme(newTheme);
 
-  localStorage.setItem(
-    "busgo-admin-theme",
-    newTheme
-  );
+    localStorage.setItem(
+      "busgo-admin-theme",
+      newTheme
+    );
 
-};
-
-
-// =========================================
-// CHANGE LANGUAGE
-// =========================================
-
-const changeLanguage = (newLanguage) => {
-
-  setLanguage(newLanguage);
-
-  localStorage.setItem(
-    "busgo-admin-language",
-    newLanguage
-  );
-
-};
+  };
 
 
-// =========================================
-// VIEW BUSGO AS CLIENT
-// =========================================
+  // =========================================
+  // CHANGE LANGUAGE
+  // =========================================
 
-const viewSiteAsClient = () => {
+  const changeLanguage = (newLanguage) => {
 
-  setSidebarOpen(false);
+    setLanguage(newLanguage);
 
-  navigate("/");
+    localStorage.setItem(
+      "busgo-admin-language",
+      newLanguage
+    );
 
-};
+  };
 
 
-// =========================================
-// LOGOUT FROM SETTINGS
-// =========================================
+  // =========================================
+  // VIEW BUSGO AS CLIENT
+  // =========================================
 
-const logoutFromSettings = () => {
+  const viewSiteAsClient = () => {
 
-  localStorage.removeItem(
-    "authToken"
-  );
+    setSidebarOpen(false);
 
-  localStorage.removeItem(
-    "loggedIn"
-  );
+    navigate("/");
 
-  localStorage.removeItem(
-    "currentUser"
-  );
+  };
 
-  navigate("/login");
 
-};
+  // =========================================
+  // LOGOUT FROM SETTINGS
+  // =========================================
+
+  const logoutFromSettings = () => {
+
+    localStorage.removeItem(
+      "authToken"
+    );
+
+    localStorage.removeItem(
+      "loggedIn"
+    );
+
+    localStorage.removeItem(
+      "currentUser"
+    );
+
+    navigate("/login");
+
+  };
 
 
   // =========================================
@@ -972,10 +1092,10 @@ const logoutFromSettings = () => {
     },
 
     {
-  id: "create-booking",
-  label: "Create Booking",
-  icon: <FiCalendar />
-},
+      id: "create-booking",
+      label: "Create Booking",
+      icon: <FiCalendar />
+    },
 
     {
       id: "routes",
@@ -999,7 +1119,7 @@ const logoutFromSettings = () => {
     {
       id: "payments",
       label: "Payments",
-      icon: <FiCreditCard />,
+      icon: <FiCreditCard />
     },
 
     {
@@ -1043,6 +1163,11 @@ const logoutFromSettings = () => {
 
     setNotificationError("");
 
+    setBookingSuccess("");
+
+    setBookingError("");
+
+    // Close hamburger menu after selecting page
     setSidebarOpen(false);
 
   };
@@ -1079,8 +1204,6 @@ const logoutFromSettings = () => {
 
         <div className="admin-main">
 
-          
-
           <div className="admin-error-card">
 
             <FiXCircle />
@@ -1112,7 +1235,9 @@ const logoutFromSettings = () => {
 
   return (
 
-    <div className={`admin-shell admin-theme-${theme}`}>
+    <div
+      className={`admin-shell admin-theme-${theme}`}
+    >
 
 
       {/* =====================================
@@ -1159,6 +1284,8 @@ const logoutFromSettings = () => {
           </div>
 
 
+          {/* MOBILE CLOSE BUTTON */}
+
           <button
             type="button"
             className="sidebar-close"
@@ -1183,11 +1310,8 @@ const logoutFromSettings = () => {
             (item) => (
 
               <button
-
                 type="button"
-
                 key={item.id}
-
                 className={`sidebar-link ${
                   activeTab === item.id
                     ? "active"
@@ -1197,11 +1321,9 @@ const logoutFromSettings = () => {
                     ? "future-link"
                     : ""
                 }`}
-
                 onClick={() =>
                   handleNavigation(item)
                 }
-
               >
 
                 <span className="sidebar-icon">
@@ -1225,11 +1347,6 @@ const logoutFromSettings = () => {
         </nav>
 
 
-        {/* LOGOUT */}
-
-        
-
-
       </aside>
 
 
@@ -1239,19 +1356,28 @@ const logoutFromSettings = () => {
 
       <div className="admin-main">
 
+
         {/* =====================================
-          MOBILE ADMIN MENU BUTTON
+            MOBILE HAMBURGER MENU BUTTON
         ===================================== */}
 
-<button
-  type="button"
-  className="admin-mobile-menu-btn"
-  onClick={() => setSidebarOpen(true)}
-  aria-label="Open admin menu"
->
-  <FiGrid />
-  <span>Admin Menu</span>
-</button>
+        <button
+          type="button"
+          className="admin-mobile-menu-btn"
+          onClick={() =>
+            setSidebarOpen(true)
+          }
+          aria-label="Open admin menu"
+          aria-expanded={sidebarOpen}
+        >
+
+          <FiMenu />
+
+          <span>
+            Menu
+          </span>
+
+        </button>
 
 
         {/* =====================================
@@ -1314,7 +1440,9 @@ const logoutFromSettings = () => {
                     </span>
 
                     <div className="stat-icon blue">
+
                       <FiCalendar />
+
                     </div>
 
                   </div>
@@ -1341,7 +1469,9 @@ const logoutFromSettings = () => {
                     </span>
 
                     <div className="stat-icon green">
+
                       <FiUsers />
+
                     </div>
 
                   </div>
@@ -1368,7 +1498,9 @@ const logoutFromSettings = () => {
                     </span>
 
                     <div className="stat-icon purple">
+
                       <FiDollarSign />
+
                     </div>
 
                   </div>
@@ -1399,7 +1531,9 @@ const logoutFromSettings = () => {
                     </span>
 
                     <div className="stat-icon orange">
+
                       <FiCheckCircle />
+
                     </div>
 
                   </div>
@@ -1678,438 +1812,376 @@ const logoutFromSettings = () => {
 
           )}
 
+
           {/* ===================================
-    CREATE BOOKING
-=================================== */}
+              CREATE BOOKING
+          =================================== */}
 
-{activeTab === "create-booking" && (
+          {activeTab === "create-booking" && (
 
-  <section className="admin-table-card create-booking-panel">
+            <section className="admin-table-card create-booking-panel">
 
-    <div className="section-heading">
+              <div className="section-heading">
 
-      <div>
-        <h1>
-          Create Booking
-        </h1>
+                <div>
 
-        <p>
-          Create a BusGo booking on behalf of a customer.
-        </p>
-      </div>
+                  <h1>
+                    Create Booking
+                  </h1>
 
-      <div className="notification-heading-icon">
-        <FiCalendar />
-      </div>
+                  <p>
+                    Create a BusGo booking on behalf of a customer.
+                  </p>
 
-    </div>
+                </div>
 
 
-    {bookingSuccess && (
+                <div className="notification-heading-icon">
 
-      <div className="admin-notification-success">
+                  <FiCalendar />
 
-        <FiCheckCircle />
+                </div>
 
-        <span>
-          {bookingSuccess}
-        </span>
-
-      </div>
-
-    )}
+              </div>
 
 
-    {bookingError && (
+              {bookingSuccess && (
 
-      <div className="admin-notification-error">
+                <div className="admin-notification-success">
 
-        <FiXCircle />
+                  <FiCheckCircle />
 
-        <span>
-          {bookingError}
-        </span>
+                  <span>
+                    {bookingSuccess}
+                  </span>
 
-      </div>
+                </div>
 
-    )}
+              )}
 
 
-    <form
-      className="admin-notification-form"
-      onSubmit={createAdminBooking}
-    >
+              {bookingError && (
 
-      {/* CUSTOMER */}
+                <div className="admin-notification-error">
 
-      <div className="admin-form-group">
+                  <FiXCircle />
 
-        <label>
-          Customer
-        </label>
+                  <span>
+                    {bookingError}
+                  </span>
 
-        <select
-          name="userId"
-          value={adminBooking.userId}
-          onChange={(e) => {
+                </div>
 
-            const selectedUser =
-              users.find(
-                user =>
-                  String(user.id) ===
-                  String(e.target.value)
-              );
+              )}
 
-            setAdminBooking({
-              ...adminBooking,
-              userId: e.target.value,
-              name: selectedUser?.name || "",
-              email: selectedUser?.email || "",
-              phone: selectedUser?.phone || ""
-            });
 
-            setBookingSuccess("");
-            setBookingError("");
-
-          }}
-        >
-
-          <option value="">
-            Select customer
-          </option>
-
-          {users
-            .filter(
-              user =>
-                user.role !== "admin"
-            )
-            .map(user => (
-
-              <option
-                key={user.id}
-                value={user.id}
+              <form
+                className="admin-notification-form"
+                onSubmit={createAdminBooking}
               >
-                {user.name} — {user.email}
-              </option>
 
-            ))}
 
-        </select>
+                {/* CUSTOMER */}
 
-      </div>
+                <div className="admin-form-group">
 
+                  <label>
+                    Customer
+                  </label>
 
-      {/* CUSTOMER INFORMATION */}
 
-      <div className="form-grid">
+                  <select
+                    name="userId"
+                    value={adminBooking.userId}
+                    onChange={(e) => {
 
-        <div className="admin-form-group">
+                      const selectedUser =
+                        users.find(
+                          user =>
+                            String(user.id) ===
+                            String(e.target.value)
+                        );
 
-          <label>
-            Customer Name
-          </label>
 
-          <input
-            type="text"
-            value={adminBooking.name}
-            readOnly
-          />
+                      setAdminBooking({
 
-        </div>
+                        ...adminBooking,
 
+                        userId:
+                          e.target.value,
 
-        <div className="admin-form-group">
+                        name:
+                          selectedUser?.name || "",
 
-          <label>
-            Phone
-          </label>
+                        email:
+                          selectedUser?.email || "",
 
-          <input
-            type="text"
-            value={adminBooking.phone}
-            readOnly
-          />
+                        phone:
+                          selectedUser?.phone || ""
 
-        </div>
+                      });
 
-      </div>
 
+                      setBookingSuccess("");
 
-      {/* ROUTE */}
+                      setBookingError("");
 
-      <div className="form-grid">
+                    }}
+                  >
 
-        <div className="admin-form-group">
+                    <option value="">
+                      Select customer
+                    </option>
 
-          <label>
-            Departure
-          </label>
 
-          <select
-            name="from"
-            value={adminBooking.from}
-            onChange={handleAdminBookingChange}
-          >
+                    {users
+                      .filter(
+                        user =>
+                          user.role !== "admin"
+                      )
+                      .map(user => (
 
-            <option value="">
-  Select departure
-</option>
+                        <option
+                          key={user.id}
+                          value={user.id}
+                        >
 
-{[
-  ...new Set(
-    routes.map(
-      route => route.departure
-    )
-  )
-].map(city => (
-  <option
-    key={city}
-    value={city}
-  >
-    {city}
-  </option>
-))}
+                          {user.name}
+                          {" — "}
+                          {user.email}
 
-            <option value="Mamfe">
-              Mamfe
-            </option>
+                        </option>
 
-            <option value="Douala">
-              Douala
-            </option>
+                      ))}
 
-            <option value="Yaoundé">
-              Yaoundé
-            </option>
+                  </select>
 
-            <option value="Buea">
-              Buea
-            </option>
+                </div>
 
-            <option value="Bamenda">
-              Bamenda
-            </option>
 
-            <option value="Bafoussam">
-              Bafoussam
-            </option>
+                {/* CUSTOMER INFORMATION */}
 
-            <option value="Garoua">
-              Garoua
-            </option>
+                <div className="form-grid">
 
-            <option value="Maroua">
-              Maroua
-            </option>
+                  <div className="admin-form-group">
 
-            <option value="Ngaoundéré">
-              Ngaoundéré
-            </option>
+                    <label>
+                      Customer Name
+                    </label>
 
-            <option value="Bertoua">
-              Bertoua
-            </option>
+                    <input
+                      type="text"
+                      value={adminBooking.name}
+                      readOnly
+                    />
 
-            <option value="Ebolowa">
-              Ebolowa
-            </option>
+                  </div>
 
-            <option value="Limbe">
-              Limbe
-            </option>
 
-            <option value="Kribi">
-              Kribi
-            </option>
+                  <div className="admin-form-group">
 
-            <option value="Kumba">
-              Kumba
-            </option>
+                    <label>
+                      Phone
+                    </label>
 
-            <option value="Dschang">
-              Dschang
-            </option>
+                    <input
+                      type="text"
+                      value={adminBooking.phone}
+                      readOnly
+                    />
 
-          </select>
+                  </div>
 
-        </div>
+                </div>
 
 
-        <div className="admin-form-group">
+                {/* ROUTE */}
 
-          <label>
-            Destination
-          </label>
+                <div className="form-grid">
 
-          <select
-            name="to"
-            value={adminBooking.to}
-            onChange={handleAdminBookingChange}
-          >
+                  <div className="admin-form-group">
 
-            <option value="">
-              Select destination
-            </option>
+                    <label>
+                      Departure
+                    </label>
 
-            <option value="Mamfe">
-              Mamfe
-            </option>
 
-            <option value="Douala">
-              Douala
-            </option>
+                    <select
+                      name="from"
+                      value={adminBooking.from}
+                      onChange={handleAdminBookingChange}
+                    >
 
-            <option value="Yaoundé">
-              Yaoundé
-            </option>
+                      <option value="">
+                        Select departure
+                      </option>
 
-            <option value="Buea">
-              Buea
-            </option>
 
-            <option value="Bamenda">
-              Bamenda
-            </option>
+                      {[
+                        ...new Set(
+                          routes.map(
+                            route =>
+                              route.departure
+                          )
+                        )
+                      ].map(city => (
 
-            <option value="Bafoussam">
-              Bafoussam
-            </option>
+                        <option
+                          key={city}
+                          value={city}
+                        >
 
-            <option value="Garoua">
-              Garoua
-            </option>
+                          {city}
 
-            <option value="Maroua">
-              Maroua
-            </option>
+                        </option>
 
-            <option value="Ngaoundéré">
-              Ngaoundéré
-            </option>
+                      ))}
 
-            <option value="Bertoua">
-              Bertoua
-            </option>
+                    </select>
 
-            <option value="Ebolowa">
-              Ebolowa
-            </option>
+                  </div>
 
-            <option value="Limbe">
-              Limbe
-            </option>
 
-            <option value="Kribi">
-              Kribi
-            </option>
+                  <div className="admin-form-group">
 
-            <option value="Kumba">
-              Kumba
-            </option>
+                    <label>
+                      Destination
+                    </label>
 
-            <option value="Dschang">
-              Dschang
-            </option>
 
-          </select>
+                    <select
+                      name="to"
+                      value={adminBooking.to}
+                      onChange={handleAdminBookingChange}
+                    >
 
-        </div>
+                      <option value="">
+                        Select destination
+                      </option>
 
-      </div>
 
+                      {[
+                        ...new Set(
+                          routes.map(
+                            route =>
+                              route.destination
+                          )
+                        )
+                      ].map(city => (
 
-      {/* BUS + SEATS + DATE */}
+                        <option
+                          key={city}
+                          value={city}
+                        >
 
-      <div className="form-grid">
+                          {city}
 
-        <div className="admin-form-group">
+                        </option>
 
-          <label>
-            Bus Type
-          </label>
+                      ))}
 
-          <select
-            name="busType"
-            value={adminBooking.busType}
-            onChange={handleAdminBookingChange}
-          >
+                    </select>
 
-            <option value="">
-              Select bus type
-            </option>
+                  </div>
 
-            <option value="Shuttle">
-              Shuttle
-            </option>
+                </div>
 
-            <option value="Standard">
-              Standard
-            </option>
 
-            <option value="VIP Coach">
-              VIP Coach
-            </option>
+                {/* BUS + SEATS + DATE */}
 
-          </select>
+                <div className="form-grid">
 
-        </div>
+                  <div className="admin-form-group">
 
+                    <label>
+                      Bus Type
+                    </label>
 
-        <div className="admin-form-group">
 
-          <label>
-            Seats
-          </label>
+                    <select
+                      name="busType"
+                      value={adminBooking.busType}
+                      onChange={handleAdminBookingChange}
+                    >
 
-          <input
-            type="number"
-            name="seats"
-            min="1"
-            max="10"
-            value={adminBooking.seats}
-            onChange={handleAdminBookingChange}
-          />
+                      <option value="">
+                        Select bus type
+                      </option>
 
-        </div>
+                      <option value="Shuttle">
+                        Shuttle
+                      </option>
 
+                      <option value="Standard">
+                        Standard
+                      </option>
 
-        <div className="admin-form-group">
+                      <option value="VIP Coach">
+                        VIP Coach
+                      </option>
 
-          <label>
-            Travel Date
-          </label>
+                    </select>
 
-          <input
-            type="date"
-            name="date"
-            value={adminBooking.date}
-            onChange={handleAdminBookingChange}
-          />
+                  </div>
 
-        </div>
 
-      </div>
+                  <div className="admin-form-group">
 
+                    <label>
+                      Seats
+                    </label>
 
-      <button
-        type="submit"
-        className="send-notification-btn"
-        disabled={creatingBooking}
-      >
 
-        <FiCalendar />
+                    <input
+                      type="number"
+                      name="seats"
+                      min="1"
+                      max="10"
+                      value={adminBooking.seats}
+                      onChange={handleAdminBookingChange}
+                    />
 
-        {creatingBooking
-          ? "Creating Booking..."
-          : "Create Booking"}
+                  </div>
 
-      </button>
 
-    </form>
+                  <div className="admin-form-group">
 
-  </section>
+                    <label>
+                      Travel Date
+                    </label>
 
-)}
+
+                    <input
+                      type="date"
+                      name="date"
+                      value={adminBooking.date}
+                      onChange={handleAdminBookingChange}
+                    />
+
+                  </div>
+
+                </div>
+
+
+                <button
+                  type="submit"
+                  className="send-notification-btn"
+                  disabled={creatingBooking}
+                >
+
+                  <FiCalendar />
+
+                  {creatingBooking
+                    ? "Creating Booking..."
+                    : "Create Booking"}
+
+                </button>
+
+              </form>
+
+            </section>
+
+          )}
 
 
           {/* ===================================
@@ -2749,727 +2821,780 @@ const logoutFromSettings = () => {
 
           )}
 
-{/* ===================================
-    PAYMENTS
-=================================== */}
 
-{activeTab === "payments" && (
+          {/* ===================================
+              PAYMENTS
+          =================================== */}
 
-  <section className="admin-table-card payments-panel">
+          {activeTab === "payments" && (
 
-    <div className="section-heading">
+            <section className="admin-table-card payments-panel">
 
-      <div>
+              <div className="section-heading">
 
-        <h1>
-          Payments
-        </h1>
+                <div>
 
-        <p>
-          View and manage all BusGo payment transactions.
-        </p>
+                  <h1>
+                    Payments
+                  </h1>
 
-      </div>
+                  <p>
+                    View and manage all BusGo payment transactions.
+                  </p>
 
-
-      <button
-        className="refresh-btn"
-        onClick={loadAdminData}
-      >
-
-        <FiRefreshCw />
-
-        Refresh
-
-      </button>
-
-    </div>
+                </div>
 
 
-    {/* PAYMENT SUMMARY */}
-
-    <div className="payment-summary">
-
-      <div className="payment-summary-card">
-
-        <span>
-          Successful
-        </span>
-
-        <strong>
-          {
-            payments.filter(
-              payment =>
-                payment.status === "Successful"
-            ).length
-          }
-        </strong>
-
-      </div>
-
-
-      <div className="payment-summary-card reversal">
-
-        <span>
-          Requested Reversal
-        </span>
-
-        <strong>
-          {
-            payments.filter(
-              payment =>
-                payment.status ===
-                "Requested Reversal"
-            ).length
-          }
-        </strong>
-
-      </div>
-
-
-      <div className="payment-summary-card reversed">
-
-        <span>
-          Reversed
-        </span>
-
-        <strong>
-          {
-            payments.filter(
-              payment =>
-                payment.status === "Reversed"
-            ).length
-          }
-        </strong>
-
-      </div>
-
-
-      <div className="payment-summary-card failed">
-
-        <span>
-          Failed
-        </span>
-
-        <strong>
-          {
-            payments.filter(
-              payment =>
-                payment.status === "Failed"
-            ).length
-          }
-        </strong>
-
-      </div>
-
-    </div>
-
-
-    {/* PAYMENT TABLE */}
-
-    <div className="admin-table-scroll">
-
-      <table>
-
-        <thead>
-
-          <tr>
-
-            <th>
-              Transaction
-            </th>
-
-            <th>
-              User
-            </th>
-
-            <th>
-              Ticket
-            </th>
-
-            <th>
-              Amount
-            </th>
-
-            <th>
-              Method
-            </th>
-
-            <th>
-              Date
-            </th>
-
-            <th>
-              Status
-            </th>
-
-            <th>
-              Action
-            </th>
-
-          </tr>
-
-        </thead>
-
-
-        <tbody>
-
-          {payments.length === 0 ? (
-
-            <tr>
-
-              <td
-                colSpan="8"
-                className="empty-payment"
-              >
-
-                No payment transactions found.
-
-              </td>
-
-            </tr>
-
-          ) : (
-
-            payments.map(
-              payment => (
-
-                <tr
-                  key={payment.id}
+                <button
+                  type="button"
+                  className="refresh-btn"
+                  onClick={loadAdminData}
                 >
 
-                  {/* TRANSACTION */}
+                  <FiRefreshCw />
 
-                  <td>
+                  Refresh
 
-                    <strong>
-                      {payment.transaction_id}
-                    </strong>
+                </button>
 
-                  </td>
+              </div>
 
 
-                  {/* USER */}
+              {/* PAYMENT SUMMARY */}
 
-                  <td>
+              <div className="payment-summary">
 
-                    <div className="payment-user">
+                <div className="payment-summary-card">
 
-                      <strong>
-                        {payment.user_name ||
-                          "Unknown User"}
-                      </strong>
+                  <span>
+                    Successful
+                  </span>
 
-                      <small>
-                        {payment.user_email}
-                      </small>
+                  <strong>
 
-                    </div>
+                    {
+                      payments.filter(
+                        payment =>
+                          payment.status ===
+                          "Successful"
+                      ).length
+                    }
 
-                  </td>
+                  </strong>
 
-
-                  {/* TICKET */}
-
-                  <td>
-
-                    {payment.ticket_number ||
-                      "N/A"}
-
-                  </td>
+                </div>
 
 
-                  {/* AMOUNT */}
+                <div className="payment-summary-card reversal">
 
-                  <td>
+                  <span>
+                    Requested Reversal
+                  </span>
 
-                    <strong>
-                      {formatMoney(
-                        payment.amount
-                      )}
-                    </strong>
+                  <strong>
 
-                  </td>
+                    {
+                      payments.filter(
+                        payment =>
+                          payment.status ===
+                          "Requested Reversal"
+                      ).length
+                    }
 
+                  </strong>
 
-                  {/* METHOD */}
-
-                  <td>
-
-                    {payment.payment_method}
-
-                  </td>
-
-
-                  {/* DATE */}
-
-                  <td>
-
-                    {payment.payment_date
-                      ? new Date(
-                          payment.payment_date
-                        ).toLocaleString(
-                          "en-GB"
-                        )
-                      : "N/A"}
-
-                  </td>
+                </div>
 
 
-                  {/* STATUS */}
+                <div className="payment-summary-card reversed">
 
-                  <td>
+                  <span>
+                    Reversed
+                  </span>
 
-                    <span
-                      className={`payment-status ${payment.status
-                        ?.toLowerCase()
-                        .replace(
-                          /\s+/g,
-                          "-"
-                        )}`}
-                    >
+                  <strong>
 
-                      {payment.status}
+                    {
+                      payments.filter(
+                        payment =>
+                          payment.status ===
+                          "Reversed"
+                      ).length
+                    }
 
-                    </span>
+                  </strong>
 
-                  </td>
+                </div>
 
 
-                  {/* ACTION */}
+                <div className="payment-summary-card failed">
 
-                  <td>
+                  <span>
+                    Failed
+                  </span>
 
-                    {payment.status ===
-                    "Requested Reversal" ? (
+                  <strong>
 
-                      <div className="payment-actions">
+                    {
+                      payments.filter(
+                        payment =>
+                          payment.status ===
+                          "Failed"
+                      ).length
+                    }
 
-                        <button
-                          className="accept-reversal-btn"
-                          onClick={() =>
-                            acceptPaymentReversal(
-                              payment.id
-                            )
-                          }
+                  </strong>
+
+                </div>
+
+              </div>
+
+
+              {/* PAYMENT TABLE */}
+
+              <div className="admin-table-scroll">
+
+                <table>
+
+                  <thead>
+
+                    <tr>
+
+                      <th>
+                        Transaction
+                      </th>
+
+                      <th>
+                        User
+                      </th>
+
+                      <th>
+                        Ticket
+                      </th>
+
+                      <th>
+                        Amount
+                      </th>
+
+                      <th>
+                        Method
+                      </th>
+
+                      <th>
+                        Date
+                      </th>
+
+                      <th>
+                        Status
+                      </th>
+
+                      <th>
+                        Action
+                      </th>
+
+                    </tr>
+
+                  </thead>
+
+
+                  <tbody>
+
+                    {payments.length === 0 ? (
+
+                      <tr>
+
+                        <td
+                          colSpan="8"
+                          className="empty-payment"
                         >
 
-                          <FiCheckCircle />
+                          No payment transactions found.
 
-                          Accept
+                        </td>
 
-                        </button>
-
-
-                        <button
-                          className="deny-reversal-btn"
-                          onClick={() =>
-                            denyPaymentReversal(
-                              payment.id
-                            )
-                          }
-                        >
-
-                          <FiXCircle />
-
-                          Deny
-
-                        </button>
-
-                      </div>
+                      </tr>
 
                     ) : (
 
-                      <span className="no-payment-action">
-                        —
-                      </span>
+                      payments.map(
+                        payment => (
+
+                          <tr
+                            key={payment.id}
+                          >
+
+                            {/* TRANSACTION */}
+
+                            <td>
+
+                              <strong>
+                                {payment.transaction_id}
+                              </strong>
+
+                            </td>
+
+
+                            {/* USER */}
+
+                            <td>
+
+                              <div className="payment-user">
+
+                                <strong>
+                                  {payment.user_name ||
+                                    "Unknown User"}
+                                </strong>
+
+                                <small>
+                                  {payment.user_email}
+                                </small>
+
+                              </div>
+
+                            </td>
+
+
+                            {/* TICKET */}
+
+                            <td>
+
+                              {payment.ticket_number ||
+                                "N/A"}
+
+                            </td>
+
+
+                            {/* AMOUNT */}
+
+                            <td>
+
+                              <strong>
+                                {formatMoney(
+                                  payment.amount
+                                )}
+                              </strong>
+
+                            </td>
+
+
+                            {/* METHOD */}
+
+                            <td>
+
+                              {payment.payment_method}
+
+                            </td>
+
+
+                            {/* DATE */}
+
+                            <td>
+
+                              {payment.payment_date
+                                ? new Date(
+                                    payment.payment_date
+                                  ).toLocaleString(
+                                    "en-GB"
+                                  )
+                                : "N/A"}
+
+                            </td>
+
+
+                            {/* STATUS */}
+
+                            <td>
+
+                              <span
+                                className={`payment-status ${
+                                  payment.status
+                                    ?.toLowerCase()
+                                    .replace(
+                                      /\s+/g,
+                                      "-"
+                                    )
+                                }`}
+                              >
+
+                                {payment.status}
+
+                              </span>
+
+                            </td>
+
+
+                            {/* ACTION */}
+
+                            <td>
+
+                              {payment.status ===
+                              "Requested Reversal" ? (
+
+                                <div className="payment-actions">
+
+                                  <button
+                                    type="button"
+                                    className="accept-reversal-btn"
+                                    onClick={() =>
+                                      acceptPaymentReversal(
+                                        payment.id
+                                      )
+                                    }
+                                  >
+
+                                    <FiCheckCircle />
+
+                                    Accept
+
+                                  </button>
+
+
+                                  <button
+                                    type="button"
+                                    className="deny-reversal-btn"
+                                    onClick={() =>
+                                      denyPaymentReversal(
+                                        payment.id
+                                      )
+                                    }
+                                  >
+
+                                    <FiXCircle />
+
+                                    Deny
+
+                                  </button>
+
+                                </div>
+
+                              ) : (
+
+                                <span className="no-payment-action">
+
+                                  —
+
+                                </span>
+
+                              )}
+
+                            </td>
+
+                          </tr>
+
+                        )
+                      )
 
                     )}
 
-                  </td>
+                  </tbody>
 
-                </tr>
+                </table>
 
-              )
-            )
+              </div>
+
+            </section>
 
           )}
 
-        </tbody>
 
-      </table>
+          {/* ===================================
+              SETTINGS
+          =================================== */}
 
-    </div>
+          {activeTab === "settings" && (
 
-  </section>
+            <section className="admin-settings">
 
-)}
+              {/* SETTINGS HEADER */}
 
-{/* ===================================
-    SETTINGS
-=================================== */}
+              <div className="settings-heading">
 
-{activeTab === "settings" && (
+                <div>
 
-  <section className="admin-settings">
+                  <h1>
+                    Settings
+                  </h1>
 
-    {/* SETTINGS HEADER */}
+                  <p>
+                    Manage your BusGo administrator preferences.
+                  </p>
 
-    <div className="settings-heading">
+                </div>
 
-      <div>
+                <div className="settings-heading-icon">
 
-        <h1>
-          Settings
-        </h1>
+                  <FiSettings />
 
-        <p>
-          Manage your BusGo administrator preferences.
-        </p>
+                </div>
 
-      </div>
+              </div>
 
-      <div className="settings-heading-icon">
-        <FiSettings />
-      </div>
 
-    </div>
+              {/* =================================
+                  APPEARANCE
+              ================================= */}
 
+              <div className="settings-card">
 
-    {/* =================================
-        APPEARANCE
-    ================================= */}
+                <div className="settings-card-header">
 
-    <div className="settings-card">
+                  <div className="settings-card-icon">
 
-      <div className="settings-card-header">
+                    <FiMonitor />
 
-        <div className="settings-card-icon">
-          <FiMonitor />
-        </div>
+                  </div>
 
-        <div>
+                  <div>
 
-          <h2>
-            Appearance
-          </h2>
+                    <h2>
+                      Appearance
+                    </h2>
 
-          <p>
-            Choose how the admin dashboard looks.
-          </p>
+                    <p>
+                      Choose how the admin dashboard looks.
+                    </p>
 
-        </div>
+                  </div>
 
-      </div>
+                </div>
 
 
-      <div className="settings-options">
+                <div className="settings-options">
 
-        <button
-          type="button"
-          className={`settings-option ${
-            theme === "light"
-              ? "selected"
-              : ""
-          }`}
-          onClick={() =>
-            changeTheme("light")
-          }
-        >
+                  <button
+                    type="button"
+                    className={`settings-option ${
+                      theme === "light"
+                        ? "selected"
+                        : ""
+                    }`}
+                    onClick={() =>
+                      changeTheme("light")
+                    }
+                  >
 
-          <span className="settings-option-icon">
-            <FiSun />
-          </span>
+                    <span className="settings-option-icon">
 
-          <span className="settings-option-text">
+                      <FiSun />
 
-            <strong>
-              Light Mode
-            </strong>
+                    </span>
 
-            <small>
-              Use the light BusGo dashboard theme.
-            </small>
+                    <span className="settings-option-text">
 
-          </span>
+                      <strong>
+                        Light Mode
+                      </strong>
 
-          <span className="settings-radio">
-            {theme === "light" ? "✓" : ""}
-          </span>
+                      <small>
+                        Use the light BusGo dashboard theme.
+                      </small>
 
-        </button>
+                    </span>
 
+                    <span className="settings-radio">
 
-        <button
-          type="button"
-          className={`settings-option ${
-            theme === "dark"
-              ? "selected"
-              : ""
-          }`}
-          onClick={() =>
-            changeTheme("dark")
-          }
-        >
+                      {theme === "light"
+                        ? "✓"
+                        : ""}
 
-          <span className="settings-option-icon">
-            <FiMoon />
-          </span>
+                    </span>
 
-          <span className="settings-option-text">
+                  </button>
 
-            <strong>
-              Dark Mode
-            </strong>
 
-            <small>
-              Use a darker interface for the dashboard.
-            </small>
+                  <button
+                    type="button"
+                    className={`settings-option ${
+                      theme === "dark"
+                        ? "selected"
+                        : ""
+                    }`}
+                    onClick={() =>
+                      changeTheme("dark")
+                    }
+                  >
 
-          </span>
+                    <span className="settings-option-icon">
 
-          <span className="settings-radio">
-            {theme === "dark" ? "✓" : ""}
-          </span>
+                      <FiMoon />
 
-        </button>
+                    </span>
 
-      </div>
+                    <span className="settings-option-text">
 
-    </div>
+                      <strong>
+                        Dark Mode
+                      </strong>
 
+                      <small>
+                        Use a darker interface for the dashboard.
+                      </small>
 
-    {/* =================================
-        LANGUAGE
-    ================================= */}
+                    </span>
 
-    <div className="settings-card">
+                    <span className="settings-radio">
 
-      <div className="settings-card-header">
+                      {theme === "dark"
+                        ? "✓"
+                        : ""}
 
-        <div className="settings-card-icon">
-          <FiGlobe />
-        </div>
+                    </span>
 
-        <div>
+                  </button>
 
-          <h2>
-            Language
-          </h2>
+                </div>
 
-          <p>
-            Choose your preferred dashboard language.
-          </p>
+              </div>
 
-        </div>
 
-      </div>
+              {/* =================================
+                  LANGUAGE
+              ================================= */}
 
+              <div className="settings-card">
 
-      <div className="settings-language">
+                <div className="settings-card-header">
 
-        <label htmlFor="admin-language">
-          Dashboard Language
-        </label>
+                  <div className="settings-card-icon">
 
-        <select
-          id="admin-language"
-          value={language}
-          onChange={(e) =>
-            changeLanguage(e.target.value)
-          }
-        >
+                    <FiGlobe />
 
-          <option value="English">
-            English
-          </option>
+                  </div>
 
-          <option value="Français">
-            Français
-          </option>
+                  <div>
 
-        </select>
+                    <h2>
+                      Language
+                    </h2>
 
-        <small>
-          Language preference is saved on this device.
-        </small>
+                    <p>
+                      Choose your preferred dashboard language.
+                    </p>
 
-      </div>
+                  </div>
 
-    </div>
+                </div>
 
 
-    {/* =================================
-        CLIENT VIEW
-    ================================= */}
+                <div className="settings-language">
 
-    <div className="settings-card">
+                  <label htmlFor="admin-language">
 
-      <div className="settings-card-header">
+                    Dashboard Language
 
-        <div className="settings-card-icon">
-          <FiExternalLink />
-        </div>
+                  </label>
 
-        <div>
 
-          <h2>
-            Client View
-          </h2>
+                  <select
+                    id="admin-language"
+                    value={language}
+                    onChange={(e) =>
+                      changeLanguage(
+                        e.target.value
+                      )
+                    }
+                  >
 
-          <p>
-            Open the public BusGo website as a normal client.
-          </p>
+                    <option value="English">
+                      English
+                    </option>
 
-        </div>
+                    <option value="Français">
+                      Français
+                    </option>
 
-      </div>
+                  </select>
 
 
-      <button
-        type="button"
-        className="settings-action-btn client-view-btn"
-        onClick={viewSiteAsClient}
-      >
+                  <small>
 
-        <FiExternalLink />
+                    Language preference is saved on this device.
 
-        View Site as Client
+                  </small>
 
-      </button>
+                </div>
 
-    </div>
+              </div>
 
 
-    {/* =================================
-        ABOUT APP
-    ================================= */}
+              {/* =================================
+                  CLIENT VIEW
+              ================================= */}
 
-    <div className="settings-card">
+              <div className="settings-card">
 
-      <div className="settings-card-header">
+                <div className="settings-card-header">
 
-        <div className="settings-card-icon">
-          <FiInfo />
-        </div>
+                  <div className="settings-card-icon">
 
-        <div>
+                    <FiExternalLink />
 
-          <h2>
-            About BusGo
-          </h2>
+                  </div>
 
-          <p>
-            Information about the current BusGo application.
-          </p>
+                  <div>
 
-        </div>
+                    <h2>
+                      Client View
+                    </h2>
 
-      </div>
+                    <p>
+                      Open the public BusGo website as a normal client.
+                    </p>
 
+                  </div>
 
-      <div className="about-app-info">
+                </div>
 
-        <div className="about-app-row">
 
-          <span>
-            Application
-          </span>
+                <button
+                  type="button"
+                  className="settings-action-btn client-view-btn"
+                  onClick={viewSiteAsClient}
+                >
 
-          <strong>
-            BusGo
-          </strong>
+                  <FiExternalLink />
 
-        </div>
+                  View Site as Client
 
+                </button>
 
-        <div className="about-app-row">
+              </div>
 
-          <span>
-            Version
-          </span>
 
-          <strong>
-            v{packageJson.version}
-          </strong>
+              {/* =================================
+                  ABOUT APP
+              ================================= */}
 
-        </div>
+              <div className="settings-card">
 
+                <div className="settings-card-header">
 
-        <div className="about-app-row">
+                  <div className="settings-card-icon">
 
-          <span>
-            Application Type
-          </span>
+                    <FiInfo />
 
-          <strong>
-            Progressive Web App
-          </strong>
+                  </div>
 
-        </div>
+                  <div>
 
+                    <h2>
+                      About BusGo
+                    </h2>
 
-        <div className="about-app-row">
+                    <p>
+                      Information about the current BusGo application.
+                    </p>
 
-          <span>
-            Platform
-          </span>
+                  </div>
 
-          <strong>
-            BusGo Web App
-          </strong>
+                </div>
 
-        </div>
 
-      </div>
+                <div className="about-app-info">
 
-    </div>
+                  <div className="about-app-row">
 
+                    <span>
+                      Application
+                    </span>
 
-    {/* =================================
-        ACCOUNT
-    ================================= */}
+                    <strong>
+                      BusGo
+                    </strong>
 
-    <div className="settings-card settings-danger-card">
+                  </div>
 
-      <div className="settings-card-header">
 
-        <div className="settings-card-icon danger">
-          <FiLogOut />
-        </div>
+                  <div className="about-app-row">
 
-        <div>
+                    <span>
+                      Version
+                    </span>
 
-          <h2>
-            Account
-          </h2>
+                    <strong>
+                      v{packageJson.version}
+                    </strong>
 
-          <p>
-            Sign out of the BusGo administrator account.
-          </p>
+                  </div>
 
-        </div>
 
-      </div>
+                  <div className="about-app-row">
 
+                    <span>
+                      Application Type
+                    </span>
 
-      <button
-        type="button"
-        className="settings-action-btn logout-settings-btn"
-        onClick={logoutFromSettings}
-      >
+                    <strong>
+                      Progressive Web App
+                    </strong>
 
-        <FiLogOut />
+                  </div>
 
-        Logout
 
-      </button>
+                  <div className="about-app-row">
 
-    </div>
+                    <span>
+                      Platform
+                    </span>
 
-  </section>
+                    <strong>
+                      BusGo Web App
+                    </strong>
 
-)}
+                  </div>
+
+                </div>
+
+              </div>
+
+
+              {/* =================================
+                  ACCOUNT
+              ================================= */}
+
+              <div className="settings-card settings-danger-card">
+
+                <div className="settings-card-header">
+
+                  <div className="settings-card-icon danger">
+
+                    <FiLogOut />
+
+                  </div>
+
+                  <div>
+
+                    <h2>
+                      Account
+                    </h2>
+
+                    <p>
+                      Sign out of the BusGo administrator account.
+                    </p>
+
+                  </div>
+
+                </div>
+
+
+                <button
+                  type="button"
+                  className="settings-action-btn logout-settings-btn"
+                  onClick={logoutFromSettings}
+                >
+
+                  <FiLogOut />
+
+                  Logout
+
+                </button>
+
+              </div>
+
+            </section>
+
+          )}
+
 
           {/* ===================================
               FUTURE ADMIN SECTIONS
@@ -3484,20 +3609,11 @@ const logoutFromSettings = () => {
 
               <div className="coming-soon-icon">
 
-                {activeTab === "buses" &&
-                  <FiTruck />}
-
                 {activeTab === "routes" &&
                   <FiMap />}
 
-                {activeTab === "payments" &&
-                  <FiCreditCard />}
-
                 {activeTab === "reports" &&
                   <FiBarChart2 />}
-
-                {activeTab === "settings" &&
-                  <FiSettings />}
 
               </div>
 
