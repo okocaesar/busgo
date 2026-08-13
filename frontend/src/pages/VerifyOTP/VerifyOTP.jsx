@@ -10,22 +10,70 @@ function VerifyOTP() {
   const location = useLocation();
 
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
 
+  const [otpChannel, setOtpChannel] = useState("");
+  const [whatsappAvailable, setWhatsappAvailable] = useState(null);
+
+  const [requiresEmailPermission, setRequiresEmailPermission] =
+    useState(false);
+
   const [loading, setLoading] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
   const [resending, setResending] = useState(false);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  // =========================================
+  // LOAD VERIFICATION DATA
+  // =========================================
+
   useEffect(() => {
-    const stateEmail = location.state?.email;
+    const state = location.state || {};
+
+    const stateEmail = state.email;
 
     const savedEmail = localStorage.getItem(
       "pendingVerificationEmail"
     );
 
-    setEmail(stateEmail || savedEmail || "");
+    const savedPhone = localStorage.getItem(
+      "pendingVerificationPhone"
+    );
+
+    const verificationEmail =
+      stateEmail ||
+      savedEmail ||
+      "";
+
+    setEmail(verificationEmail);
+
+    setPhone(
+      state.phone ||
+      savedPhone ||
+      ""
+    );
+
+    setOtpChannel(
+      state.otpChannel ||
+      ""
+    );
+
+    if (
+      typeof state.whatsappAvailable !== "undefined"
+    ) {
+      setWhatsappAvailable(
+        state.whatsappAvailable
+      );
+    }
+
+    if (
+      state.requiresEmailPermission
+    ) {
+      setRequiresEmailPermission(true);
+    }
   }, [location.state]);
 
   // =========================================
@@ -39,17 +87,23 @@ function VerifyOTP() {
     setMessage("");
 
     if (!email) {
-      setError("Email address is missing. Please register again.");
+      setError(
+        "Email address is missing. Please register again."
+      );
       return;
     }
 
     if (!otp) {
-      setError("Please enter the verification code.");
+      setError(
+        "Please enter the verification code."
+      );
       return;
     }
 
     if (otp.length !== 6) {
-      setError("Verification code must contain 6 digits.");
+      setError(
+        "Verification code must contain 6 digits."
+      );
       return;
     }
 
@@ -66,11 +120,15 @@ function VerifyOTP() {
 
       setMessage(
         response.data.message ||
-          "Email verified successfully."
+          "Account verified successfully."
       );
 
       localStorage.removeItem(
         "pendingVerificationEmail"
+      );
+
+      localStorage.removeItem(
+        "pendingVerificationPhone"
       );
 
       setTimeout(() => {
@@ -85,10 +143,64 @@ function VerifyOTP() {
 
       setError(
         error.response?.data?.message ||
-          "Unable to verify your email."
+          "Unable to verify your account."
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  // =========================================
+  // SEND OTP TO EMAIL
+  //
+  // ONLY happens after the user explicitly
+  // chooses email fallback.
+  // =========================================
+
+  const handleSendEmailOTP = async () => {
+    setError("");
+    setMessage("");
+
+    if (!email) {
+      setError(
+        "Email address is missing."
+      );
+      return;
+    }
+
+    try {
+      setSendingEmail(true);
+
+      const response = await axios.post(
+        `${API_URL}/api/auth/send-email-otp`,
+        {
+          email
+        }
+      );
+
+      setOtpChannel("email");
+
+      setWhatsappAvailable(false);
+
+      setRequiresEmailPermission(false);
+
+      setMessage(
+        response.data.message ||
+          "Your verification code has been sent to your email."
+      );
+
+    } catch (error) {
+      console.error(
+        "Send email OTP error:",
+        error
+      );
+
+      setError(
+        error.response?.data?.message ||
+          "Unable to send the verification email."
+      );
+    } finally {
+      setSendingEmail(false);
     }
   };
 
@@ -101,7 +213,9 @@ function VerifyOTP() {
     setMessage("");
 
     if (!email) {
-      setError("Email address is missing.");
+      setError(
+        "Email address is missing."
+      );
       return;
     }
 
@@ -114,6 +228,34 @@ function VerifyOTP() {
           email
         }
       );
+
+      // =========================================
+      // WHATSAPP RESEND
+      // =========================================
+
+      if (
+        response.data.otpChannel === "whatsapp"
+      ) {
+        setOtpChannel("whatsapp");
+
+        setWhatsappAvailable(true);
+
+        setRequiresEmailPermission(false);
+      }
+
+      // =========================================
+      // WHATSAPP UNAVAILABLE
+      // =========================================
+
+      if (
+        response.data.requiresEmailPermission
+      ) {
+        setOtpChannel("none");
+
+        setWhatsappAvailable(false);
+
+        setRequiresEmailPermission(true);
+      }
 
       setMessage(
         response.data.message ||
@@ -140,87 +282,259 @@ function VerifyOTP() {
 
       <div className="verify-otp-card">
 
+        {/* =========================================
+            ICON
+        ========================================= */}
+
         <div className="verify-otp-icon">
-          ✉
+
+          {otpChannel === "whatsapp"
+            ? "💬"
+            : "✉"}
+
         </div>
+
+
+        {/* =========================================
+            TITLE
+        ========================================= */}
 
         <h1>
-          Verify Your Email
+          Verify Your Account
         </h1>
 
-        <p className="verify-description">
-          We sent a 6-digit verification code to:
-        </p>
 
-        <strong className="verify-email">
-          {email || "your email address"}
-        </strong>
+        {/* =========================================
+            WHATSAPP OTP
+        ========================================= */}
 
-        <form onSubmit={handleVerify}>
+        {otpChannel === "whatsapp" && (
+          <>
+            <p className="verify-description">
 
-          <div className="input-box">
+              Your 6-digit verification code
+              has been sent to your WhatsApp
+              number.
 
-            <label>
-              Verification Code
-            </label>
+            </p>
 
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength="6"
-              value={otp}
-              onChange={(e) => {
-                const value =
-                  e.target.value.replace(/\D/g, "");
+            {phone && (
+              <strong className="verify-email">
+                {phone}
+              </strong>
+            )}
+          </>
+        )}
 
-                setOtp(value);
-              }}
-              placeholder="Enter 6-digit code"
-            />
+
+        {/* =========================================
+            EMAIL OTP
+        ========================================= */}
+
+        {otpChannel === "email" && (
+          <>
+            <p className="verify-description">
+
+              Your 6-digit verification code
+              has been sent to:
+
+            </p>
+
+            <strong className="verify-email">
+              {email || "your email address"}
+            </strong>
+          </>
+        )}
+
+
+        {/* =========================================
+            UNKNOWN CHANNEL
+        ========================================= */}
+
+        {!otpChannel &&
+          !requiresEmailPermission && (
+            <>
+              <p className="verify-description">
+
+                Enter the 6-digit verification
+                code sent to you.
+
+              </p>
+            </>
+          )}
+
+
+        {/* =========================================
+            WHATSAPP NOT AVAILABLE
+        ========================================= */}
+
+        {requiresEmailPermission && (
+          <div className="email-fallback-box">
+
+            <div className="email-fallback-icon">
+              📧
+            </div>
+
+            <h2>
+              WhatsApp is unavailable
+            </h2>
+
+            <p>
+              This phone number does not appear
+              to have WhatsApp.
+            </p>
+
+            <p>
+              Would you like us to send your
+              verification code to:
+            </p>
+
+            <strong className="verify-email">
+              {email}
+            </strong>
+
+            <button
+              type="button"
+              className="email-fallback-button"
+              onClick={handleSendEmailOTP}
+              disabled={sendingEmail}
+            >
+
+              {sendingEmail
+                ? "Sending to Email..."
+                : "Send OTP to Email"}
+
+            </button>
 
           </div>
+        )}
 
-          {error && (
-            <div className="verify-error">
-              {error}
+
+        {/* =========================================
+            OTP FORM
+        ========================================= */}
+
+        {!requiresEmailPermission && (
+          <form onSubmit={handleVerify}>
+
+            <div className="input-box">
+
+              <label>
+                Verification Code
+              </label>
+
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength="6"
+                value={otp}
+                onChange={(e) => {
+
+                  const value =
+                    e.target.value.replace(
+                      /\D/g,
+                      ""
+                    );
+
+                  setOtp(value);
+
+                }}
+                placeholder="Enter 6-digit code"
+                disabled={loading}
+              />
+
             </div>
-          )}
 
-          {message && (
-            <div className="verify-success">
-              {message}
-            </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-          >
-            {loading
-              ? "Verifying..."
-              : "Verify Email"}
-          </button>
+            {/* =========================================
+                ERROR
+            ========================================= */}
 
-        </form>
+            {error && (
+              <div className="verify-error">
+                {error}
+              </div>
+            )}
 
-        <div className="resend-section">
 
-          <p>
-            Didn't receive the code?
-          </p>
+            {/* =========================================
+                SUCCESS
+            ========================================= */}
 
-          <button
-            type="button"
-            className="resend-button"
-            onClick={handleResend}
-            disabled={resending}
-          >
-            {resending
-              ? "Sending..."
-              : "Resend OTP"}
-          </button>
+            {message && (
+              <div className="verify-success">
+                {message}
+              </div>
+            )}
 
-        </div>
+
+            {/* =========================================
+                VERIFY BUTTON
+            ========================================= */}
+
+            <button
+              type="submit"
+              disabled={loading}
+            >
+
+              {loading
+                ? "Verifying..."
+                : "Verify Account"}
+
+            </button>
+
+          </form>
+        )}
+
+
+        {/* =========================================
+            MESSAGE
+        ========================================= */}
+
+        {requiresEmailPermission && error && (
+          <div className="verify-error">
+            {error}
+          </div>
+        )}
+
+        {requiresEmailPermission && message && (
+          <div className="verify-success">
+            {message}
+          </div>
+        )}
+
+
+        {/* =========================================
+            RESEND
+        ========================================= */}
+
+        {!requiresEmailPermission && (
+          <div className="resend-section">
+
+            <p>
+              Didn't receive the code?
+            </p>
+
+            <button
+              type="button"
+              className="resend-button"
+              onClick={handleResend}
+              disabled={resending}
+            >
+
+              {resending
+                ? "Checking WhatsApp..."
+                : "Resend OTP"}
+
+            </button>
+
+          </div>
+        )}
+
+
+        {/* =========================================
+            BACK TO LOGIN
+        ========================================= */}
 
         <button
           type="button"

@@ -45,20 +45,47 @@ function Register() {
 
 
   // =========================================
-  // SAVE VERIFICATION EMAIL
+  // SAVE VERIFICATION INFORMATION
   // =========================================
 
-  const saveVerificationEmail = (email) => {
+  const saveVerificationData = ({
+    email,
+    phone,
+    otpChannel,
+  }) => {
+
     const verificationEmail =
       email ||
       formData.email.trim().toLowerCase();
 
+    const verificationPhone =
+      phone ||
+      formData.phone.trim();
+
+    // Save email
     localStorage.setItem(
       "pendingVerificationEmail",
       verificationEmail
     );
 
-    return verificationEmail;
+    // Save phone
+    localStorage.setItem(
+      "pendingVerificationPhone",
+      verificationPhone
+    );
+
+    // Save OTP channel
+    if (otpChannel) {
+      localStorage.setItem(
+        "pendingVerificationChannel",
+        otpChannel
+      );
+    }
+
+    return {
+      email: verificationEmail,
+      phone: verificationPhone,
+    };
   };
 
 
@@ -66,13 +93,41 @@ function Register() {
   // GO TO OTP PAGE
   // =========================================
 
-  const goToOTPPage = (email) => {
-    const verificationEmail =
-      saveVerificationEmail(email);
+  const goToOTPPage = ({
+    email,
+    phone,
+    otpChannel,
+    whatsappAvailable,
+    requiresEmailPermission,
+  }) => {
+
+    const verificationData =
+      saveVerificationData({
+        email,
+        phone,
+        otpChannel,
+      });
 
     navigate("/verify-otp", {
       state: {
-        email: verificationEmail,
+
+        email:
+          verificationData.email,
+
+        phone:
+          verificationData.phone,
+
+        otpChannel:
+          otpChannel || "",
+
+        whatsappAvailable:
+          typeof whatsappAvailable !== "undefined"
+            ? whatsappAvailable
+            : null,
+
+        requiresEmailPermission:
+          requiresEmailPermission || false,
+
       },
     });
   };
@@ -157,12 +212,14 @@ function Register() {
         response.data || {};
 
 
+      console.log(
+        "REGISTRATION RESPONSE:",
+        data
+      );
+
+
       // =========================================
       // SAVE RESPONSE
-      //
-      // We keep this because if WhatsApp is
-      // unavailable, we need the registration
-      // information while showing the prompt.
       // =========================================
 
       setRegistrationResponse(data);
@@ -171,8 +228,10 @@ function Register() {
       // =========================================
       // WHATSAPP OTP SENT
       //
-      // User does NOT need to approve email.
-      // Go directly to verification.
+      // This is the preferred path.
+      //
+      // NO EMAIL PROMPT.
+      // NO EMAIL SENT.
       // =========================================
 
       if (
@@ -180,12 +239,28 @@ function Register() {
         data.whatsappAvailable === true
       ) {
 
-        goToOTPPage(
-          data.email ||
-          formData.email
-            .trim()
-            .toLowerCase()
-        );
+        goToOTPPage({
+
+          email:
+            data.email ||
+            formData.email
+              .trim()
+              .toLowerCase(),
+
+          phone:
+            data.phone ||
+            formData.phone.trim(),
+
+          otpChannel:
+            "whatsapp",
+
+          whatsappAvailable:
+            true,
+
+          requiresEmailPermission:
+            false,
+
+        });
 
         return;
       }
@@ -196,14 +271,32 @@ function Register() {
       //
       // IMPORTANT:
       //
-      // Backend has NOT sent an email.
+      // The backend has NOT sent an email.
       //
-      // We now ask the user for permission.
+      // We ask the user first.
       // =========================================
 
       if (
         data.requiresEmailPermission === true
       ) {
+
+        // Save verification information
+        saveVerificationData({
+
+          email:
+            data.email ||
+            formData.email
+              .trim()
+              .toLowerCase(),
+
+          phone:
+            data.phone ||
+            formData.phone.trim(),
+
+          otpChannel:
+            "none",
+
+        });
 
         setShowEmailPrompt(true);
 
@@ -212,30 +305,42 @@ function Register() {
 
 
       // =========================================
-      // FALLBACK
-      //
-      // If backend doesn't return a channel
-      // for some unexpected reason, still allow
-      // the user to continue to verification.
+      // UNEXPECTED RESPONSE
       // =========================================
 
       if (
         data.requiresVerification
       ) {
 
-        goToOTPPage(
-          data.email ||
-          formData.email
-            .trim()
-            .toLowerCase()
-        );
+        goToOTPPage({
+
+          email:
+            data.email ||
+            formData.email
+              .trim()
+              .toLowerCase(),
+
+          phone:
+            data.phone ||
+            formData.phone.trim(),
+
+          otpChannel:
+            data.otpChannel || "",
+
+          whatsappAvailable:
+            data.whatsappAvailable,
+
+          requiresEmailPermission:
+            data.requiresEmailPermission,
+
+        });
 
         return;
       }
 
 
       // =========================================
-      // UNEXPECTED RESPONSE
+      // UNEXPECTED SUCCESS
       // =========================================
 
       alert(
@@ -267,8 +372,10 @@ function Register() {
   // =========================================
   // SEND OTP TO EMAIL
   //
-  // This function runs ONLY after the user
-  // explicitly chooses email fallback.
+  // IMPORTANT:
+  //
+  // This ONLY runs after the user clicks
+  // "Send OTP to Email".
   // =========================================
 
   const handleSendEmailOTP = async () => {
@@ -307,14 +414,31 @@ function Register() {
         response.data || {};
 
 
+      console.log(
+        "EMAIL FALLBACK RESPONSE:",
+        data
+      );
+
+
       // =========================================
-      // SAVE EMAIL
+      // SAVE VERIFICATION INFORMATION
       // =========================================
 
-      const verificationEmail =
-        saveVerificationEmail(
-          data.email || email
-        );
+      const verificationData =
+        saveVerificationData({
+
+          email:
+            data.email ||
+            email,
+
+          phone:
+            registrationResponse?.phone ||
+            formData.phone.trim(),
+
+          otpChannel:
+            "email",
+
+        });
 
 
       // =========================================
@@ -328,12 +452,24 @@ function Register() {
       // GO TO OTP PAGE
       // =========================================
 
-      navigate("/verify-otp", {
-        state: {
-          email: verificationEmail,
-        },
-      });
+      goToOTPPage({
 
+        email:
+          verificationData.email,
+
+        phone:
+          verificationData.phone,
+
+        otpChannel:
+          "email",
+
+        whatsappAvailable:
+          false,
+
+        requiresEmailPermission:
+          false,
+
+      });
 
     } catch (error) {
 
