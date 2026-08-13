@@ -1,17 +1,10 @@
 const axios = require("axios");
 
 // =========================================
-// SEND WHATSAPP MESSAGE USING ULTRAMSG
+// FORMAT CAMEROON PHONE NUMBER
 // =========================================
 
-const sendWhatsApp = async ({
-  to,
-  message
-}) => {
-
-  // =========================================
-  // VALIDATION
-  // =========================================
+const formatCameroonPhone = (to) => {
 
   if (!to) {
     throw new Error(
@@ -19,85 +12,31 @@ const sendWhatsApp = async ({
     );
   }
 
-  if (!message) {
-    throw new Error(
-      "WhatsApp message is required."
-    );
-  }
-
-
-  // =========================================
-  // ULTRAMSG CONFIGURATION
-  // =========================================
-
-  const instanceId =
-    process.env.ULTRAMSG_INSTANCE_ID;
-
-  const token =
-    process.env.ULTRAMSG_TOKEN;
-
-
-  if (!instanceId || !token) {
-
-    throw new Error(
-      "UltraMsg configuration is missing. Check ULTRAMSG_INSTANCE_ID and ULTRAMSG_TOKEN in your .env file."
-    );
-
-  }
-
-
-  // =========================================
-  // FORMAT CAMEROON PHONE NUMBER
-  // =========================================
-  //
-  // Database:
-  //
-  // 690000000
-  //
-  // UltraMsg:
-  //
-  // 237690000000
-  //
-  // =========================================
-
   let phoneNumber =
     String(to).trim();
 
-
   // Remove spaces
   phoneNumber =
-    phoneNumber.replace(
-      /\s+/g,
-      ""
-    );
-
+    phoneNumber.replace(/\s+/g, "");
 
   // Remove hyphens
   phoneNumber =
-    phoneNumber.replace(
-      /-/g,
-      ""
-    );
-
+    phoneNumber.replace(/-/g, "");
 
   // Remove parentheses
   phoneNumber =
-    phoneNumber.replace(
-      /[()]/g,
-      ""
-    );
-
+    phoneNumber.replace(/[()]/g, "");
 
   // Remove + if present
   phoneNumber =
-    phoneNumber.replace(
-      /^\+/,
-      ""
-    );
-
+    phoneNumber.replace(/^\+/, "");
 
   // =========================================
-  // CAMEROON NUMBER
+  // CAMEROON LOCAL FORMAT
+  //
+  // 690000000
+  // becomes
+  // 237690000000
   // =========================================
 
   if (
@@ -111,6 +50,13 @@ const sendWhatsApp = async ({
 
   }
 
+  // =========================================
+  // CAMEROON INTERNATIONAL FORMAT
+  //
+  // 690000000
+  // becomes
+  // 237690000000
+  // =========================================
 
   if (
     phoneNumber.length === 9 &&
@@ -122,7 +68,6 @@ const sendWhatsApp = async ({
       phoneNumber;
 
   }
-
 
   // =========================================
   // VALIDATE FINAL NUMBER
@@ -140,9 +85,296 @@ const sendWhatsApp = async ({
 
   }
 
+  return phoneNumber;
+};
+
+
+// =========================================
+// GET ULTRAMSG CONFIGURATION
+// =========================================
+
+const getUltraMsgConfig = () => {
+
+  const instanceId =
+    process.env.ULTRAMSG_INSTANCE_ID;
+
+  const token =
+    process.env.ULTRAMSG_TOKEN;
+
+  if (
+    !instanceId ||
+    !token
+  ) {
+
+    throw new Error(
+      "UltraMsg configuration is missing. Check ULTRAMSG_INSTANCE_ID and ULTRAMSG_TOKEN in your .env file."
+    );
+
+  }
+
+  return {
+    instanceId,
+    token
+  };
+
+};
+
+
+// =========================================
+// CHECK IF NUMBER HAS WHATSAPP
+//
+// UltraMsg endpoint:
+//
+// /contacts/check
+//
+// Response:
+//
+// {
+//   status: "valid"
+// }
+//
+// OR
+//
+// {
+//   status: "invalid"
+// }
+//
+// =========================================
+
+const checkWhatsApp = async ({
+  to
+}) => {
+
+  const phoneNumber =
+    formatCameroonPhone(to);
+
+  const {
+    instanceId,
+    token
+  } =
+    getUltraMsgConfig();
+
+
+  const url =
+    `https://api.ultramsg.com/${instanceId}/contacts/check`;
+
+
+  const chatId =
+    `${phoneNumber}@c.us`;
+
+
+  try {
+
+    const response =
+      await axios.get(
+        url,
+        {
+          params: {
+
+            token,
+
+            chatId,
+
+            // Force UltraMsg to perform
+            // a fresh check instead of relying
+            // only on its cached result.
+            nocache: true
+
+          },
+
+          timeout: 15000
+
+        }
+      );
+
+
+    console.log(
+      "========================================="
+    );
+
+    console.log(
+      "ULTRAMSG WHATSAPP NUMBER CHECK"
+    );
+
+    console.log(
+      "Phone:",
+      phoneNumber
+    );
+
+    console.log(
+      "Chat ID:",
+      chatId
+    );
+
+    console.log(
+      "UltraMsg response:",
+      response.data
+    );
+
+    console.log(
+      "========================================="
+    );
+
+
+    const status =
+      String(
+        response.data?.status || ""
+      ).toLowerCase();
+
+
+    // =========================================
+    // WHATSAPP AVAILABLE
+    // =========================================
+
+    if (
+      status === "valid"
+    ) {
+
+      return {
+
+        available: true,
+
+        phoneNumber,
+
+        chatId,
+
+        status: "valid",
+
+        response:
+          response.data
+
+      };
+
+    }
+
+
+    // =========================================
+    // WHATSAPP NOT AVAILABLE
+    // =========================================
+
+    if (
+      status === "invalid"
+    ) {
+
+      return {
+
+        available: false,
+
+        phoneNumber,
+
+        chatId,
+
+        status: "invalid",
+
+        response:
+          response.data
+
+      };
+
+    }
+
+
+    // =========================================
+    // UNKNOWN RESPONSE
+    // =========================================
+
+    console.warn(
+      "UNKNOWN ULTRAMSG CONTACT CHECK RESPONSE:",
+      response.data
+    );
+
+
+    return {
+
+      available: false,
+
+      phoneNumber,
+
+      chatId,
+
+      status: "unknown",
+
+      response:
+        response.data
+
+    };
+
+
+  } catch (error) {
+
+    console.error(
+      "========================================="
+    );
+
+    console.error(
+      "ULTRAMSG WHATSAPP CHECK ERROR"
+    );
+
+    console.error(
+      "Phone:",
+      phoneNumber
+    );
+
+    console.error(
+      "Error:",
+      error.response?.data ||
+      error.message
+    );
+
+    console.error(
+      "========================================="
+    );
+
+
+    throw new Error(
+      error.response?.data?.message ||
+      "Unable to check whether this phone number has WhatsApp."
+    );
+
+  }
+
+};
+
+
+// =========================================
+// SEND WHATSAPP MESSAGE
+// =========================================
+
+const sendWhatsApp = async ({
+  to,
+  message
+}) => {
+
+  if (!to) {
+
+    throw new Error(
+      "WhatsApp phone number is required."
+    );
+
+  }
+
+  if (!message) {
+
+    throw new Error(
+      "WhatsApp message is required."
+    );
+
+  }
+
+
+  const phoneNumber =
+    formatCameroonPhone(to);
+
+
+  const {
+    instanceId,
+    token
+  } =
+    getUltraMsgConfig();
+
 
   // =========================================
-  // ULTRAMSG API URL
+  // ULTRAMSG SEND URL
   // =========================================
 
   const url =
@@ -150,7 +382,7 @@ const sendWhatsApp = async ({
 
 
   // =========================================
-  // SEND WHATSAPP MESSAGE
+  // SEND MESSAGE
   // =========================================
 
   try {
@@ -172,8 +404,10 @@ const sendWhatsApp = async ({
 
         {
           headers: {
+
             "Content-Type":
               "application/x-www-form-urlencoded"
+
           },
 
           timeout: 15000
@@ -183,16 +417,12 @@ const sendWhatsApp = async ({
       );
 
 
-    // =========================================
-    // SUCCESS LOG
-    // =========================================
-
     console.log(
       "========================================="
     );
 
     console.log(
-      "ULTRAMSG WHATSAPP OTP SENT"
+      "ULTRAMSG WHATSAPP MESSAGE SENT"
     );
 
     console.log(
@@ -212,11 +442,8 @@ const sendWhatsApp = async ({
 
     return response.data;
 
-  } catch (error) {
 
-    // =========================================
-    // ERROR LOG
-    // =========================================
+  } catch (error) {
 
     console.error(
       "========================================="
@@ -253,8 +480,136 @@ const sendWhatsApp = async ({
 
 
 // =========================================
+// CHECK THEN SEND OTP
+//
+// This function:
+//
+// 1. Checks WhatsApp availability.
+// 2. If available, sends the OTP.
+// 3. If unavailable, DOES NOT send email.
+// 4. Returns a response telling the
+//    controller/frontend that email fallback
+//    is required.
+//
+// =========================================
+
+const checkAndSendWhatsAppOTP = async ({
+  to,
+  otp,
+  name
+}) => {
+
+  if (!otp) {
+
+    throw new Error(
+      "OTP is required."
+    );
+
+  }
+
+
+  // =========================================
+  // CHECK WHATSAPP
+  // =========================================
+
+  const whatsappCheck =
+    await checkWhatsApp({
+      to
+    });
+
+
+  // =========================================
+  // WHATSAPP AVAILABLE
+  // =========================================
+
+  if (
+    whatsappCheck.available
+  ) {
+
+    const message =
+
+      `Hello ${name || "BusGo customer"} 👋
+
+Your BusGo verification code is:
+
+🔐 ${otp}
+
+This code expires in 10 minutes.
+
+Do not share this code with anyone.
+
+Thank you for using BusGo 🚌`;
+
+
+    const sendResult =
+      await sendWhatsApp({
+
+        to:
+          whatsappCheck.phoneNumber,
+
+        message
+
+      });
+
+
+    return {
+
+      sent: true,
+
+      channel: "whatsapp",
+
+      requiresEmailFallback: false,
+
+      phoneNumber:
+        whatsappCheck.phoneNumber,
+
+      response:
+        sendResult
+
+    };
+
+  }
+
+
+  // =========================================
+  // WHATSAPP NOT AVAILABLE
+  //
+  // IMPORTANT:
+  //
+  // DO NOT SEND EMAIL HERE.
+  //
+  // The frontend must ask the user first.
+  // =========================================
+
+  return {
+
+    sent: false,
+
+    channel: null,
+
+    requiresEmailFallback: true,
+
+    phoneNumber:
+      whatsappCheck.phoneNumber,
+
+    message:
+      "This phone number does not appear to have WhatsApp. Would you like us to send your verification code to your email?"
+
+  };
+
+};
+
+
+// =========================================
 // EXPORT
 // =========================================
 
-module.exports =
-  sendWhatsApp;
+module.exports = {
+
+  sendWhatsApp,
+
+  checkWhatsApp,
+
+  checkAndSendWhatsAppOTP
+
+};
