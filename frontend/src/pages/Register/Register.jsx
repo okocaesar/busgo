@@ -169,11 +169,6 @@ function Register() {
 
       // =========================================
       // REGISTER ACCOUNT
-      //
-      // IMPORTANT:
-      //
-      // The backend creates and stores the OTP.
-      // It does NOT send the OTP yet.
       // =========================================
 
       const response = await axios.post(
@@ -232,7 +227,7 @@ function Register() {
 
 
       // =========================================
-      // SHOW METHOD SELECTION
+      // SHOW VERIFICATION METHOD
       // =========================================
 
       if (
@@ -431,38 +426,13 @@ function Register() {
       );
 
 
-      // =========================================
-      // WHATSAPP FAILURE
-      // =========================================
-
-      if (method === "whatsapp") {
-
-        const message =
-          error.response?.data?.message ||
-          error.message ||
-          "Unable to send the verification code through WhatsApp.";
-
-        alert(message);
-
-        return;
-      }
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        `Unable to send the verification code through ${method}.`;
 
 
-      // =========================================
-      // EMAIL FAILURE
-      // =========================================
-
-      if (method === "email") {
-
-        const message =
-          error.response?.data?.message ||
-          error.message ||
-          "Unable to send the verification email.";
-
-        alert(message);
-
-        return;
-      }
+      alert(message);
 
     } finally {
 
@@ -471,25 +441,6 @@ function Register() {
       setSelectedMethod("");
 
     }
-  };
-
-
-  // =========================================
-  // CANCEL METHOD SELECTION
-  // =========================================
-
-  const handleCancelVerification = () => {
-
-    if (verificationLoading) {
-      return;
-    }
-
-    setShowVerificationChoice(false);
-
-    setRegistrationResponse(null);
-
-    setSelectedMethod("");
-
   };
 
 
@@ -688,8 +639,6 @@ function Register() {
             className="verification-method-modal"
           >
 
-            {/* ICON */}
-
             <div
               className="verification-method-icon"
             >
@@ -812,24 +761,6 @@ function Register() {
                 →
               </span>
 
-            </button>
-
-
-            {/* =====================================
-                CANCEL
-            ====================================== */}
-
-            <button
-              type="button"
-              className="verification-method-cancel"
-              onClick={
-                handleCancelVerification
-              }
-              disabled={
-                verificationLoading
-              }
-            >
-              Cancel
             </button>
 
 

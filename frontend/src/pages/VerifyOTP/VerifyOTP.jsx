@@ -18,122 +18,243 @@ function VerifyOTP() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const stateEmail = location.state?.email;
+  // =========================================
+  // LOAD VERIFICATION EMAIL
+  // =========================================
 
-    const savedEmail = localStorage.getItem(
-      "pendingVerificationEmail"
+  useEffect(() => {
+
+    const stateEmail =
+      location.state?.email;
+
+    const savedEmail =
+      localStorage.getItem(
+        "pendingVerificationEmail"
+      );
+
+    setEmail(
+      stateEmail ||
+      savedEmail ||
+      ""
     );
 
-    setEmail(stateEmail || savedEmail || "");
   }, [location.state]);
+
 
   // =========================================
   // VERIFY OTP
   // =========================================
 
   const handleVerify = async (e) => {
+
     e.preventDefault();
 
     setError("");
     setMessage("");
 
     if (!email) {
-      setError("Email address is missing. Please register again.");
+
+      setError(
+        "Email address is missing. Please register again."
+      );
+
       return;
     }
 
     if (!otp) {
-      setError("Please enter the verification code.");
+
+      setError(
+        "Please enter the verification code."
+      );
+
       return;
     }
 
     if (otp.length !== 6) {
-      setError("Verification code must contain 6 digits.");
+
+      setError(
+        "Verification code must contain 6 digits."
+      );
+
       return;
     }
 
+
     try {
+
       setLoading(true);
 
-      const response = await axios.post(
-        `${API_URL}/api/auth/verify-otp`,
-        {
-          email,
-          otp
-        }
-      );
+
+      const response =
+        await axios.post(
+          `${API_URL}/api/auth/verify-otp`,
+          {
+            email,
+            otp
+          }
+        );
+
 
       setMessage(
         response.data.message ||
-          "Email verified successfully."
+        "Email verified successfully."
       );
+
+
+      // =========================================
+      // REMOVE PENDING VERIFICATION DATA
+      // =========================================
 
       localStorage.removeItem(
         "pendingVerificationEmail"
       );
 
+      localStorage.removeItem(
+        "pendingVerificationPhone"
+      );
+
+      localStorage.removeItem(
+        "pendingVerificationChannel"
+      );
+
+
+      // =========================================
+      // AUTOMATICALLY GO TO LOGIN
+      // =========================================
+
       setTimeout(() => {
+
         navigate("/login");
+
       }, 1500);
 
     } catch (error) {
+
       console.error(
         "OTP verification error:",
         error
       );
 
+
       setError(
         error.response?.data?.message ||
-          "Unable to verify your email."
+        "Unable to verify your email."
       );
+
     } finally {
+
       setLoading(false);
+
     }
+
   };
+
 
   // =========================================
   // RESEND OTP
   // =========================================
 
   const handleResend = async () => {
+
     setError("");
     setMessage("");
 
+
     if (!email) {
-      setError("Email address is missing.");
+
+      setError(
+        "Email address is missing."
+      );
+
       return;
     }
 
+
     try {
+
       setResending(true);
 
-      const response = await axios.post(
-        `${API_URL}/api/auth/resend-otp`,
-        {
-          email
-        }
-      );
+
+      const response =
+        await axios.post(
+          `${API_URL}/api/auth/resend-otp`,
+          {
+            email
+          }
+        );
+
+
+      const data =
+        response.data || {};
+
+
+      // =========================================
+      // IMPORTANT
+      //
+      // Backend now generates a new OTP and
+      // asks the user to choose the delivery
+      // method again.
+      // =========================================
+
+      if (
+        data.chooseVerificationMethod === true ||
+        data.requiresVerification === true
+      ) {
+
+        localStorage.setItem(
+          "pendingVerificationEmail",
+          data.email || email
+        );
+
+        localStorage.setItem(
+          "pendingVerificationPhone",
+          data.phone || ""
+        );
+
+        setMessage(
+          "A new verification code is ready. Please choose how you would like to receive it."
+        );
+
+        /*
+          We intentionally do not navigate
+          backward because the authentication
+          process no longer contains back buttons.
+          
+          The user can use the verification
+          method already selected for the
+          current OTP flow.
+        */
+
+        return;
+      }
+
 
       setMessage(
-        response.data.message ||
-          "A new verification code has been sent."
+        data.message ||
+        "A new verification code has been sent."
       );
 
     } catch (error) {
+
       console.error(
         "Resend OTP error:",
         error
       );
 
+
       setError(
         error.response?.data?.message ||
-          "Unable to resend verification code."
+        "Unable to resend verification code."
       );
+
     } finally {
+
       setResending(false);
+
     }
+
   };
+
 
   return (
     <section className="verify-otp-page">
@@ -144,19 +265,26 @@ function VerifyOTP() {
           ✉
         </div>
 
+
         <h1>
           Verify Your Email
         </h1>
+
 
         <p className="verify-description">
           We sent a 6-digit verification code to:
         </p>
 
+
         <strong className="verify-email">
-          {email || "your email address"}
+          {email ||
+            "your email address"}
         </strong>
 
-        <form onSubmit={handleVerify}>
+
+        <form
+          onSubmit={handleVerify}
+        >
 
           <div className="input-box">
 
@@ -164,44 +292,60 @@ function VerifyOTP() {
               Verification Code
             </label>
 
+
             <input
               type="text"
               inputMode="numeric"
               maxLength="6"
               value={otp}
               onChange={(e) => {
+
                 const value =
-                  e.target.value.replace(/\D/g, "");
+                  e.target.value.replace(
+                    /\D/g,
+                    ""
+                  );
 
                 setOtp(value);
+
               }}
               placeholder="Enter 6-digit code"
             />
 
           </div>
 
+
           {error && (
+
             <div className="verify-error">
               {error}
             </div>
+
           )}
 
+
           {message && (
+
             <div className="verify-success">
               {message}
             </div>
+
           )}
+
 
           <button
             type="submit"
             disabled={loading}
           >
+
             {loading
               ? "Verifying..."
               : "Verify Email"}
+
           </button>
 
         </form>
+
 
         <div className="resend-section">
 
@@ -209,26 +353,21 @@ function VerifyOTP() {
             Didn't receive the code?
           </p>
 
+
           <button
             type="button"
             className="resend-button"
             onClick={handleResend}
             disabled={resending}
           >
+
             {resending
               ? "Sending..."
               : "Resend OTP"}
+
           </button>
 
         </div>
-
-        <button
-          type="button"
-          className="back-login-button"
-          onClick={() => navigate("/login")}
-        >
-          Back to Login
-        </button>
 
       </div>
 

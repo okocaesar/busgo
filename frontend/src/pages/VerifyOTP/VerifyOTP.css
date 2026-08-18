@@ -211,23 +211,9 @@
   text-decoration: underline;
 }
 
-.back-login-button {
-  margin-top: 20px;
 
-  border: none;
 
-  background: transparent;
 
-  color: #555;
-
-  cursor: pointer;
-
-  font-size: 14px;
-}
-
-.back-login-button:hover {
-  color: #0b7d45;
-}
 
 @media (max-width: 500px) {
   .verify-otp-card {

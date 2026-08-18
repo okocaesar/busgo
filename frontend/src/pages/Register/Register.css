@@ -181,3 +181,305 @@
     text-decoration:none;
 
 }
+
+/* =========================================
+   VERIFICATION PAGE
+   ========================================= */
+
+.verification-page {
+  min-height: 100vh;
+  width: 100%;
+}
+
+
+/* =========================================
+   VERIFICATION OVERLAY
+   ========================================= */
+
+.verification-page .auth-overlay {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+}
+
+
+/* =========================================
+   VERIFICATION MODAL
+   ========================================= */
+
+.verification-method-modal {
+  width: 100%;
+  max-width: 500px;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 35px 30px;
+  text-align: center;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.30);
+  position: relative;
+  z-index: 10;
+  animation: verificationAppear 0.35s ease;
+}
+
+
+/* =========================================
+   MODAL ANIMATION
+   ========================================= */
+
+@keyframes verificationAppear {
+
+  from {
+    opacity: 0;
+    transform: translateY(25px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+}
+
+
+/* =========================================
+   ICON
+   ========================================= */
+
+.verification-method-icon {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef8f2;
+  font-size: 32px;
+}
+
+
+/* =========================================
+   TITLE
+   ========================================= */
+
+.verification-method-modal h2 {
+  margin: 0 0 12px;
+  font-size: 28px;
+  color: #111111;
+}
+
+
+.verification-method-modal > p {
+  margin: 7px 0;
+  color: #666666;
+  line-height: 1.6;
+}
+
+
+/* =========================================
+   EMAIL DISPLAY
+   ========================================= */
+
+.verification-email-display {
+  margin: 20px 0;
+  padding: 13px 15px;
+  border-radius: 10px;
+  background: #f3f7f5;
+  color: #0b7d45;
+  font-weight: 600;
+  word-break: break-word;
+}
+
+
+/* =========================================
+   METHOD BUTTON
+   ========================================= */
+
+.verification-method-btn {
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  padding: 17px;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+
+.verification-method-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+}
+
+
+.verification-method-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
+}
+
+
+/* =========================================
+   ICON
+   ========================================= */
+
+.verification-method-btn-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+
+/* =========================================
+   CONTENT
+   ========================================= */
+
+.verification-method-btn-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+
+.verification-method-btn-content strong {
+  font-size: 16px;
+  color: #222222;
+}
+
+
+.verification-method-btn-content small {
+  color: #777777;
+  line-height: 1.4;
+}
+
+
+/* =========================================
+   ARROW
+   ========================================= */
+
+.verification-method-arrow {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+
+/* =========================================
+   WHATSAPP
+   ========================================= */
+
+.whatsapp-method-btn {
+  background: #eaf8ef;
+}
+
+
+.whatsapp-method-btn .verification-method-btn-icon {
+  background: #d7f1df;
+}
+
+
+.whatsapp-method-btn .verification-method-arrow {
+  color: #0b7d45;
+}
+
+
+/* =========================================
+   EMAIL
+   ========================================= */
+
+.email-method-btn {
+  background: #eef4ff;
+}
+
+
+.email-method-btn .verification-method-btn-icon {
+  background: #dce8ff;
+}
+
+
+.email-method-btn .verification-method-arrow {
+  color: #2463d4;
+}
+
+
+/* =========================================
+   BACK BUTTON
+   ========================================= */
+
+.verification-method-cancel {
+  width: 100%;
+  margin-top: 18px;
+  border: none;
+  background: transparent;
+  color: #555555;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 12px;
+}
+
+
+.verification-method-cancel:hover {
+  color: #0b7d45;
+}
+
+
+.verification-method-cancel:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+
+/* =========================================
+   NOTE
+   ========================================= */
+
+.verification-method-note {
+  margin-top: 18px !important;
+  font-size: 13px;
+  color: #888888 !important;
+}
+
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media (max-width: 600px) {
+
+  .verification-page .auth-overlay {
+    padding: 18px 12px;
+  }
+
+  .verification-method-modal {
+    padding: 28px 18px;
+    border-radius: 20px;
+  }
+
+  .verification-method-modal h2 {
+    font-size: 23px;
+  }
+
+  .verification-method-btn {
+    padding: 14px;
+  }
+
+  .verification-method-btn-content small {
+    font-size: 12px;
+  }
+
+}

@@ -8,6 +8,7 @@ const {
   requireAuth
 } = require("../middleware/authMiddleware");
 
+
 // =========================================
 // REGISTER
 // POST /api/auth/register
@@ -20,13 +21,19 @@ router.post(
 
 
 // =========================================
+// SEND WHATSAPP OTP
+// POST /api/auth/send-whatsapp-otp
+// =========================================
+
+router.post(
+  "/send-whatsapp-otp",
+  authController.sendWhatsAppOTP
+);
+
+
+// =========================================
 // SEND EMAIL OTP
-//
 // POST /api/auth/send-email-otp
-//
-// IMPORTANT:
-// This is ONLY called after the user
-// explicitly chooses email fallback.
 // =========================================
 
 router.post(
@@ -37,7 +44,6 @@ router.post(
 
 // =========================================
 // VERIFY OTP
-//
 // POST /api/auth/verify-otp
 // =========================================
 
@@ -49,7 +55,6 @@ router.post(
 
 // =========================================
 // RESEND OTP
-//
 // POST /api/auth/resend-otp
 // =========================================
 
@@ -61,7 +66,6 @@ router.post(
 
 // =========================================
 // LOGIN
-//
 // POST /api/auth/login
 // =========================================
 
@@ -70,38 +74,11 @@ router.post(
   authController.login
 );
 
-// =========================================
-// GET PROFILE
-//
-// GET /api/auth/profile
-// Requires authentication
-// =========================================
-
-router.get(
-  "/profile",
-  require("../middleware/authMiddleware").requireAuth,
-  authController.getProfile
-);
-
-
-// =========================================
-// UPDATE PROFILE
-//
-// PUT /api/auth/profile
-// Requires authentication
-// =========================================
-
-router.put(
-  "/profile",
-  require("../middleware/authMiddleware").requireAuth,
-  authController.updateProfile
-);
-
 
 // =========================================
 // GET PROFILE
-//
 // GET /api/auth/profile
+// Requires authentication
 // =========================================
 
 router.get(
@@ -113,8 +90,8 @@ router.get(
 
 // =========================================
 // UPDATE PROFILE
-//
 // PUT /api/auth/profile
+// Requires authentication
 // =========================================
 
 router.put(
