@@ -2,20 +2,37 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 
 import "./index.css";
+
 import App from "./App";
+
+import AppUpdate
+  from "./components/AppUpdate/AppUpdate";
+
 
 // =========================================
 // RENDER BUSGO
 // =========================================
 
-const root = ReactDOM.createRoot(
-document.getElementById("root")
-);
+const root =
+  ReactDOM.createRoot(
+    document.getElementById("root")
+  );
+
 
 root.render(
-<React.StrictMode> <App />
-</React.StrictMode>
+
+  <React.StrictMode>
+
+    <AppUpdate>
+
+      <App />
+
+    </AppUpdate>
+
+  </React.StrictMode>
+
 );
+
 
 // =========================================
 // HIDE BUSGO SPLASH SCREEN
@@ -23,30 +40,39 @@ root.render(
 
 const hideSplashScreen = () => {
 
-const splash =
-document.getElementById("app-splash");
-
-if (!splash) {
-return;
-}
-
-setTimeout(() => {
+  const splash =
+    document.getElementById(
+      "app-splash"
+    );
 
 
-splash.classList.add("hidden");
-
-setTimeout(() => {
-
-  if (splash) {
-    splash.remove();
+  if (!splash) {
+    return;
   }
 
-}, 450);
+
+  setTimeout(() => {
+
+    splash.classList.add(
+      "hidden"
+    );
 
 
-}, 500);
+    setTimeout(() => {
+
+      if (splash) {
+
+        splash.remove();
+
+      }
+
+    }, 450);
+
+
+  }, 500);
 
 };
+
 
 // =========================================
 // REGISTER SERVICE WORKER
@@ -54,95 +80,122 @@ setTimeout(() => {
 
 const registerServiceWorker = () => {
 
-if (!("serviceWorker" in navigator)) {
-return;
-}
+  if (
+    !(
+      "serviceWorker" in
+      navigator
+    )
+  ) {
 
-navigator.serviceWorker
-.register("/service-worker.js")
-.then((registration) => {
+    return;
+
+  }
 
 
-  console.log(
-    "BusGo service worker registered:",
-    registration.scope
-  );
+  navigator.serviceWorker
+    .register(
+      "/service-worker.js"
+    )
 
-  // =====================================
-  // CHECK FOR UPDATED SERVICE WORKER
-  // =====================================
+    .then(
+      (registration) => {
 
-  registration.addEventListener(
-    "updatefound",
-    () => {
 
-      const newWorker =
-        registration.installing;
+        console.log(
+          "BusGo service worker registered:",
+          registration.scope
+        );
 
-      if (!newWorker) {
-        return;
-      }
 
-      newWorker.addEventListener(
-        "statechange",
-        () => {
+        // =====================================
+        // CHECK FOR UPDATED SERVICE WORKER
+        // =====================================
 
-          if (
-            newWorker.state ===
-            "installed"
-          ) {
+        registration.addEventListener(
+          "updatefound",
+          () => {
 
-            if (
-              navigator.serviceWorker
-                .controller
-            ) {
 
-              console.log(
-                "A new BusGo version is available."
-              );
+            const newWorker =
+              registration.installing;
 
-            } else {
 
-              console.log(
-                "BusGo is ready for offline use."
-              );
+            if (!newWorker) {
+
+              return;
 
             }
 
+
+            newWorker.addEventListener(
+              "statechange",
+              () => {
+
+
+                if (
+                  newWorker.state ===
+                  "installed"
+                ) {
+
+
+                  if (
+                    navigator
+                      .serviceWorker
+                      .controller
+                  ) {
+
+
+                    console.log(
+                      "A new BusGo version is available."
+                    );
+
+
+                  } else {
+
+
+                    console.log(
+                      "BusGo is ready for offline use."
+                    );
+
+                  }
+
+                }
+
+              }
+            );
+
           }
+        );
 
-        }
-      );
 
-    }
-  );
+      }
+    )
 
-})
-.catch((error) => {
+    .catch(
+      (error) => {
 
-  console.error(
-    "BusGo service worker registration failed:",
-    error
-  );
+        console.error(
+          "BusGo service worker registration failed:",
+          error
+        );
 
-});
-
+      }
+    );
 
 };
+
 
 // =========================================
 // APP STARTUP
 // =========================================
 
 window.addEventListener(
-"load",
-() => {
+  "load",
+  () => {
 
+    hideSplashScreen();
 
-hideSplashScreen();
+    registerServiceWorker();
 
-registerServiceWorker();
-
-
-}
+  }
 );

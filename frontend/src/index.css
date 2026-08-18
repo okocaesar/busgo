@@ -238,3 +238,17 @@ body {
 .app-page-wrapper > * {
   margin-top: 0;
 }
+
+/* =========================================
+   HIDE FOOTER ON MOBILE ONLY
+   DESKTOP REMAINS UNCHANGED
+========================================= */
+
+@media (max-width: 800px) {
+  footer,
+  .site-footer,
+  .footer,
+  .app-footer {
+    display: none !important;
+  }
+}

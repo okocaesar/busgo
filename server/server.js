@@ -183,7 +183,10 @@ app.use(
   require("./routes/adminRoutes")
 );
 
-
+app.use(
+  "/api/version",
+  require("./routes/versionRoutes")
+);
 
 // =========================================
 // ROOT

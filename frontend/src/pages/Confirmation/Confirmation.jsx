@@ -1,5 +1,11 @@
-import React, { useState } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState
+} from "react";
+
 import axios from "axios";
+
 import {
   useLocation,
   NavLink,
@@ -12,16 +18,69 @@ import { QRCodeCanvas } from "qrcode.react";
 
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
+
 import { API_URL } from "../../api";
 
+import { useLanguage } from "../../context/LanguageContext";
+
 import "./Confirmation.css";
+
 
 function Confirmation() {
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  const booking = location.state;
+  const { t } = useLanguage();
+
+
+  // =========================================
+  // TEMPORARY CONFIRMATION STORAGE KEY
+  // =========================================
+
+  const CONFIRMATION_STORAGE_KEY =
+    "busgo_confirmation_booking";
+
+  const TICKET_STORAGE_KEY =
+    "busgo_confirmation_ticket";
+
+
+  // =========================================
+  // BOOKING DATA
+  // =========================================
+
+  const [booking, setBooking] = useState(() => {
+
+    if (location.state) {
+      return location.state;
+    }
+
+    try {
+
+      const savedBooking =
+        sessionStorage.getItem(
+          CONFIRMATION_STORAGE_KEY
+        );
+
+      if (!savedBooking) {
+        return null;
+      }
+
+      return JSON.parse(savedBooking);
+
+    } catch (error) {
+
+      console.error(
+        "Unable to restore confirmation booking:",
+        error
+      );
+
+      return null;
+
+    }
+
+  });
+
 
   // =========================================
   // TICKET NUMBER
@@ -29,13 +88,50 @@ function Confirmation() {
 
   const [ticketNumber] = useState(() => {
 
-    return (
+    try {
+
+      const savedTicket =
+        sessionStorage.getItem(
+          TICKET_STORAGE_KEY
+        );
+
+      if (savedTicket) {
+        return savedTicket;
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Unable to restore ticket number:",
+        error
+      );
+
+    }
+
+    const generatedTicket =
       "BG-" +
       Math.floor(
         100000 +
         Math.random() * 900000
-      )
-    );
+      );
+
+    try {
+
+      sessionStorage.setItem(
+        TICKET_STORAGE_KEY,
+        generatedTicket
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Unable to save ticket number:",
+        error
+      );
+
+    }
+
+    return generatedTicket;
 
   });
 
@@ -44,247 +140,65 @@ function Confirmation() {
   // SAVING STATE
   // =========================================
 
-  const [saving, setSaving] = useState(false);
+  const [saving, setSaving] =
+    useState(false);
 
 
   // =========================================
-  // PRICE VALUES
+  // CONFIRMATION SUCCESS
   // =========================================
 
-  const totalPrice = Number(
-    booking?.totalPrice ??
-    booking?.total ??
-    0
-  );
-
-  const discount = Number(
-    booking?.discount ?? 0
-  );
-
-  const discountPercentage = Number(
-    booking?.discountPercentage ?? 0
-  );
-
-  const totalPayment = Number(
-    booking?.totalPayment ??
-    Math.max(
-      0,
-      totalPrice - discount
-    )
-  );
+  const [confirmed, setConfirmed] =
+    useState(false);
 
 
   // =========================================
-  // QR CODE DATA
+  // SAVE BOOKING TO SESSION STORAGE
   // =========================================
 
-  const qrData = `
-BUSGO TICKET
-
-Ticket: ${ticketNumber}
-
-Passenger: ${booking?.name || ""}
-
-Phone: ${booking?.phone || ""}
-
-Route:
-${booking?.from || ""} → ${booking?.to || ""}
-
-Bus:
-${booking?.busType || ""}
-
-Seats:
-${booking?.seats?.join(", ") || ""}
-
-Date:
-${booking?.date || ""}
-
-Total Price:
-XAF ${totalPrice.toLocaleString("en-GB")}
-
-Discount:
-XAF ${discount.toLocaleString("en-GB")}
-
-Total Payment:
-XAF ${totalPayment.toLocaleString("en-GB")}
-
-Payment Method:
-${booking?.paymentMethod || ""}
-`;
-
-
-  // =========================================
-  // CONFIRM BOOKING
-  // =========================================
-
-  const confirmBooking = async () => {
-
-    // =========================================
-    // PREVENT DOUBLE CLICK
-    // =========================================
-
-    if (saving) {
-      return;
-    }
-
-
-    // =========================================
-    // CHECK BOOKING DATA
-    // =========================================
+  useEffect(() => {
 
     if (!booking) {
+      return;
+    }
 
-      alert(
-        "No booking information found."
+    try {
+
+      sessionStorage.setItem(
+        CONFIRMATION_STORAGE_KEY,
+        JSON.stringify(booking)
       );
 
-      navigate("/booking");
+    } catch (error) {
 
-      return;
+      console.error(
+        "Unable to save confirmation booking:",
+        error
+      );
 
     }
 
-
-    // =========================================
-    // GET CURRENT USER
-    // =========================================
-
-    const currentUser = JSON.parse(
-      localStorage.getItem("currentUser") || "null"
-    );
+  }, [booking]);
 
 
-    if (!currentUser) {
+  // =========================================
+  // NORMALISE SEATS
+  // =========================================
 
-      alert(
-        "Please login before confirming your booking."
-      );
-
-      navigate("/login");
-
-      return;
-
-    }
-
-
-    // =========================================
-    // GET AUTH TOKEN
-    // =========================================
-
-    const authToken =
-      localStorage.getItem("authToken");
-
-
-    if (!authToken) {
-
-      alert(
-        "Your login session has expired. Please login again."
-      );
-
-      navigate("/login");
-
-      return;
-
-    }
-
-
-    // =========================================
-    // VALIDATE BOOKING INFORMATION
-    // =========================================
-
-    if (!booking.from || !booking.to) {
-
-      alert(
-        "Booking route information is missing."
-      );
-
-      return;
-
-    }
-
-
-    // =========================================
-    // ROUTE ID
-    //
-    // IMPORTANT:
-    // Booking.jsx sends routeId.
-    // The backend also independently verifies
-    // the route using from + to.
-    // =========================================
-
-    if (!booking.routeId) {
-
-      alert(
-        "Route information is missing. Please return to booking and try again."
-      );
-
-      return;
-
-    }
-
-
-    // =========================================
-    // BUS
-    // =========================================
-
-    if (!booking.busType) {
-
-      alert(
-        "Bus type is missing."
-      );
-
-      return;
-
-    }
-
-
-    // =========================================
-    // BUS ID
-    //
-    // IMPORTANT:
-    // Booking.jsx sends busId.
-    // The backend independently resolves
-    // the bus as an additional protection.
-    // =========================================
-
-    if (!booking.busId) {
-
-      alert(
-        "Bus information is missing. Please return to booking and try again."
-      );
-
-      return;
-
-    }
-
-
-    // =========================================
-    // SEATS
-    // =========================================
+  const normalizedSeats = useMemo(() => {
 
     if (
-      !Array.isArray(booking.seats) ||
-      booking.seats.length === 0
+      !Array.isArray(
+        booking?.seats
+      )
     ) {
-
-      alert(
-        "No seats have been selected."
-      );
-
-      return;
-
+      return [];
     }
 
-
-    // =========================================
-    // NORMALIZE SEATS
-    // =========================================
-
-    const normalizedSeats = [
+    return [
       ...new Set(
 
         booking.seats
-
           .map((seat) => {
 
             if (
@@ -303,7 +217,6 @@ ${booking?.paymentMethod || ""}
             return Number(seat);
 
           })
-
           .filter(
             (seat) =>
               Number.isInteger(seat) &&
@@ -313,11 +226,337 @@ ${booking?.paymentMethod || ""}
       )
     ];
 
+  }, [booking]);
 
-    if (normalizedSeats.length === 0) {
+
+  // =========================================
+  // PRICE VALUES
+  // =========================================
+
+  const totalPrice = Number(
+    booking?.totalPrice ??
+    booking?.total ??
+    0
+  );
+
+  const discount = Number(
+    booking?.discount ?? 0
+  );
+
+  const discountPercentage = Number(
+    booking?.discountPercentage ??
+    booking?.discount_percentage ??
+    0
+  );
+
+  const totalPayment = Number(
+    booking?.totalPayment ??
+    Math.max(
+      0,
+      totalPrice - discount
+    )
+  );
+
+
+  // =========================================
+  // QR CODE DATA
+  // =========================================
+
+  const qrData = useMemo(() => {
+
+    return `
+BUSGO TICKET
+
+${t("ticketNo")}: ${ticketNumber}
+
+${t("passenger")}: ${booking?.name || ""}
+
+${t("phone")}: ${booking?.phone || ""}
+
+${t("route")}:
+${booking?.from || ""} → ${booking?.to || ""}
+
+${t("busType")}:
+${booking?.busType || ""}
+
+${t("seats")}:
+${normalizedSeats.join(", ")}
+
+${t("travelDate")}:
+${booking?.date || ""}
+
+${t("totalPrice")}:
+XAF ${totalPrice.toLocaleString("en-GB")}
+
+${t("discount")}:
+XAF ${discount.toLocaleString("en-GB")}
+
+${t("totalPayment")}:
+XAF ${totalPayment.toLocaleString("en-GB")}
+
+${t("paymentMethod")}:
+${booking?.paymentMethod || ""}
+`;
+
+  }, [
+    booking,
+    ticketNumber,
+    normalizedSeats,
+    totalPrice,
+    discount,
+    totalPayment,
+    t
+  ]);
+
+
+  // =========================================
+  // CLEAR TEMPORARY CONFIRMATION DATA
+  // =========================================
+
+  const clearConfirmationStorage = () => {
+
+    try {
+
+      sessionStorage.removeItem(
+        CONFIRMATION_STORAGE_KEY
+      );
+
+      sessionStorage.removeItem(
+        TICKET_STORAGE_KEY
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Unable to clear confirmation storage:",
+        error
+      );
+
+    }
+
+  };
+
+
+  // =========================================
+  // HANDLE AUTH SESSION EXPIRATION
+  // =========================================
+
+  const handleSessionExpired = () => {
+
+    localStorage.removeItem(
+      "loggedIn"
+    );
+
+    localStorage.removeItem(
+      "currentUser"
+    );
+
+    localStorage.removeItem(
+      "authToken"
+    );
+
+    navigate("/login");
+
+  };
+
+
+  // =========================================
+  // CONFIRM BOOKING
+  // =========================================
+
+  const confirmBooking = async () => {
+
+    if (saving) {
+      return;
+    }
+
+
+    // =========================================
+    // CHECK BOOKING
+    // =========================================
+
+    if (!booking) {
 
       alert(
-        "No valid seats have been selected."
+        t("noBookingInformation")
+      );
+
+      navigate("/booking");
+
+      return;
+
+    }
+
+
+    // =========================================
+    // GET CURRENT USER
+    // =========================================
+
+    let currentUser = null;
+
+    try {
+
+      currentUser = JSON.parse(
+        localStorage.getItem(
+          "currentUser"
+        ) || "null"
+      );
+
+    } catch {
+
+      currentUser = null;
+
+    }
+
+
+    if (!currentUser?.id) {
+
+      alert(
+        t("loginBeforeConfirmation")
+      );
+
+      navigate("/login");
+
+      return;
+
+    }
+
+
+    // =========================================
+    // GET AUTH TOKEN
+    // =========================================
+
+    const authToken =
+      localStorage.getItem(
+        "authToken"
+      );
+
+    if (!authToken) {
+
+      alert(
+        t("sessionExpired")
+      );
+
+      handleSessionExpired();
+
+      return;
+
+    }
+
+
+    // =========================================
+    // VALIDATE ROUTE
+    // =========================================
+
+    if (
+      !booking.from ||
+      !booking.to
+    ) {
+
+      alert(
+        t("routeInformationMissing")
+      );
+
+      return;
+
+    }
+
+
+    // =========================================
+    // ROUTE ID
+    // =========================================
+
+    if (!booking.routeId) {
+
+      alert(
+        t("routeIdMissing")
+      );
+
+      return;
+
+    }
+
+
+    // =========================================
+    // BUS TYPE
+    // =========================================
+
+    if (!booking.busType) {
+
+      alert(
+        t("busTypeMissing")
+      );
+
+      return;
+
+    }
+
+
+    // =========================================
+    // BUS ID
+    // =========================================
+
+    if (!booking.busId) {
+
+      alert(
+        t("busInformationMissing")
+      );
+
+      return;
+
+    }
+
+
+    // =========================================
+    // SEATS
+    // =========================================
+
+    if (
+      normalizedSeats.length === 0
+    ) {
+
+      alert(
+        t("noValidSeats")
+      );
+
+      return;
+
+    }
+
+
+    // =========================================
+    // PASSENGER COUNT
+    // =========================================
+
+    const passengerCount =
+      Number(
+        booking.passengers ??
+        normalizedSeats.length
+      );
+
+    if (
+      !Number.isInteger(
+        passengerCount
+      ) ||
+      passengerCount <= 0
+    ) {
+
+      alert(
+        t("invalidPassengerCount")
+      );
+
+      return;
+
+    }
+
+
+    if (
+      passengerCount !==
+      normalizedSeats.length
+    ) {
+
+      alert(
+        t("passengerSeatMismatch")
       );
 
       return;
@@ -332,7 +571,7 @@ ${booking?.paymentMethod || ""}
     if (!booking.date) {
 
       alert(
-        "Travel date is missing."
+        t("travelDateMissing")
       );
 
       return;
@@ -344,10 +583,14 @@ ${booking?.paymentMethod || ""}
     // PASSENGER NAME
     // =========================================
 
-    if (!booking.name) {
+    if (
+      !String(
+        booking.name || ""
+      ).trim()
+    ) {
 
       alert(
-        "Passenger name is missing."
+        t("passengerNameMissing")
       );
 
       return;
@@ -359,10 +602,14 @@ ${booking?.paymentMethod || ""}
     // PHONE
     // =========================================
 
-    if (!booking.phone) {
+    if (
+      !String(
+        booking.phone || ""
+      ).trim()
+    ) {
 
       alert(
-        "Passenger phone is missing."
+        t("passengerPhoneMissing")
       );
 
       return;
@@ -377,7 +624,7 @@ ${booking?.paymentMethod || ""}
     if (!booking.paymentMethod) {
 
       alert(
-        "Payment method is missing."
+        t("paymentMethodMissing")
       );
 
       return;
@@ -389,10 +636,15 @@ ${booking?.paymentMethod || ""}
     // PAYMENT AMOUNT
     // =========================================
 
-    if (totalPayment <= 0) {
+    if (
+      !Number.isFinite(
+        totalPayment
+      ) ||
+      totalPayment <= 0
+    ) {
 
       alert(
-        "Invalid payment amount."
+        t("invalidPaymentAmount")
       );
 
       return;
@@ -404,10 +656,6 @@ ${booking?.paymentMethod || ""}
 
       setSaving(true);
 
-
-      // =========================================
-      // DEBUG
-      // =========================================
 
       console.log(
         "========================================="
@@ -424,6 +672,11 @@ ${booking?.paymentMethod || ""}
       console.log(
         "Booking data:",
         booking
+      );
+
+      console.log(
+        "User ID:",
+        currentUser.id
       );
 
       console.log(
@@ -446,24 +699,16 @@ ${booking?.paymentMethod || ""}
         booking.date
       );
 
+      console.log(
+        "Total Payment:",
+        totalPayment
+      );
+
 
       // =========================================
       // STEP 1
       // CREATE BOOKING
       // =========================================
-
-      console.log(
-        "========================================="
-      );
-
-      console.log(
-        "CREATING BUSGO BOOKING"
-      );
-
-      console.log(
-        "========================================="
-      );
-
 
       const bookingResponse =
         await axios.post(
@@ -472,36 +717,17 @@ ${booking?.paymentMethod || ""}
 
           {
 
-            // =====================================
-            // TICKET
-            // =====================================
-
             ticketNumber:
               ticketNumber,
 
-
-            // =====================================
-            // USER
-            // =====================================
-
             userId:
               currentUser.id,
-
-
-            // =====================================
-            // PASSENGER
-            // =====================================
 
             name:
               booking.name,
 
             phone:
               booking.phone,
-
-
-            // =====================================
-            // ROUTE
-            // =====================================
 
             from:
               booking.from,
@@ -512,48 +738,20 @@ ${booking?.paymentMethod || ""}
             routeId:
               booking.routeId,
 
-
-            // =====================================
-            // BUS
-            // =====================================
-
             busType:
               booking.busType,
 
             busId:
               booking.busId,
 
-
-            // =====================================
-            // SEATS
-            // =====================================
-
             seats:
               normalizedSeats,
 
-
-            // =====================================
-            // PASSENGERS
-            // =====================================
-
             passengers:
-              Number(
-                booking.passengers ??
-                normalizedSeats.length
-              ),
-
-
-            // =====================================
-            // DATE
-            // =====================================
+              passengerCount,
 
             date:
               booking.date,
-
-
-            // =====================================
-            // PRICE
-            // =====================================
 
             totalPrice:
               totalPrice,
@@ -567,22 +765,13 @@ ${booking?.paymentMethod || ""}
             totalPayment:
               totalPayment,
 
-
-            // =====================================
-            // OFFER
-            // =====================================
-
             offerId:
-              booking.offerId || null,
+              booking.offerId ||
+              null,
 
             offerTitle:
               booking.offerTitle ||
               "No Offer",
-
-
-            // =====================================
-            // PAYMENT
-            // =====================================
 
             paymentStatus:
               "Successful",
@@ -610,7 +799,9 @@ ${booking?.paymentMethod || ""}
       // =========================================
 
       const bookingId =
-        bookingResponse.data?.bookingId;
+        bookingResponse.data?.bookingId ||
+        bookingResponse.data?.id ||
+        bookingResponse.data?.booking?.id;
 
 
       if (!bookingId) {
@@ -622,41 +813,10 @@ ${booking?.paymentMethod || ""}
       }
 
 
-      console.log(
-        "========================================="
-      );
-
-      console.log(
-        "BOOKING CREATED SUCCESSFULLY"
-      );
-
-      console.log(
-        "Booking ID:",
-        bookingId
-      );
-
-      console.log(
-        "========================================="
-      );
-
-
       // =========================================
       // STEP 2
       // CREATE PAYMENT RECORD
       // =========================================
-
-      console.log(
-        "========================================="
-      );
-
-      console.log(
-        "CREATING PAYMENT RECORD"
-      );
-
-      console.log(
-        "========================================="
-      );
-
 
       const paymentResponse =
         await axios.post(
@@ -665,49 +825,20 @@ ${booking?.paymentMethod || ""}
 
           {
 
-            // =====================================
-            // USER
-            // =====================================
-
             userId:
               currentUser.id,
-
-
-            // =====================================
-            // BOOKING
-            // =====================================
 
             bookingId:
               bookingId,
 
-
-            // =====================================
-            // PAYMENT AMOUNT
-            // =====================================
-
             amount:
               totalPayment,
-
-
-            // =====================================
-            // CURRENCY
-            // =====================================
 
             currency:
               "XAF",
 
-
-            // =====================================
-            // PAYMENT METHOD
-            // =====================================
-
             paymentMethod:
               booking.paymentMethod,
-
-
-            // =====================================
-            // PHONE
-            // =====================================
 
             phoneNumber:
               booking.phone
@@ -738,27 +869,35 @@ ${booking?.paymentMethod || ""}
       // SUCCESS
       // =========================================
 
-      console.log(
-        "========================================="
-      );
+      setConfirmed(true);
 
-      console.log(
-        "BOOKING + PAYMENT SUCCESSFUL"
-      );
+      clearConfirmationStorage();
 
-      console.log(
-        "========================================="
+
+      setBooking(
+        (currentBooking) => ({
+          ...currentBooking,
+
+          ticketNumber:
+            ticketNumber,
+
+          paymentStatus:
+            "Successful",
+
+          bookingStatus:
+            "Confirmed",
+
+          bookingId:
+            bookingId
+
+        })
       );
 
 
       alert(
-        "Booking and payment confirmed successfully!"
+        t("bookingPaymentSuccessful")
       );
 
-
-      // =========================================
-      // GO TO DASHBOARD
-      // =========================================
 
       navigate(
         "/dashboard"
@@ -767,55 +906,33 @@ ${booking?.paymentMethod || ""}
 
     } catch (error) {
 
-      // =========================================
-      // ERROR LOGGING
-      // =========================================
-
       console.error(
-        "========================================="
-      );
-
-      console.error(
-        "BUSGO BOOKING/PAYMENT ERROR"
-      );
-
-      console.error(
-        "========================================="
-      );
-
-      console.error(
-        "Error message:",
-        error.message
-      );
-
-      console.error(
-        "HTTP status:",
-        error.response?.status
-      );
-
-      console.error(
-        "Server response:",
-        error.response?.data
-      );
-
-      console.error(
-        "Full error:",
+        "BUSGO BOOKING/PAYMENT ERROR",
         error
       );
 
 
       // =========================================
-      // SEAT CONFLICT — HTTP 409
-      //
-      // THIS IS THE IMPORTANT PART.
-      //
-      // If another user booked the same seat
-      // between the availability check and this
-      // confirmation request, the backend returns:
-      //
-      // 409 Conflict
-      //
-      // The booking is NOT created.
+      // AUTHORIZATION ERROR
+      // =========================================
+
+      if (
+        error.response?.status === 401
+      ) {
+
+        alert(
+          t("sessionExpired")
+        );
+
+        handleSessionExpired();
+
+        return;
+
+      }
+
+
+      // =========================================
+      // SEAT CONFLICT
       // =========================================
 
       if (
@@ -824,29 +941,32 @@ ${booking?.paymentMethod || ""}
 
         const conflictMessage =
           error.response.data?.message ||
-          "One or more selected seats have already been booked.";
+          t("seatAlreadyBooked");
+
 
         const conflictSeats =
-          error.response.data?.bookedSeats || [];
+          error.response.data?.bookedSeats ||
+          [];
 
 
         if (
-          Array.isArray(conflictSeats) &&
+          Array.isArray(
+            conflictSeats
+          ) &&
           conflictSeats.length > 0
         ) {
 
           alert(
-            `${conflictMessage}\n\nBooked seat(s): ${conflictSeats.join(", ")}\n\nPlease return to the booking page and select another seat.`
+            `${conflictMessage}\n\n${t("bookedSeats")}: ${conflictSeats.join(", ")}\n\n${t("selectAnotherSeat")}`
           );
 
         } else {
 
           alert(
-            `${conflictMessage}\n\nPlease return to the booking page and select another seat.`
+            `${conflictMessage}\n\n${t("selectAnotherSeat")}`
           );
 
         }
-
 
         return;
 
@@ -861,7 +981,7 @@ ${booking?.paymentMethod || ""}
 
         const serverMessage =
           error.response.data?.message ||
-          "Unable to save booking.";
+          t("unableSaveBooking");
 
 
         const serverError =
@@ -883,6 +1003,8 @@ ${booking?.paymentMethod || ""}
 
         }
 
+        return;
+
       }
 
 
@@ -890,13 +1012,9 @@ ${booking?.paymentMethod || ""}
       // NETWORK ERROR
       // =========================================
 
-      else {
-
-        alert(
-          "Unable to connect to the BusGo server."
-        );
-
-      }
+      alert(
+        t("serverConnectionError")
+      );
 
     } finally {
 
@@ -911,7 +1029,7 @@ ${booking?.paymentMethod || ""}
   // DOWNLOAD TICKET
   // =========================================
 
-  const downloadTicket = () => {
+  const downloadTicket = async () => {
 
     const ticket =
       document.getElementById(
@@ -922,7 +1040,7 @@ ${booking?.paymentMethod || ""}
     if (!ticket) {
 
       alert(
-        "Ticket could not be found."
+        t("ticketNotFound")
       );
 
       return;
@@ -930,69 +1048,71 @@ ${booking?.paymentMethod || ""}
     }
 
 
-    html2canvas(
-      ticket,
-      {
-        scale: 2,
-        useCORS: true
-      }
-    )
+    try {
 
-      .then((canvas) => {
-
-        const imgData =
-          canvas.toDataURL(
-            "image/png"
-          );
-
-
-        const pdf =
-          new jsPDF(
-            "p",
-            "mm",
-            "a4"
-          );
-
-
-        const width = 190;
-
-
-        const height =
-          (
-            canvas.height *
-            width
-          ) /
-          canvas.width;
-
-
-        pdf.addImage(
-          imgData,
-          "PNG",
-          10,
-          10,
-          width,
-          height
+      const canvas =
+        await html2canvas(
+          ticket,
+          {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#ffffff"
+          }
         );
 
 
-        pdf.save(
-          `BusGo-${ticketNumber}.pdf`
+      const imgData =
+        canvas.toDataURL(
+          "image/png"
         );
 
-      })
 
-      .catch((error) => {
-
-        console.error(
-          "PDF download error:",
-          error
+      const pdf =
+        new jsPDF(
+          "p",
+          "mm",
+          "a4"
         );
 
-        alert(
-          "Unable to download the ticket."
-        );
 
-      });
+      const width = 190;
+
+
+      const height =
+        (
+          canvas.height *
+          width
+        ) /
+        canvas.width;
+
+
+      pdf.addImage(
+        imgData,
+        "PNG",
+        10,
+        10,
+        width,
+        height
+      );
+
+
+      pdf.save(
+        `BusGo-${ticketNumber}.pdf`
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "PDF download error:",
+        error
+      );
+
+      alert(
+        t("ticketDownloadError")
+      );
+
+    }
 
   };
 
@@ -1009,22 +1129,23 @@ ${booking?.paymentMethod || ""}
 
         <Navbar />
 
-
         <div className="empty-booking">
 
           <h2>
-            No booking found
+            {t("noBookingFound")}
           </h2>
 
+          <p>
+            {t("bookingNoLongerAvailable")}
+          </p>
 
           <NavLink to="/booking">
 
-            Make Booking
+            {t("makeBooking")}
 
           </NavLink>
 
         </div>
-
 
         <Footer />
 
@@ -1059,9 +1180,7 @@ ${booking?.paymentMethod || ""}
         >
 
 
-          {/* =====================================
-              HEADER
-          ===================================== */}
+          {/* HEADER */}
 
           <div className="ticket-header">
 
@@ -1070,19 +1189,17 @@ ${booking?.paymentMethod || ""}
             </h1>
 
             <p>
-              BUS TRANSPORT RESERVATION
+              {t("busTransportReservation")}
             </p>
 
           </div>
 
 
-          {/* =====================================
-              TICKET NUMBER
-          ===================================== */}
+          {/* TICKET NUMBER */}
 
           <div className="ticket-number">
 
-            Ticket No:
+            {t("ticketNo")}:
 
             <strong>
               {ticketNumber}
@@ -1091,16 +1208,14 @@ ${booking?.paymentMethod || ""}
           </div>
 
 
-          {/* =====================================
-              ROUTE
-          ===================================== */}
+          {/* ROUTE */}
 
           <div className="route-box">
 
             <div>
 
               <small>
-                FROM
+                {t("from").toUpperCase()}
               </small>
 
               <h2>
@@ -1118,7 +1233,7 @@ ${booking?.paymentMethod || ""}
             <div>
 
               <small>
-                TO
+                {t("to").toUpperCase()}
               </small>
 
               <h2>
@@ -1130,9 +1245,7 @@ ${booking?.paymentMethod || ""}
           </div>
 
 
-          {/* =====================================
-              DETAILS
-          ===================================== */}
+          {/* DETAILS */}
 
           <div className="details">
 
@@ -1142,7 +1255,7 @@ ${booking?.paymentMethod || ""}
             <p>
 
               <span>
-                Passenger
+                {t("passenger")}
               </span>
 
               {booking.name}
@@ -1155,7 +1268,7 @@ ${booking?.paymentMethod || ""}
             <p>
 
               <span>
-                Phone
+                {t("phone")}
               </span>
 
               {booking.phone}
@@ -1168,7 +1281,7 @@ ${booking?.paymentMethod || ""}
             <p>
 
               <span>
-                Bus Type
+                {t("busType")}
               </span>
 
               {booking.busType}
@@ -1176,16 +1289,34 @@ ${booking?.paymentMethod || ""}
             </p>
 
 
+            {/* BUS ID */}
+
+            {booking.busId && (
+
+              <p>
+
+                <span>
+                  {t("busId")}
+                </span>
+
+                {booking.busId}
+
+              </p>
+
+            )}
+
+
             {/* SEATS */}
 
             <p>
 
               <span>
-                Seats
+                {t("seats")}
               </span>
 
-              {booking.seats?.join(", ") ||
-                "Not selected"}
+              {normalizedSeats.join(
+                ", "
+              ) || t("notSelected")}
 
             </p>
 
@@ -1195,12 +1326,11 @@ ${booking?.paymentMethod || ""}
             <p>
 
               <span>
-                Passengers
+                {t("passengers")}
               </span>
 
               {booking.passengers ??
-                booking.seats?.length ??
-                0}
+                normalizedSeats.length}
 
             </p>
 
@@ -1210,7 +1340,7 @@ ${booking?.paymentMethod || ""}
             <p>
 
               <span>
-                Travel Date
+                {t("travelDate")}
               </span>
 
               {booking.date}
@@ -1223,7 +1353,7 @@ ${booking?.paymentMethod || ""}
             <p>
 
               <span>
-                Payment
+                {t("payment")}
               </span>
 
               {booking.paymentMethod}
@@ -1240,7 +1370,7 @@ ${booking?.paymentMethod || ""}
               <p>
 
                 <span>
-                  Offer
+                  {t("offer")}
                 </span>
 
                 <strong
@@ -1249,9 +1379,8 @@ ${booking?.paymentMethod || ""}
 
                   {booking.offerTitle}
 
-
                   {discountPercentage > 0 &&
-                    ` (${discountPercentage}% OFF)`}
+                    ` (${discountPercentage}% ${t("off")})`}
 
                 </strong>
 
@@ -1265,12 +1394,14 @@ ${booking?.paymentMethod || ""}
             <p>
 
               <span>
-                Status
+                {t("status")}
               </span>
 
               <span className="paid">
 
-                Successful ✓
+                {confirmed
+                  ? t("successful")
+                  : t("readyForConfirmation")}
 
               </span>
 
@@ -1280,19 +1411,15 @@ ${booking?.paymentMethod || ""}
           </div>
 
 
-          {/* =====================================
-              PRICE BREAKDOWN
-          ===================================== */}
+          {/* PRICE BREAKDOWN */}
 
           <div className="ticket-price-breakdown">
 
 
-            {/* TOTAL PRICE */}
-
             <div className="ticket-price-row">
 
               <span>
-                Total Price
+                {t("totalPrice")}
               </span>
 
               <strong>
@@ -1308,8 +1435,6 @@ ${booking?.paymentMethod || ""}
             </div>
 
 
-            {/* DISCOUNT */}
-
             <div
               className="
                 ticket-price-row
@@ -1319,7 +1444,7 @@ ${booking?.paymentMethod || ""}
 
               <span>
 
-                Discount
+                {t("discount")}
 
                 {discountPercentage > 0 &&
                   ` (${discountPercentage}%)`}
@@ -1340,16 +1465,12 @@ ${booking?.paymentMethod || ""}
             </div>
 
 
-            {/* DIVIDER */}
-
             <div
               className="
                 ticket-price-divider
               "
             ></div>
 
-
-            {/* FINAL PRICE */}
 
             <div
               className="
@@ -1358,9 +1479,8 @@ ${booking?.paymentMethod || ""}
             >
 
               <span>
-                TOTAL PAYMENT
+                {t("totalPayment").toUpperCase()}
               </span>
-
 
               <h2>
 
@@ -1378,9 +1498,7 @@ ${booking?.paymentMethod || ""}
           </div>
 
 
-          {/* =====================================
-              QR CODE
-          ===================================== */}
+          {/* QR CODE */}
 
           <div className="qr-box">
 
@@ -1399,13 +1517,11 @@ ${booking?.paymentMethod || ""}
           </div>
 
 
-          {/* =====================================
-              THANK YOU
-          ===================================== */}
+          {/* THANK YOU */}
 
           <p className="thank">
 
-            Thank you for travelling with BusGo
+            {t("thankYouBusGo")}
 
           </p>
 
@@ -1413,9 +1529,7 @@ ${booking?.paymentMethod || ""}
         </div>
 
 
-        {/* =====================================
-            ACTION BUTTONS
-        ===================================== */}
+        {/* ACTION BUTTONS */}
 
 
         <button
@@ -1424,11 +1538,13 @@ ${booking?.paymentMethod || ""}
 
           className="download-btn"
 
-          onClick={downloadTicket}
+          onClick={
+            downloadTicket
+          }
 
         >
 
-          Download Ticket PDF
+          {t("downloadTicketPdf")}
 
         </button>
 
@@ -1445,28 +1561,57 @@ ${booking?.paymentMethod || ""}
 
         >
 
-          Print Ticket
+          {t("printTicket")}
 
         </button>
 
 
-        <button
+        {!confirmed && (
 
-          type="button"
+          <button
 
-          className="confirm-btn"
+            type="button"
 
-          onClick={confirmBooking}
+            className="confirm-btn"
 
-          disabled={saving}
+            onClick={
+              confirmBooking
+            }
 
-        >
+            disabled={saving}
 
-          {saving
-            ? "Saving Booking..."
-            : "Confirm Booking"}
+          >
 
-        </button>
+            {saving
+              ? t("savingBooking")
+              : t("confirmBooking")}
+
+          </button>
+
+        )}
+
+
+        {confirmed && (
+
+          <button
+
+            type="button"
+
+            className="confirm-btn"
+
+            onClick={() =>
+              navigate(
+                "/dashboard"
+              )
+            }
+
+          >
+
+            {t("goToDashboard")}
+
+          </button>
+
+        )}
 
 
       </section>
@@ -1479,5 +1624,6 @@ ${booking?.paymentMethod || ""}
   );
 
 }
+
 
 export default Confirmation;

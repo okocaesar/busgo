@@ -1,4 +1,3 @@
-
 import React, {
   useCallback,
   useEffect,
@@ -38,19 +37,113 @@ function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   // =========================================
-  // NAVBAR VISIBILITY
-  //
-  // false = visible
-  // true  = hidden
+  // LANGUAGE
   // =========================================
 
-  const [navbarHidden, setNavbarHidden] = useState(false);
+  const [language, setLanguage] = useState(
+    localStorage.getItem("appLanguage") || "en"
+  );
+
+  const [showLanguageOptions, setShowLanguageOptions] =
+    useState(false);
+
+  // =========================================
+  // TRANSLATIONS
+  // =========================================
+
+  const translations = {
+
+    en: {
+
+      dashboard: "Dashboard",
+      routes: "Routes",
+      offers: "Offers",
+      about: "About Us",
+      profile: "Profile",
+
+      notifications: "Notifications",
+      notification: "Notification",
+
+      login: "Login",
+      register: "Register",
+      logout: "Logout",
+
+      report: "Report",
+
+      language: "Language",
+      english: "English",
+      french: "Français",
+
+      appVersion: "App Version",
+
+      mobileNavigation: "Mobile navigation",
+
+      unreadNotification:
+        "unread notification",
+
+      unreadNotifications:
+        "unread notifications"
+
+    },
+
+    fr: {
+
+      dashboard: "Tableau de bord",
+      routes: "Itinéraires",
+      offers: "Offres",
+      about: "À propos",
+      profile: "Profil",
+
+      notifications: "Notifications",
+      notification: "Notification",
+
+      login: "Connexion",
+      register: "Inscription",
+      logout: "Déconnexion",
+
+      report: "Signaler",
+
+      language: "Langue",
+      english: "Anglais",
+      french: "Français",
+
+      appVersion:
+        "Version de l'application",
+
+      mobileNavigation:
+        "Navigation mobile",
+
+      unreadNotification:
+        "notification non lue",
+
+      unreadNotifications:
+        "notifications non lues"
+
+    }
+
+  };
+
+  // =========================================
+  // CURRENT TRANSLATION
+  // =========================================
+
+  const t =
+    translations[language] ||
+    translations.en;
+
+  // =========================================
+  // NAVBAR VISIBILITY
+  // =========================================
+
+  const [navbarHidden, setNavbarHidden] =
+    useState(false);
 
   // =========================================
   // NOTIFICATIONS
   // =========================================
 
-  const [notifications, setNotifications] = useState([]);
+  const [notifications, setNotifications] =
+    useState([]);
 
   // =========================================
   // CURRENT USER
@@ -72,7 +165,9 @@ function Navbar() {
       );
 
       return null;
+
     }
+
   };
 
   // =========================================
@@ -85,14 +180,15 @@ function Navbar() {
       const isUserLoggedIn =
         localStorage.getItem("loggedIn") === "true";
 
-      const currentUser = getCurrentUser();
+      const currentUser =
+        getCurrentUser();
 
       const token =
         localStorage.getItem("authToken");
 
-      // =========================================
+      // =====================================
       // USER NOT LOGGED IN
-      // =========================================
+      // =====================================
 
       if (
         !isUserLoggedIn ||
@@ -105,20 +201,23 @@ function Navbar() {
         setLoggedIn(false);
 
         return;
+
       }
 
       setLoggedIn(true);
 
       try {
 
-        const response = await axios.get(
-          `${API_URL}/api/notifications`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`
+        const response =
+          await axios.get(
+            `${API_URL}/api/notifications`,
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`
+              }
             }
-          }
-        );
+          );
 
         setNotifications(
           response.data.notifications || []
@@ -131,9 +230,9 @@ function Navbar() {
           error
         );
 
-        // =========================================
+        // =================================
         // SESSION EXPIRED
-        // =========================================
+        // =================================
 
         if (
           error.response?.status === 401
@@ -154,7 +253,9 @@ function Navbar() {
           setNotifications([]);
 
           setLoggedIn(false);
+
         }
+
       }
 
     },
@@ -194,11 +295,12 @@ function Navbar() {
       return;
     }
 
-    const interval = setInterval(() => {
+    const interval =
+      setInterval(() => {
 
-      loadNotifications();
+        loadNotifications();
 
-    }, 10000);
+      }, 10000);
 
     return () => {
 
@@ -240,21 +342,137 @@ function Navbar() {
   }, [loadNotifications]);
 
   // =========================================
-  // NAVBAR SCROLL DIRECTION
-  //
-  // SCROLL DOWN
-  // → Hide navbar
-  //
-  // SCROLL UP
-  // → Show navbar
-  //
-  // AT TOP
-  // → Always show navbar
+  // CHECK LOGIN STATE
   // =========================================
 
   useEffect(() => {
 
-    let lastScrollY = window.scrollY;
+    const handleStorage = () => {
+
+      const isLoggedIn =
+        localStorage.getItem("loggedIn") === "true";
+
+      setLoggedIn(isLoggedIn);
+
+      if (!isLoggedIn) {
+
+        setNotifications([]);
+
+      }
+
+    };
+
+    window.addEventListener(
+      "storage",
+      handleStorage
+    );
+
+    return () => {
+
+      window.removeEventListener(
+        "storage",
+        handleStorage
+      );
+
+    };
+
+  }, []);
+
+  // =========================================
+  // LANGUAGE CHANGE LISTENER
+  // =========================================
+
+  useEffect(() => {
+
+    const savedLanguage =
+      localStorage.getItem("appLanguage") || "en";
+
+    setLanguage(savedLanguage);
+
+    document.documentElement.lang =
+      savedLanguage;
+
+    // =======================================
+    // LISTEN FOR GLOBAL LANGUAGE CHANGES
+    // =======================================
+
+    const handleLanguageChange =
+      (event) => {
+
+        const newLanguage =
+          event.detail?.language ||
+          localStorage.getItem(
+            "appLanguage"
+          ) ||
+          "en";
+
+        setLanguage(newLanguage);
+
+        document.documentElement.lang =
+          newLanguage;
+
+      };
+
+    window.addEventListener(
+      "busgo-language-change",
+      handleLanguageChange
+    );
+
+    return () => {
+
+      window.removeEventListener(
+        "busgo-language-change",
+        handleLanguageChange
+      );
+
+    };
+
+  }, []);
+
+  // =========================================
+  // CHANGE LANGUAGE
+  // =========================================
+
+  const changeLanguage =
+    (newLanguage) => {
+
+      setLanguage(newLanguage);
+
+      localStorage.setItem(
+        "appLanguage",
+        newLanguage
+      );
+
+      document.documentElement.lang =
+        newLanguage;
+
+      setShowLanguageOptions(false);
+
+      // =====================================
+      // TELL ENTIRE APPLICATION
+      // =====================================
+
+      window.dispatchEvent(
+        new CustomEvent(
+          "busgo-language-change",
+          {
+            detail: {
+              language: newLanguage
+            }
+          }
+        )
+      );
+
+    };
+
+  // =========================================
+  // NAVBAR SCROLL DIRECTION
+  // =========================================
+
+  useEffect(() => {
+
+    let lastScrollY =
+      window.scrollY;
 
     let ticking = false;
 
@@ -264,58 +482,64 @@ function Navbar() {
         return;
       }
 
-      window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(
+        () => {
 
-        const currentScrollY =
-          window.scrollY;
+          const currentScrollY =
+            window.scrollY;
 
-        // =====================================
-        // ALWAYS SHOW AT TOP
-        // =====================================
+          // ===============================
+          // TOP
+          // ===============================
 
-        if (currentScrollY <= 10) {
+          if (
+            currentScrollY <= 10
+          ) {
 
-          setNavbarHidden(false);
+            setNavbarHidden(false);
+
+          }
+
+          // ===============================
+          // SCROLL DOWN
+          // ===============================
+
+          else if (
+            currentScrollY >
+            lastScrollY + 5
+          ) {
+
+            setNavbarHidden(true);
+
+            setMenuOpen(false);
+
+            setShowLanguageOptions(false);
+
+          }
+
+          // ===============================
+          // SCROLL UP
+          // ===============================
+
+          else if (
+            currentScrollY <
+            lastScrollY - 5
+          ) {
+
+            setNavbarHidden(false);
+
+          }
+
+          lastScrollY =
+            currentScrollY;
+
+          ticking = false;
 
         }
-
-        // =====================================
-        // SCROLLING DOWN
-        // =====================================
-
-        else if (
-          currentScrollY >
-          lastScrollY + 5
-        ) {
-
-          setNavbarHidden(true);
-
-          // Close mobile menu when scrolling
-          // down so it doesn't remain open.
-          setMenuOpen(false);
-
-        }
-
-        // =====================================
-        // SCROLLING UP
-        // =====================================
-
-        else if (
-          currentScrollY <
-          lastScrollY - 5
-        ) {
-
-          setNavbarHidden(false);
-
-        }
-
-        lastScrollY = currentScrollY;
-
-        ticking = false;
-
-      });
+      );
 
       ticking = true;
+
     };
 
     window.addEventListener(
@@ -373,9 +597,12 @@ function Navbar() {
 
     setMenuOpen(false);
 
+    setShowLanguageOptions(false);
+
     setNavbarHidden(false);
 
     navigate("/login");
+
   };
 
   // =========================================
@@ -385,6 +612,8 @@ function Navbar() {
   const closeMenu = () => {
 
     setMenuOpen(false);
+
+    setShowLanguageOptions(false);
 
   };
 
@@ -401,230 +630,658 @@ function Navbar() {
   };
 
   // =========================================
-  // NAVBAR
+  // OPEN REPORT
+  // =========================================
+
+  const openReport = () => {
+
+    closeMenu();
+
+    navigate("/report");
+
+  };
+
+  // =========================================
+  // AUTH PAGES
+  // =========================================
+
+  const isAuthPage =
+    location.pathname === "/login" ||
+    location.pathname === "/register" ||
+    location.pathname === "/verify-otp";
+
+  // =========================================
+  // ADMIN PAGES
+  // =========================================
+
+  const isAdminPage =
+    location.pathname.startsWith("/admin");
+
+  // =========================================
+  // MOBILE BOTTOM NAV
+  // =========================================
+
+  const showMobileBottomNav =
+    loggedIn &&
+    !isAuthPage &&
+    !isAdminPage;
+
+  // =========================================
+  // NOTIFICATION TITLE
+  // =========================================
+
+  const notificationTitle =
+    unreadCount > 0
+      ? `${unreadCount} ${
+          unreadCount > 1
+            ? t.unreadNotifications
+            : t.unreadNotification
+        }`
+      : t.notifications;
+
+  // =========================================
+  // RENDER
   // =========================================
 
   return (
 
-    <nav
-      className={`navbar ${
-        navbarHidden
-          ? "navbar-hidden"
-          : ""
-      }`}
-    >
+    <>
 
       {/* =====================================
-          LOGO
+          TOP NAVBAR
       ===================================== */}
 
-      <NavLink
-        to="/"
-        className="logo"
-        onClick={closeMenu}
-      >
-
-        <img
-          src={logo}
-          alt="BusGo Logo"
-          className="logo-img"
-        />
-
-      </NavLink>
-
-
-      {/* =====================================
-          HAMBURGER
-      ===================================== */}
-
-      <button
-        className={`menu-toggle ${
-          menuOpen
-            ? "open"
-            : ""
-        }`}
-        onClick={() =>
-          setMenuOpen(!menuOpen)
-        }
-        aria-label="Toggle navigation menu"
-        aria-expanded={menuOpen}
-      >
-
-        <span></span>
-        <span></span>
-        <span></span>
-
-      </button>
-
-
-      {/* =====================================
-          NAVIGATION MENU
-      ===================================== */}
-
-      <div
-        className={`navbar-menu ${
-          menuOpen
-            ? "menu-open"
+      <nav
+        className={`navbar ${
+          navbarHidden
+            ? "navbar-hidden"
             : ""
         }`}
       >
 
         {/* ===================================
-            NAV LINKS
+            LOGO
         =================================== */}
 
-        <div className="nav-links">
+        <NavLink
+          to="/"
+          className="logo"
+          onClick={closeMenu}
+        >
+
+          <img
+            src={logo}
+            alt="BusGo Logo"
+            className="logo-img"
+          />
+
+        </NavLink>
+
+
+        {/* ===================================
+            HAMBURGER
+        =================================== */}
+
+        <button
+          type="button"
+          className={`menu-toggle ${
+            menuOpen
+              ? "open"
+              : ""
+          }`}
+          onClick={() => {
+
+            setMenuOpen(
+              !menuOpen
+            );
+
+            setShowLanguageOptions(false);
+
+          }}
+          aria-label={
+            t.mobileNavigation
+          }
+          aria-expanded={
+            menuOpen
+          }
+        >
+
+          <span></span>
+          <span></span>
+          <span></span>
+
+        </button>
+
+
+        {/* ===================================
+            NAVBAR MENU
+        =================================== */}
+
+        <div
+          className={`navbar-menu ${
+            menuOpen
+              ? "menu-open"
+              : ""
+          }`}
+        >
+
+          {/* =================================
+              NAV LINKS
+          ================================= */}
+
+          <div className="nav-links">
+
+            <NavLink
+              to="/"
+              onClick={closeMenu}
+            >
+              {t.dashboard}
+            </NavLink>
+
+            <NavLink
+              to="/routes"
+              onClick={closeMenu}
+            >
+              {t.routes}
+            </NavLink>
+
+            <NavLink
+              to="/offers"
+              onClick={closeMenu}
+            >
+              {t.offers}
+            </NavLink>
+
+            <NavLink
+              to="/about"
+              onClick={closeMenu}
+            >
+              {t.about}
+            </NavLink>
+
+            {loggedIn && (
+
+              <NavLink
+                to="/profile"
+                onClick={closeMenu}
+              >
+                {t.profile}
+              </NavLink>
+
+            )}
+
+          </div>
+
+
+          {/* =================================
+              AUTH / NOTIFICATIONS
+          ================================= */}
+
+          <div className="auth-buttons">
+
+            {loggedIn && (
+
+              <button
+                type="button"
+                className="notification-button"
+                onClick={openNotifications}
+                aria-label={
+                  t.notifications
+                }
+                title={
+                  notificationTitle
+                }
+              >
+
+                <span className="notification-icon">
+                  🔔
+                </span>
+
+                {unreadCount > 0 && (
+
+                  <span className="notification-badge">
+
+                    {unreadCount > 99
+                      ? "99+"
+                      : unreadCount}
+
+                  </span>
+
+                )}
+
+              </button>
+
+            )}
+
+
+            {loggedIn ? (
+
+              <button
+                type="button"
+                className="signup-btn"
+                onClick={logout}
+              >
+                {t.logout}
+              </button>
+
+            ) : (
+
+              <>
+
+                <NavLink
+                  to="/login"
+                  onClick={closeMenu}
+                >
+
+                  <button
+                    type="button"
+                    className="login-btn"
+                  >
+                    {t.login}
+                  </button>
+
+                </NavLink>
+
+
+                <NavLink
+                  to="/register"
+                  onClick={closeMenu}
+                >
+
+                  <button
+                    type="button"
+                    className="signup-btn"
+                  >
+                    {t.register}
+                  </button>
+
+                </NavLink>
+
+              </>
+
+            )}
+
+          </div>
+
+
+          {/* =================================
+              MOBILE HAMBURGER MENU
+          ================================= */}
+
+          {loggedIn &&
+            !isAuthPage &&
+            !isAdminPage && (
+
+            <div className="mobile-menu-content">
+
+              {/* ===============================
+                  NOTIFICATIONS
+              =============================== */}
+
+              <button
+                type="button"
+                className="mobile-menu-item"
+                onClick={
+                  openNotifications
+                }
+              >
+
+                <span className="mobile-menu-icon">
+                  🔔
+                </span>
+
+                <span className="mobile-menu-label">
+                  {t.notifications}
+                </span>
+
+                {unreadCount > 0 && (
+
+                  <span className="mobile-menu-badge">
+
+                    {unreadCount > 99
+                      ? "99+"
+                      : unreadCount}
+
+                  </span>
+
+                )}
+
+              </button>
+
+
+              {/* ===============================
+                  REPORT
+              =============================== */}
+
+              <button
+                type="button"
+                className="mobile-menu-item"
+                onClick={
+                  openReport
+                }
+              >
+
+                <span className="mobile-menu-icon">
+                  📝
+                </span>
+
+                <span className="mobile-menu-label">
+                  {t.report}
+                </span>
+
+              </button>
+
+
+              {/* ===============================
+                  LANGUAGE
+              =============================== */}
+
+              <div className="mobile-language-section">
+
+                <button
+                  type="button"
+                  className="mobile-menu-item"
+                  onClick={() =>
+                    setShowLanguageOptions(
+                      !showLanguageOptions
+                    )
+                  }
+                >
+
+                  <span className="mobile-menu-icon">
+                    🌐
+                  </span>
+
+                  <span className="mobile-menu-label">
+                    {t.language}
+                  </span>
+
+                  <span className="mobile-language-current">
+
+                    {language === "fr"
+                      ? t.french
+                      : t.english}
+
+                  </span>
+
+                  <span
+                    className={`mobile-language-arrow ${
+                      showLanguageOptions
+                        ? "language-open"
+                        : ""
+                    }`}
+                  >
+                    ›
+                  </span>
+
+                </button>
+
+
+                {showLanguageOptions && (
+
+                  <div className="mobile-language-options">
+
+                    <button
+                      type="button"
+                      className={`language-option ${
+                        language === "en"
+                          ? "selected"
+                          : ""
+                      }`}
+                      onClick={() =>
+                        changeLanguage("en")
+                      }
+                    >
+
+                      <span>
+                        🇬🇧
+                      </span>
+
+                      <span>
+                        {t.english}
+                      </span>
+
+                      {language === "en" && (
+
+                        <span>
+                          ✓
+                        </span>
+
+                      )}
+
+                    </button>
+
+
+                    <button
+                      type="button"
+                      className={`language-option ${
+                        language === "fr"
+                          ? "selected"
+                          : ""
+                      }`}
+                      onClick={() =>
+                        changeLanguage("fr")
+                      }
+                    >
+
+                      <span>
+                        🇫🇷
+                      </span>
+
+                      <span>
+                        {t.french}
+                      </span>
+
+                      {language === "fr" && (
+
+                        <span>
+                          ✓
+                        </span>
+
+                      )}
+
+                    </button>
+
+                  </div>
+
+                )}
+
+              </div>
+
+
+              {/* ===============================
+                  APP VERSION
+              =============================== */}
+
+              <button
+                type="button"
+                className="mobile-menu-item"
+              >
+
+                <span className="mobile-menu-icon">
+                  ℹ️
+                </span>
+
+                <span className="mobile-menu-label">
+                  {t.appVersion}
+                </span>
+
+                <span className="mobile-menu-value">
+                  v1.0.0
+                </span>
+
+              </button>
+
+
+              {/* ===============================
+                  LOGOUT
+              =============================== */}
+
+              <button
+                type="button"
+                className="mobile-menu-item mobile-logout-item"
+                onClick={logout}
+              >
+
+                <span className="mobile-menu-icon">
+                  🚪
+                </span>
+
+                <span className="mobile-menu-label">
+                  {t.logout}
+                </span>
+
+              </button>
+
+            </div>
+
+          )}
+
+        </div>
+
+      </nav>
+
+
+      {/* =====================================
+          MOBILE BOTTOM NAVIGATION
+      ===================================== */}
+
+      {showMobileBottomNav && (
+
+        <nav
+          className="mobile-bottom-nav"
+          aria-label={
+            t.mobileNavigation
+          }
+        >
+
+          {/* DASHBOARD */}
 
           <NavLink
             to="/"
-            onClick={closeMenu}
+            className={({ isActive }) =>
+              `mobile-bottom-nav-item ${
+                isActive
+                  ? "active"
+                  : ""
+              }`
+            }
           >
-            Dashboard
+
+            <span className="mobile-bottom-nav-icon">
+              🏠
+            </span>
+
+            <span className="mobile-bottom-nav-label">
+              {t.dashboard}
+            </span>
+
           </NavLink>
 
+
+          {/* ROUTES */}
 
           <NavLink
             to="/routes"
-            onClick={closeMenu}
+            className={({ isActive }) =>
+              `mobile-bottom-nav-item ${
+                isActive
+                  ? "active"
+                  : ""
+              }`
+            }
           >
-            Routes
+
+            <span className="mobile-bottom-nav-icon">
+              🚌
+            </span>
+
+            <span className="mobile-bottom-nav-label">
+              {t.routes}
+            </span>
+
           </NavLink>
 
+
+          {/* OFFERS */}
 
           <NavLink
             to="/offers"
-            onClick={closeMenu}
+            className={({ isActive }) =>
+              `mobile-bottom-nav-item ${
+                isActive
+                  ? "active"
+                  : ""
+              }`
+            }
           >
-            Offers
+
+            <span className="mobile-bottom-nav-icon">
+              🎁
+            </span>
+
+            <span className="mobile-bottom-nav-label">
+              {t.offers}
+            </span>
+
           </NavLink>
 
+
+          {/* ABOUT */}
 
           <NavLink
             to="/about"
-            onClick={closeMenu}
+            className={({ isActive }) =>
+              `mobile-bottom-nav-item ${
+                isActive
+                  ? "active"
+                  : ""
+              }`
+            }
           >
-            About Us
+
+            <span className="mobile-bottom-nav-icon">
+              ℹ️
+            </span>
+
+            <span className="mobile-bottom-nav-label">
+              {t.about}
+            </span>
+
           </NavLink>
 
 
-          {loggedIn && (
+          {/* PROFILE */}
 
-            <NavLink
-              to="/dashboard"
-              onClick={closeMenu}
-            >
-              Profile
-            </NavLink>
+          <NavLink
+            to="/profile"
+            className={({ isActive }) =>
+              `mobile-bottom-nav-item ${
+                isActive
+                  ? "active"
+                  : ""
+              }`
+            }
+          >
 
-          )}
+            <span className="mobile-bottom-nav-icon">
+              👤
+            </span>
 
-        </div>
+            <span className="mobile-bottom-nav-label">
+              {t.profile}
+            </span>
 
+          </NavLink>
 
-        {/* ===================================
-            RIGHT SIDE
-        =================================== */}
+        </nav>
 
-        <div className="auth-buttons">
+      )}
 
-          {/* =================================
-              NOTIFICATION BUTTON
-          ================================= */}
-
-          {loggedIn && (
-
-            <button
-              className="notification-button"
-              onClick={openNotifications}
-              aria-label="Notifications"
-              title={
-                unreadCount > 0
-                  ? `${unreadCount} unread notification${
-                      unreadCount > 1
-                        ? "s"
-                        : ""
-                    }`
-                  : "Notifications"
-              }
-            >
-
-              <span className="notification-icon">
-                Notification 🔔
-              </span>
-
-
-              {unreadCount > 0 && (
-
-                <span className="notification-badge">
-
-                  {unreadCount > 99
-                    ? "99+"
-                    : unreadCount}
-
-                </span>
-
-              )}
-
-            </button>
-
-          )}
-
-
-          {/* =================================
-              AUTH BUTTONS
-          ================================= */}
-
-          {loggedIn ? (
-
-            <button
-              className="signup-btn"
-              onClick={logout}
-            >
-              Logout
-            </button>
-
-          ) : (
-
-            <>
-
-              {/* LOGIN */}
-
-              <NavLink
-                to="/login"
-                onClick={closeMenu}
-              >
-
-                <button className="login-btn">
-                  Login
-                </button>
-
-              </NavLink>
-
-
-              {/* REGISTER */}
-
-              <NavLink
-                to="/register"
-                onClick={closeMenu}
-              >
-
-                <button className="signup-btn">
-                  Register
-                </button>
-
-              </NavLink>
-
-            </>
-
-          )}
-
-        </div>
-
-      </div>
-
-    </nav>
+    </>
 
   );
+
 }
 
 export default Navbar;

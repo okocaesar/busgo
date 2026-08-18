@@ -1,0 +1,371 @@
+/* =========================================
+   BUSGO APP UPDATE
+========================================= */
+
+.app-update-loading,
+.app-update-screen {
+
+  min-height: 100vh;
+
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  padding: 24px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f5fff9,
+      #ffffff
+    );
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+}
+
+
+/* =========================================
+   LOADING
+========================================= */
+
+.app-update-loading {
+
+  flex-direction: column;
+
+  text-align: center;
+
+}
+
+
+.app-update-loader {
+
+  width: 42px;
+
+  height: 42px;
+
+  border: 4px solid #dcefe5;
+
+  border-top-color: #0b7d45;
+
+  border-radius: 50%;
+
+  animation:
+    busgoUpdateSpin
+    0.8s linear infinite;
+
+  margin-bottom: 20px;
+
+}
+
+
+.app-update-loading h2 {
+
+  margin: 0 0 8px;
+
+  color: #123c2a;
+
+}
+
+
+.app-update-loading p {
+
+  margin: 0;
+
+  color: #66756e;
+
+}
+
+
+/* =========================================
+   UPDATE SCREEN
+========================================= */
+
+.app-update-screen {
+
+  background:
+    linear-gradient(
+      135deg,
+      #f1fff7,
+      #ffffff
+    );
+
+}
+
+
+.app-update-card {
+
+  width: 100%;
+
+  max-width: 460px;
+
+  background: #ffffff;
+
+  border-radius: 22px;
+
+  padding: 36px 28px;
+
+  text-align: center;
+
+  box-shadow:
+    0 20px 60px
+    rgba(
+      0,
+      0,
+      0,
+      0.12
+    );
+
+  border:
+    1px solid #e4eee9;
+
+}
+
+
+/* =========================================
+   ICON
+========================================= */
+
+.app-update-icon {
+
+  width: 72px;
+
+  height: 72px;
+
+  margin: 0 auto 22px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #e7f7ef;
+
+  color: #0b7d45;
+
+  font-size: 42px;
+
+  font-weight: 700;
+
+}
+
+
+/* =========================================
+   TITLE
+========================================= */
+
+.app-update-card h1 {
+
+  margin: 0 0 14px;
+
+  color: #123c2a;
+
+  font-size: 28px;
+
+  line-height: 1.2;
+
+}
+
+
+/* =========================================
+   MESSAGE
+========================================= */
+
+.app-update-message {
+
+  margin: 0 auto 26px;
+
+  max-width: 360px;
+
+  color: #63736b;
+
+  font-size: 16px;
+
+  line-height: 1.6;
+
+}
+
+
+/* =========================================
+   VERSION INFORMATION
+========================================= */
+
+.app-version-info {
+
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 12px;
+
+  margin-bottom: 26px;
+
+}
+
+
+.app-version-info div {
+
+  padding: 14px;
+
+  background: #f6faf8;
+
+  border-radius: 12px;
+
+}
+
+
+.app-version-info span {
+
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: #78877f;
+
+  font-size: 12px;
+
+}
+
+
+.app-version-info strong {
+
+  color: #123c2a;
+
+  font-size: 16px;
+
+}
+
+
+/* =========================================
+   UPDATE BUTTON
+========================================= */
+
+.app-update-button {
+
+  width: 100%;
+
+  border: none;
+
+  border-radius: 12px;
+
+  padding: 15px 20px;
+
+  background: #0b7d45;
+
+  color: #ffffff;
+
+  font-size: 16px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+
+}
+
+
+.app-update-button:hover {
+
+  background: #096a3b;
+
+  transform:
+    translateY(-1px);
+
+}
+
+
+.app-update-button:active {
+
+  transform:
+    translateY(0);
+
+}
+
+
+/* =========================================
+   NOTE
+========================================= */
+
+.app-update-note {
+
+  margin: 18px 0 0;
+
+  color: #89958f;
+
+  font-size: 12px;
+
+  line-height: 1.5;
+
+}
+
+
+/* =========================================
+   ANIMATION
+========================================= */
+
+@keyframes busgoUpdateSpin {
+
+  from {
+
+    transform:
+      rotate(0deg);
+
+  }
+
+  to {
+
+    transform:
+      rotate(360deg);
+
+  }
+
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (
+  max-width: 480px
+) {
+
+  .app-update-card {
+
+    padding:
+      30px 20px;
+
+    border-radius: 18px;
+
+  }
+
+
+  .app-update-card h1 {
+
+    font-size: 24px;
+
+  }
+
+
+  .app-version-info {
+
+    grid-template-columns:
+      1fr;
+
+  }
+
+}

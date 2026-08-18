@@ -7,6 +7,8 @@ import {
   useNavigate
 } from "react-router-dom";
 
+import { useTranslation } from "../../useTranslation";
+
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 
@@ -20,6 +22,9 @@ function Payment() {
 
   const navigate =
     useNavigate();
+
+  const { t } =
+    useTranslation();
 
 
   const booking =
@@ -49,7 +54,7 @@ function Payment() {
           <div className="payment-card">
 
             <h2>
-              No booking information found
+              {t("noBookingInformation")}
             </h2>
 
             <button
@@ -60,7 +65,7 @@ function Payment() {
               }
             >
 
-              Return to Booking
+              {t("returnToBooking")}
 
             </button>
 
@@ -128,7 +133,7 @@ function Payment() {
       if (!method) {
 
         alert(
-          "Please select a payment method."
+          t("selectPaymentMethodError")
         );
 
         return;
@@ -146,7 +151,7 @@ function Payment() {
       ) {
 
         alert(
-          "Booking route information is missing."
+          t("bookingRouteMissing")
         );
 
         return;
@@ -159,7 +164,7 @@ function Payment() {
       ) {
 
         alert(
-          "Booking route ID is missing."
+          t("bookingRouteIdMissing")
         );
 
         return;
@@ -172,7 +177,7 @@ function Payment() {
       ) {
 
         alert(
-          "Bus information is missing."
+          t("busInformationMissing")
         );
 
         return;
@@ -185,7 +190,7 @@ function Payment() {
       ) {
 
         alert(
-          "Booking bus ID is missing."
+          t("bookingBusIdMissing")
         );
 
         return;
@@ -201,7 +206,7 @@ function Payment() {
       ) {
 
         alert(
-          "No seats have been selected."
+          t("noSeatsSelected")
         );
 
         return;
@@ -212,7 +217,7 @@ function Payment() {
       if (!booking.date) {
 
         alert(
-          "Travel date is missing."
+          t("travelDateMissing")
         );
 
         return;
@@ -223,7 +228,7 @@ function Payment() {
       if (!booking.name) {
 
         alert(
-          "Passenger name is missing."
+          t("passengerNameMissing")
         );
 
         return;
@@ -234,7 +239,7 @@ function Payment() {
       if (!booking.phone) {
 
         alert(
-          "Passenger phone number is missing."
+          t("passengerPhoneMissing")
         );
 
         return;
@@ -245,7 +250,7 @@ function Payment() {
       if (!booking.userId) {
 
         alert(
-          "User information is missing. Please login again."
+          t("userInformationMissing")
         );
 
         return;
@@ -258,7 +263,7 @@ function Payment() {
       ) {
 
         alert(
-          "Invalid payment amount."
+          t("invalidPaymentAmount")
         );
 
         return;
@@ -276,43 +281,14 @@ function Payment() {
 
       // =========================================
       // CREATE PAYMENT DATA
-      //
-      // IMPORTANT:
-      //
-      // Preserve EVERYTHING coming from
-      // Booking.jsx.
-      //
-      // This includes:
-      //
-      // userId
-      // routeId
-      // busId
-      // seats
-      // passengers
-      // offerId
-      // offerTitle
-      // discount
-      // totalPrice
-      // totalPayment
-      //
       // =========================================
 
       const paymentData = {
 
         ...booking,
 
-
-        // =========================================
-        // USER
-        // =========================================
-
         userId:
           booking.userId,
-
-
-        // =========================================
-        // ROUTE
-        // =========================================
 
         from:
           booking.from,
@@ -323,40 +299,20 @@ function Payment() {
         routeId:
           booking.routeId,
 
-
-        // =========================================
-        // BUS
-        // =========================================
-
         busType:
           booking.busType,
 
         busId:
           booking.busId,
 
-
-        // =========================================
-        // SEATS
-        // =========================================
-
         seats:
           booking.seats,
-
-
-        // =========================================
-        // PASSENGERS
-        // =========================================
 
         passengers:
           Number(
             booking.passengers ??
             booking.seats.length
           ),
-
-
-        // =========================================
-        // PASSENGER INFORMATION
-        // =========================================
 
         name:
           booking.name,
@@ -366,11 +322,6 @@ function Payment() {
 
         date:
           booking.date,
-
-
-        // =========================================
-        // PRICE
-        // =========================================
 
         totalPrice:
           totalPrice,
@@ -384,11 +335,6 @@ function Payment() {
         totalPayment:
           totalPayment,
 
-
-        // =========================================
-        // OFFER
-        // =========================================
-
         offerId:
           booking.offerId ||
           null,
@@ -397,18 +343,8 @@ function Payment() {
           booking.offerTitle ||
           "No Offer",
 
-
-        // =========================================
-        // COMPATIBILITY
-        // =========================================
-
         total:
           totalPayment,
-
-
-        // =========================================
-        // PAYMENT
-        // =========================================
 
         paymentStatus:
           "Successful",
@@ -449,16 +385,6 @@ function Payment() {
 
       // =========================================
       // GO TO CONFIRMATION
-      //
-      // IMPORTANT:
-      //
-      // DO NOT POST THE BOOKING HERE.
-      //
-      // Confirmation.jsx will send the final
-      // booking request to the backend.
-      //
-      // The backend then performs the FINAL
-      // transaction seat check.
       // =========================================
 
       navigate(
@@ -504,13 +430,12 @@ function Payment() {
             <div>
 
               <h1>
-                Complete Payment
+                {t("completePayment")}
               </h1>
 
 
               <p>
-                Review your booking
-                before payment.
+                {t("reviewBookingBeforePayment")}
               </p>
 
             </div>
@@ -531,7 +456,7 @@ function Payment() {
             <div>
 
               <span>
-                Route
+                {t("route")}
               </span>
 
 
@@ -553,7 +478,7 @@ function Payment() {
             <div>
 
               <span>
-                Bus
+                {t("bus")}
               </span>
 
 
@@ -569,7 +494,7 @@ function Payment() {
             <div>
 
               <span>
-                Seats
+                {t("seats")}
               </span>
 
 
@@ -578,7 +503,7 @@ function Payment() {
                 {booking.seats?.join(
                   ", "
                 ) ||
-                  "Not selected"}
+                  t("notSelected")}
 
               </strong>
 
@@ -590,7 +515,7 @@ function Payment() {
             <div>
 
               <span>
-                Passengers
+                {t("passengers")}
               </span>
 
 
@@ -610,7 +535,7 @@ function Payment() {
             <div>
 
               <span>
-                Travel Date
+                {t("travelDate")}
               </span>
 
 
@@ -643,7 +568,7 @@ function Payment() {
               <div>
 
                 <small>
-                  OFFER APPLIED
+                  {t("offerApplied")}
                 </small>
 
 
@@ -653,7 +578,7 @@ function Payment() {
 
 
                 <b>
-                  {discountPercentage}% OFF
+                  {discountPercentage}% {t("off")}
                 </b>
 
               </div>
@@ -672,7 +597,7 @@ function Payment() {
 
 
             <h3>
-              Payment Summary
+              {t("paymentSummary")}
             </h3>
 
 
@@ -681,7 +606,7 @@ function Payment() {
             <div className="payment-row">
 
               <span>
-                Total Price
+                {t("totalPrice")}
               </span>
 
 
@@ -705,7 +630,7 @@ function Payment() {
 
               <span>
 
-                Discount
+                {t("discount")}
 
                 {discountPercentage > 0 &&
                   ` (${discountPercentage}%)`}
@@ -736,7 +661,7 @@ function Payment() {
 
 
               <span>
-                Total Payment
+                {t("totalPayment")}
               </span>
 
 
@@ -765,7 +690,7 @@ function Payment() {
 
 
             <label>
-              Select Payment Method
+              {t("selectPaymentMethod")}
             </label>
 
 
@@ -783,22 +708,22 @@ function Payment() {
             >
 
               <option value="">
-                Choose method
+                {t("chooseMethod")}
               </option>
 
 
               <option value="MTN Mobile Money">
-                MTN Mobile Money
+                {t("mtnMobileMoney")}
               </option>
 
 
               <option value="Orange Money">
-                Orange Money
+                {t("orangeMoney")}
               </option>
 
 
               <option value="Bank Card">
-                Bank Card
+                {t("bankCard")}
               </option>
 
             </select>
@@ -823,7 +748,7 @@ function Payment() {
 
           >
 
-            Pay XAF{" "}
+            {t("pay")} XAF{" "}
 
             {totalPayment.toLocaleString(
               "en-GB"
@@ -838,8 +763,7 @@ function Payment() {
 
           <p className="payment-note">
 
-            🔒 Your booking information
-            is securely processed.
+            🔒 {t("secureBookingInformation")}
 
           </p>
 

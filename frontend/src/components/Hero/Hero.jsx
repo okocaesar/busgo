@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
+import { useTranslation } from "../../useTranslation";
+
 import "./Hero.css";
 
 import hero1 from "../../assets/hero.jpg";
@@ -8,8 +10,9 @@ import hero3 from "../../assets/hero3.jpg";
 import hero4 from "../../assets/hero4.jpg";
 import hero5 from "../../assets/hero5.jpg";
 
-
 function Hero() {
+
+  const { t } = useTranslation();
 
   const images = [
     hero1,
@@ -19,9 +22,7 @@ function Hero() {
     hero5
   ];
 
-
   const [currentImage, setCurrentImage] = useState(0);
-
 
   useEffect(() => {
 
@@ -33,11 +34,9 @@ function Hero() {
 
     }, 5000);
 
-
     return () => clearInterval(interval);
 
   }, [images.length]);
-
 
   return (
 
@@ -53,35 +52,31 @@ function Hero() {
 
         <div className="hero-content">
 
-
           <div className="hero-text">
 
             <h1>
-              Travel Easy.
+              {t("travelEasy")}
               <br />
-              <span>Book Smart.</span>
+              <span>
+                {t("bookSmart")}
+              </span>
             </h1>
 
-
             <p>
-              Book your bus tickets online in minutes.
-              Safe, reliable and comfortable journeys.
+              {t("heroDescription")}
             </p>
-
 
             <NavLink to="/booking">
 
               <button>
-                Book Now
+                {t("bookNow")}
               </button>
 
             </NavLink>
 
           </div>
 
-
         </div>
-
 
         {/* SLIDER DOTS */}
 
@@ -99,21 +94,20 @@ function Hero() {
               onClick={() =>
                 setCurrentImage(index)
               }
-              aria-label={`Go to slide ${index + 1}`}
+              aria-label={t("goToSlide", {
+                number: index + 1
+              })}
             />
 
           ))}
 
         </div>
 
-
       </div>
 
     </section>
 
   );
-
 }
-
 
 export default Hero;

@@ -2,31 +2,26 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import cities from "../../data/cities";
+import { useTranslation } from "../../useTranslation";
 
 import "./SearchCard.css";
-
 
 function SearchCard() {
 
   const navigate = useNavigate();
 
+  const { t } = useTranslation();
 
   // =========================================
   // SEARCH DATA
   // =========================================
 
   const [searchData, setSearchData] = useState({
-
     from: "",
-
     to: "",
-
     date: "",
-
     passengers: "1"
-
   });
-
 
   // =========================================
   // HANDLE INPUT CHANGES
@@ -39,17 +34,12 @@ function SearchCard() {
       value
     } = e.target;
 
-
     setSearchData((prev) => ({
-
       ...prev,
-
       [name]: value
-
     }));
 
   };
-
 
   // =========================================
   // SEARCH BUSES
@@ -57,12 +47,14 @@ function SearchCard() {
 
   const handleSearch = () => {
 
-
-    // Check departure
+    // =========================================
+    // CHECK DEPARTURE
+    // =========================================
 
     if (!searchData.from) {
 
       alert(
+        t.searchDepartureRequired ||
         "Please select your departure city."
       );
 
@@ -70,12 +62,14 @@ function SearchCard() {
 
     }
 
-
-    // Check destination
+    // =========================================
+    // CHECK DESTINATION
+    // =========================================
 
     if (!searchData.to) {
 
       alert(
+        t.searchDestinationRequired ||
         "Please select your destination."
       );
 
@@ -83,8 +77,9 @@ function SearchCard() {
 
     }
 
-
-    // Check same city
+    // =========================================
+    // CHECK SAME CITY
+    // =========================================
 
     if (
       searchData.from ===
@@ -92,6 +87,7 @@ function SearchCard() {
     ) {
 
       alert(
+        t.searchSameCity ||
         "Departure and destination cannot be the same."
       );
 
@@ -99,19 +95,20 @@ function SearchCard() {
 
     }
 
-
-    // Check date
+    // =========================================
+    // CHECK DATE
+    // =========================================
 
     if (!searchData.date) {
 
       alert(
+        t.searchDateRequired ||
         "Please select your departure date."
       );
 
       return;
 
     }
-
 
     // =========================================
     // SEND DATA TO BOOKING
@@ -120,9 +117,7 @@ function SearchCard() {
     navigate(
       "/booking",
       {
-
         state: {
-
           from:
             searchData.from,
 
@@ -136,21 +131,21 @@ function SearchCard() {
             Number(
               searchData.passengers
             )
-
         }
-
       }
     );
 
   };
 
+  // =========================================
+  // RENDER
+  // =========================================
 
   return (
 
     <section className="search-section">
 
       <div className="search-card">
-
 
         {/* =====================================
             FROM
@@ -159,28 +154,23 @@ function SearchCard() {
         <div className="input-group">
 
           <label>
-            From
+            {t.from || "From"}
           </label>
 
-
           <select
-
             name="from"
-
             value={
               searchData.from
             }
-
             onChange={
               handleChange
             }
-
           >
 
             <option value="">
-              Select departure city
+              {t.selectDepartureCity ||
+                "Select departure city"}
             </option>
-
 
             {cities.map(
               (city) => (
@@ -189,9 +179,7 @@ function SearchCard() {
                   key={city}
                   value={city}
                 >
-
                   {city}
-
                 </option>
 
               )
@@ -202,7 +190,6 @@ function SearchCard() {
         </div>
 
 
-
         {/* =====================================
             TO
         ===================================== */}
@@ -210,37 +197,30 @@ function SearchCard() {
         <div className="input-group">
 
           <label>
-            To
+            {t.to || "To"}
           </label>
 
-
           <select
-
             name="to"
-
             value={
               searchData.to
             }
-
             onChange={
               handleChange
             }
-
           >
 
             <option value="">
-              Select destination
+              {t.selectDestination ||
+                "Select destination"}
             </option>
 
-
             {cities
-
               .filter(
                 (city) =>
                   city !==
                   searchData.from
               )
-
               .map(
                 (city) => (
 
@@ -248,9 +228,7 @@ function SearchCard() {
                     key={city}
                     value={city}
                   >
-
                     {city}
-
                   </option>
 
                 )
@@ -261,7 +239,6 @@ function SearchCard() {
         </div>
 
 
-
         {/* =====================================
             DEPARTURE DATE
         ===================================== */}
@@ -269,34 +246,26 @@ function SearchCard() {
         <div className="input-group">
 
           <label>
-            Departure
+            {t.departure || "Departure"}
           </label>
 
-
           <input
-
             type="date"
-
             name="date"
-
             value={
               searchData.date
             }
-
             onChange={
               handleChange
             }
-
             min={
               new Date()
                 .toISOString()
                 .split("T")[0]
             }
-
           />
 
         </div>
-
 
 
         {/* =====================================
@@ -306,38 +275,37 @@ function SearchCard() {
         <div className="input-group">
 
           <label>
-            Passengers
+            {t.passengers || "Passengers"}
           </label>
 
-
           <select
-
             name="passengers"
-
             value={
               searchData.passengers
             }
-
             onChange={
               handleChange
             }
-
           >
 
             <option value="1">
-              1 Passenger
+              {t.onePassenger ||
+                "1 Passenger"}
             </option>
 
             <option value="2">
-              2 Passengers
+              {t.twoPassengers ||
+                "2 Passengers"}
             </option>
 
             <option value="3">
-              3 Passengers
+              {t.threePassengers ||
+                "3 Passengers"}
             </option>
 
             <option value="4">
-              4 Passengers
+              {t.fourPassengers ||
+                "4 Passengers"}
             </option>
 
           </select>
@@ -345,27 +313,20 @@ function SearchCard() {
         </div>
 
 
-
         {/* =====================================
             SEARCH BUTTON
         ===================================== */}
 
         <button
-
           type="button"
-
           className="search-btn"
-
           onClick={
             handleSearch
           }
-
         >
-
-          Search Buses
-
+          {t.searchBuses ||
+            "Search Buses"}
         </button>
-
 
       </div>
 
@@ -374,6 +335,5 @@ function SearchCard() {
   );
 
 }
-
 
 export default SearchCard;

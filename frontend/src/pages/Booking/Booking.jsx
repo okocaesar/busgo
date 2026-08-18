@@ -20,13 +20,16 @@ import SeatSelection from "../../components/SeatSelection/SeatSelection";
 import Navbar from "../../components/Navbar/Navbar";
 import Footer from "../../components/Footer/Footer";
 
+import { useTranslation } from "../../useTranslation";
+
 import "./Booking.css";
 
 function Booking() {
 
   const navigate = useNavigate();
-
   const location = useLocation();
+
+  const { t } = useTranslation();
 
   // =========================================
   // SEARCH CARD DATA
@@ -188,13 +191,6 @@ function Booking() {
 
   // =========================================
   // FETCH BOOKED SEATS
-  //
-  // IMPORTANT:
-  // This function returns the fresh seats
-  // received from the backend.
-  //
-  // This prevents the stale React state
-  // race condition.
   // =========================================
 
   const fetchBookedSeats = async (
@@ -250,30 +246,13 @@ function Booking() {
 
       const serverSeats =
         response.data?.bookedSeats || [];
-        console.log("========== FRONTEND SEAT DEBUG ==========");
-        console.log("Selected Bus:", selectedBus);
-        console.log("Selected Route:", selectedRoute);
-        console.log("Bus ID:", selectedBus?.id);
-        console.log("Route ID:", selectedRoute?.id);
-        console.log("Travel Date:", booking.date);
-        console.log("Availability Response:", response.data);
-        console.log("Booked Seats From Server:", response.data?.bookedSeats);
-        console.log("==========================================");
 
       const normalizedServerSeats =
         normalizeSeats(serverSeats);
 
-      // =========================================
-      // UPDATE UI
-      // =========================================
-
       setBookedSeats(
         normalizedServerSeats
       );
-
-      // =========================================
-      // REMOVE SEATS THAT BECAME BOOKED
-      // =========================================
 
       setSelectedSeats(
         (currentSelected) => {
@@ -289,11 +268,13 @@ function Booking() {
           if (lostSeats.length > 0) {
 
             alert(
-              `Seat${lostSeats.length > 1 ? "s" : ""} ${lostSeats.join(", ")} ${
+              `${t("seat")} ${
+                lostSeats.join(", ")
+              } ${
                 lostSeats.length > 1
-                  ? "were"
-                  : "was"
-              } just booked by another user. Please choose another seat.`
+                  ? t("wereJustBooked")
+                  : t("wasJustBooked")
+              }`
             );
 
           }
@@ -308,13 +289,6 @@ function Booking() {
         }
       );
 
-      // =========================================
-      // VERY IMPORTANT
-      //
-      // Return the latest server seats
-      // immediately.
-      // =========================================
-
       return normalizedServerSeats;
 
     } catch (error) {
@@ -325,7 +299,7 @@ function Booking() {
       );
 
       setAvailabilityError(
-        "Unable to check seat availability. Please try again."
+        t("unableCheckAvailability")
       );
 
       return null;
@@ -361,11 +335,8 @@ function Booking() {
         if (mounted) {
 
           setBookedSeats([]);
-
           setSelectedSeats([]);
-
           setAvailabilityError("");
-
           setLoadingSeats(false);
 
         }
@@ -445,7 +416,7 @@ function Booking() {
         setBookedSeats([]);
 
         setAvailabilityError(
-          "Unable to check seat availability."
+          t("unableCheckAvailability")
         );
 
       } finally {
@@ -474,8 +445,6 @@ function Booking() {
 
   // =========================================
   // AUTOMATIC SEAT REFRESH
-  //
-  // Checks the server every 3 seconds.
   // =========================================
 
   useEffect(() => {
@@ -545,11 +514,13 @@ function Booking() {
             if (lostSeats.length > 0) {
 
               alert(
-                `Seat${lostSeats.length > 1 ? "s" : ""} ${lostSeats.join(", ")} ${
+                `${t("seat")} ${
+                  lostSeats.join(", ")
+                } ${
                   lostSeats.length > 1
-                    ? "were"
-                    : "was"
-                } just booked by another user. Please choose another seat.`
+                    ? t("wereJustBooked")
+                    : t("wasJustBooked")
+                }`
               );
 
             }
@@ -617,9 +588,7 @@ function Booking() {
     ) {
 
       setSelectedSeats([]);
-
       setBookedSeats([]);
-
       setAvailabilityError("");
 
     }
@@ -751,10 +720,6 @@ function Booking() {
 
   const handleContinue = async () => {
 
-    // =========================================
-    // PREVENT DOUBLE CLICK
-    // =========================================
-
     if (isProcessing) {
       return;
     }
@@ -763,14 +728,10 @@ function Booking() {
 
     try {
 
-      // =========================================
-      // LOGIN
-      // =========================================
-
       if (!currentUser) {
 
         alert(
-          "Please login before making a booking."
+          t("loginBeforeBooking")
         );
 
         navigate("/login");
@@ -779,17 +740,13 @@ function Booking() {
 
       }
 
-      // =========================================
-      // ROUTE
-      // =========================================
-
       if (
         !booking.from ||
         !booking.to
       ) {
 
         alert(
-          "Please select your departure and destination."
+          t("selectDepartureDestination")
         );
 
         return;
@@ -799,21 +756,17 @@ function Booking() {
       if (!selectedRoute) {
 
         alert(
-          "The selected journey could not be found."
+          t("journeyNotFound")
         );
 
         return;
 
       }
 
-      // =========================================
-      // BUS
-      // =========================================
-
       if (!booking.busType) {
 
         alert(
-          "Please select a bus type."
+          t("selectBusType")
         );
 
         return;
@@ -823,94 +776,59 @@ function Booking() {
       if (!selectedBus) {
 
         alert(
-          "The selected bus could not be found."
+          t("busNotFound")
         );
 
         return;
 
       }
-
-      // =========================================
-      // DATE
-      // =========================================
 
       if (!booking.date) {
 
         alert(
-          "Please select your travel date."
+          t("selectTravelDate")
         );
 
         return;
 
       }
-
-      // =========================================
-      // SEATS
-      // =========================================
 
       if (
         selectedSeats.length === 0
       ) {
 
         alert(
-          "Please select at least one seat."
+          t("selectAtLeastOneSeat")
         );
 
         return;
 
       }
 
-      // =========================================
-      // CRITICAL:
-      //
-      // GET FRESH AVAILABILITY DIRECTLY FROM
-      // THE SERVER RIGHT BEFORE PROCEEDING.
-      // =========================================
-
       const freshBookedSeats =
         await fetchBookedSeats(false);
-
-      // =========================================
-      // SERVER CHECK FAILED
-      // =========================================
 
       if (
         freshBookedSeats === null
       ) {
 
         alert(
-          "Unable to verify seat availability. Please try again."
+          t("unableVerifySeats")
         );
 
         return;
 
       }
 
-      // =========================================
-      // NORMALIZE SELECTED SEATS
-      // =========================================
-
       const normalizedSelectedSeats =
         normalizeSeats(
           selectedSeats
         );
 
-      // =========================================
-      // IMPORTANT:
-      //
-      // Use fresh server response.
-      //
-      // DO NOT use `bookedSeats` state here.
-      // =========================================
-
       const normalizedBookedSeats =
         normalizeSeats(
           freshBookedSeats
         );
-
-      // =========================================
-      // CHECK IF USER SELECTED A TAKEN SEAT
-      // =========================================
 
       const tryingToBookTakenSeat =
         normalizedSelectedSeats.some(
@@ -925,7 +843,7 @@ function Booking() {
       ) {
 
         alert(
-          "❌ One or more selected seats have already been booked by another user. Please select another seat."
+          t("seatAlreadyBooked")
         );
 
         setSelectedSeats(
@@ -941,10 +859,6 @@ function Booking() {
 
       }
 
-      // =========================================
-      // PASSENGER COUNT
-      // =========================================
-
       if (
         Number(
           booking.passengers
@@ -953,90 +867,64 @@ function Booking() {
       ) {
 
         alert(
-          `You selected ${normalizedSelectedSeats.length} seat${
-            normalizedSelectedSeats.length > 1
-              ? "s"
-              : ""
-          }, but the passenger count is ${
-            Number(
-              booking.passengers
+          t("seatPassengerMismatch")
+            .replace(
+              "{selected}",
+              normalizedSelectedSeats.length
             )
-          }. Please make them match.`
+            .replace(
+              "{passengers}",
+              Number(booking.passengers)
+            )
         );
 
         return;
 
       }
-
-      // =========================================
-      // PASSENGER NAME
-      // =========================================
 
       if (
         !booking.name.trim()
       ) {
 
         alert(
-          "Please enter the passenger name."
+          t("enterPassengerName")
         );
 
         return;
 
       }
-
-      // =========================================
-      // PHONE
-      // =========================================
 
       if (
         !booking.phone.trim()
       ) {
 
         alert(
-          "Please enter your phone number."
+          t("enterPhone")
         );
 
         return;
 
       }
-
-      // =========================================
-      // PRICE
-      // =========================================
 
       if (
         totalPrice <= 0
       ) {
 
         alert(
-          "Unable to calculate the route price."
+          t("unableCalculatePrice")
         );
 
         return;
 
       }
 
-      // =========================================
-      // ALL CHECKS PASSED
-      //
-      // GO TO PAYMENT
-      // =========================================
-
       navigate(
         "/payment",
         {
           state: {
 
-            // =====================================
-            // USER
-            // =====================================
-
             userId:
               currentUser.id,
-
-            // =====================================
-            // ROUTE
-            // =====================================
 
             from:
               booking.from,
@@ -1047,35 +935,19 @@ function Booking() {
             routeId:
               selectedRoute.id,
 
-            // =====================================
-            // BUS
-            // =====================================
-
             busType:
               booking.busType,
 
             busId:
               selectedBus.id,
 
-            // =====================================
-            // SEATS
-            // =====================================
-
             seats:
               normalizedSelectedSeats,
-
-            // =====================================
-            // PASSENGERS
-            // =====================================
 
             passengers:
               Number(
                 booking.passengers
               ),
-
-            // =====================================
-            // PASSENGER INFORMATION
-            // =====================================
 
             name:
               booking.name,
@@ -1086,16 +958,8 @@ function Booking() {
             date:
               booking.date,
 
-            // =====================================
-            // PRICE
-            // =====================================
-
             totalPrice:
               totalPrice,
-
-            // =====================================
-            // OFFER
-            // =====================================
 
             offerId:
               selectedOffer?.id ||
@@ -1113,10 +977,6 @@ function Booking() {
 
             totalPayment:
               totalPayment,
-
-            // =====================================
-            // COMPATIBILITY
-            // =====================================
 
             total:
               totalPayment
@@ -1146,39 +1006,27 @@ function Booking() {
 
       <section className="booking-page">
 
-    
-
-        {/* =====================================
-            HEADER
-        ===================================== */}
-
         <div className="booking-header">
 
           <h1>
-            Complete Your Booking
+            {t("completeBooking")}
           </h1>
 
           <p>
-            Select your journey details and reserve your seat.
+            {t("bookingDescription")}
           </p>
 
         </div>
 
         <div className="booking-container">
 
-          {/* =====================================
-              LEFT SIDE
-          ===================================== */}
+          {/* LEFT SIDE */}
 
           <div className="booking-summary">
 
             <h2>
-              Trip Details
+              {t("tripDetails")}
             </h2>
-
-            {/* =====================================
-                OFFER
-            ===================================== */}
 
             {selectedOffer ? (
 
@@ -1191,7 +1039,7 @@ function Booking() {
                 <div className="booking-offer-content">
 
                   <span>
-                    OFFER APPLIED
+                    {t("offerApplied")}
                   </span>
 
                   <strong>
@@ -1217,11 +1065,11 @@ function Booking() {
                 <div>
 
                   <strong>
-                    No offer selected
+                    {t("noOfferSelected")}
                   </strong>
 
                   <small>
-                    You can continue booking at the regular price.
+                    {t("regularPriceBooking")}
                   </small>
 
                 </div>
@@ -1230,14 +1078,10 @@ function Booking() {
 
             )}
 
-            {/* =====================================
-                FROM
-            ===================================== */}
-
             <div className="form-group">
 
               <label>
-                From
+                {t("from")}
               </label>
 
               <select
@@ -1247,7 +1091,7 @@ function Booking() {
               >
 
                 <option value="">
-                  Select Departure City
+                  {t("selectDepartureCity")}
                 </option>
 
                 {cities.map(
@@ -1267,14 +1111,10 @@ function Booking() {
 
             </div>
 
-            {/* =====================================
-                TO
-            ===================================== */}
-
             <div className="form-group">
 
               <label>
-                To
+                {t("to")}
               </label>
 
               <select
@@ -1284,7 +1124,7 @@ function Booking() {
               >
 
                 <option value="">
-                  Select Destination
+                  {t("selectDestination")}
                 </option>
 
                 {cities
@@ -1311,14 +1151,10 @@ function Booking() {
 
             </div>
 
-            {/* =====================================
-                BUS TYPE
-            ===================================== */}
-
             <div className="form-group">
 
               <label>
-                Bus Type
+                {t("busType")}
               </label>
 
               <select
@@ -1328,26 +1164,22 @@ function Booking() {
               >
 
                 <option value="">
-                  Select bus type
+                  {t("selectBusType")}
                 </option>
 
                 <option value="VIP Coach">
-                  VIP Coach
+                  {t("vipCoach")}
                 </option>
 
                 <option value="Standard">
-                  Standard
+                  {t("standard")}
                 </option>
 
                 <option value="Shuttle">
-                  Shuttle
+                  {t("shuttle")}
                 </option>
 
               </select>
-
-              {/* =====================================
-                  AVAILABILITY ERROR
-              ===================================== */}
 
               {availabilityError && (
 
@@ -1368,16 +1200,12 @@ function Booking() {
                       fetchBookedSeats(true)
                     }
                   >
-                    Retry
+                    {t("retry")}
                   </button>
 
                 </div>
 
               )}
-
-              {/* =====================================
-                  SEAT SELECTION
-              ===================================== */}
 
               {booking.busType && (
 
@@ -1390,8 +1218,7 @@ function Booking() {
                     <div className="seat-loading">
 
                       <p>
-                        Select your route and travel date
-                        to view seat availability.
+                        {t("selectRouteAndDate")}
                       </p>
 
                     </div>
@@ -1401,7 +1228,7 @@ function Booking() {
                     <div className="seat-loading">
 
                       <p>
-                        🔄 Checking available seats...
+                        🔄 {t("checkingSeats")}
                       </p>
 
                     </div>
@@ -1437,14 +1264,10 @@ function Booking() {
 
             </div>
 
-            {/* =====================================
-                ROUTE SUMMARY
-            ===================================== */}
-
             <div className="summary-item">
 
               <span>
-                Route
+                {t("route")}
               </span>
 
               <strong>
@@ -1452,80 +1275,64 @@ function Booking() {
                 {booking.from &&
                 booking.to
                   ? `${booking.from} → ${booking.to}`
-                  : "Not selected"}
+                  : t("notSelected")}
 
               </strong>
 
             </div>
 
-            {/* =====================================
-                BUS SUMMARY
-            ===================================== */}
-
             <div className="summary-item">
 
               <span>
-                Bus
+                {t("bus")}
               </span>
 
               <strong>
 
                 {booking.busType
                   ? booking.busType
-                  : "Not selected"}
+                  : t("notSelected")}
 
               </strong>
 
             </div>
 
-            {/* =====================================
-                SEAT SUMMARY
-            ===================================== */}
-
             <div className="summary-item">
 
               <span>
-                Seats
+                {t("seats")}
               </span>
 
               <strong>
 
                 {selectedSeats.length > 0
                   ? selectedSeats.join(", ")
-                  : "Not selected"}
+                  : t("notSelected")}
 
               </strong>
 
             </div>
 
-            {/* =====================================
-                PRICE
-            ===================================== */}
-
             <div className="price-summary">
 
               <span>
-                Total Price
+                {t("totalPrice")}
               </span>
 
               <strong className="price">
 
                 {totalPrice > 0
                   ? `XAF ${totalPrice.toLocaleString("en-GB")}`
-                  : "Select route"}
+                  : t("selectRoute")}
 
               </strong>
 
             </div>
 
-            {/* =====================================
-                DISCOUNT
-            ===================================== */}
-
             <div className="summary-item">
 
               <span>
-                Discount
+                {t("discount")}
               </span>
 
               <strong className="discount-price">
@@ -1538,21 +1345,17 @@ function Booking() {
 
             </div>
 
-            {/* =====================================
-                TOTAL PAYMENT
-            ===================================== */}
-
             <div className="summary-item">
 
               <span>
-                Total Payment
+                {t("totalPayment")}
               </span>
 
               <strong className="price">
 
                 {totalPayment > 0
                   ? `XAF ${totalPayment.toLocaleString("en-GB")}`
-                  : "Select route"}
+                  : t("selectRoute")}
 
               </strong>
 
@@ -1560,24 +1363,18 @@ function Booking() {
 
           </div>
 
-          {/* =====================================
-              RIGHT SIDE
-          ===================================== */}
+          {/* RIGHT SIDE */}
 
           <div className="booking-form">
 
             <h2>
-              Passenger Information
+              {t("passengerInformation")}
             </h2>
-
-            {/* =====================================
-                NAME
-            ===================================== */}
 
             <div className="form-group">
 
               <label>
-                Full Name
+                {t("fullName")}
               </label>
 
               <input
@@ -1585,19 +1382,15 @@ function Booking() {
                 name="name"
                 value={booking.name}
                 onChange={handleChange}
-                placeholder="Enter your name"
+                placeholder={t("enterYourName")}
               />
 
             </div>
 
-            {/* =====================================
-                PHONE
-            ===================================== */}
-
             <div className="form-group">
 
               <label>
-                Phone Number
+                {t("phoneNumber")}
               </label>
 
               <input
@@ -1605,19 +1398,15 @@ function Booking() {
                 name="phone"
                 value={booking.phone}
                 onChange={handleChange}
-                placeholder="Enter phone number"
+                placeholder={t("enterPhoneNumber")}
               />
 
             </div>
 
-            {/* =====================================
-                DATE
-            ===================================== */}
-
             <div className="form-group">
 
               <label>
-                Travel Date
+                {t("travelDate")}
               </label>
 
               <input
@@ -1629,14 +1418,10 @@ function Booking() {
 
             </div>
 
-            {/* =====================================
-                PASSENGERS
-            ===================================== */}
-
             <div className="form-group">
 
               <label>
-                Passengers
+                {t("passengers")}
               </label>
 
               <select
@@ -1646,35 +1431,31 @@ function Booking() {
               >
 
                 <option value={1}>
-                  1 Passenger
+                  {t("onePassenger")}
                 </option>
 
                 <option value={2}>
-                  2 Passengers
+                  {t("twoPassengers")}
                 </option>
 
                 <option value={3}>
-                  3 Passengers
+                  {t("threePassengers")}
                 </option>
 
                 <option value={4}>
-                  4 Passengers
+                  {t("fourPassengers")}
                 </option>
 
               </select>
 
             </div>
 
-            {/* =====================================
-                PAYMENT PREVIEW
-            ===================================== */}
-
             <div className="payment-preview">
 
               <div>
 
                 <span>
-                  Original Price
+                  {t("originalPrice")}
                 </span>
 
                 <strong>
@@ -1689,14 +1470,14 @@ function Booking() {
               <div className="preview-discount">
 
                 <span>
-                  Your Discount
+                  {t("yourDiscount")}
                 </span>
 
                 <strong>
 
                   {discountPercentage > 0
-                    ? `${discountPercentage}% OFF`
-                    : "No discount"}
+                    ? `${discountPercentage}% ${t("off")}`
+                    : t("noDiscount")}
 
                 </strong>
 
@@ -1705,7 +1486,7 @@ function Booking() {
               <div>
 
                 <span>
-                  Discount Amount
+                  {t("discountAmount")}
                 </span>
 
                 <strong>
@@ -1722,7 +1503,7 @@ function Booking() {
               <div className="preview-total">
 
                 <span>
-                  You'll Pay
+                  {t("youllPay")}
                 </span>
 
                 <strong>
@@ -1737,10 +1518,6 @@ function Booking() {
               </div>
 
             </div>
-
-            {/* =====================================
-                CONTINUE
-            ===================================== */}
 
             <button
               type="button"
@@ -1761,8 +1538,8 @@ function Booking() {
             >
 
               {isProcessing
-                ? "🔄 Checking availability..."
-                : "Continue to Payment"}
+                ? `🔄 ${t("checkingAvailability")}`
+                : t("continueToPayment")}
 
             </button>
 

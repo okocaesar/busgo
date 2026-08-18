@@ -3,6 +3,8 @@ import { NavLink } from "react-router-dom";
 
 import routes from "../../data/routes";
 
+import { useTranslation } from "../../useTranslation";
+
 import "./Routes.css";
 
 import Navbar from "../../components/Navbar/Navbar";
@@ -13,9 +15,13 @@ console.log("Is array?", Array.isArray(routes));
 
 function Routes() {
 
+  const { t } = useTranslation();
+
   const [search, setSearch] = useState("");
 
-
+  // =========================================
+  // FILTER ROUTES
+  // =========================================
 
   const filteredRoutes = routes.filter((route) =>
 
@@ -25,200 +31,154 @@ function Routes() {
 
   );
 
-
-
   return (
     <>
 
       <Navbar />
 
 
+      {/* =====================================
+          ROUTES HERO
+      ===================================== */}
+
       <section className="routes-hero">
 
         <div className="hero-overlay">
 
           <h1>
-            Available Bus Routes
+            {t("availableBusRoutes")}
           </h1>
 
-
           <p>
-            Find your perfect journey across Cameroon.
+            {t("routesDescription")}
           </p>
-
 
         </div>
 
       </section>
 
 
-
-
+      {/* =====================================
+          ROUTES CONTAINER
+      ===================================== */}
 
       <section className="routes-container">
 
 
+        {/* ===================================
+            SEARCH
+        =================================== */}
 
         <div className="search-box">
 
-
           <input
-
             type="text"
-
-            placeholder="Search by departure or destination..."
-
+            placeholder={t("searchRoutesPlaceholder")}
             value={search}
-
-            onChange={(e)=>setSearch(e.target.value)}
-
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
           />
-
 
         </div>
 
 
-
-
+        {/* ===================================
+            ROUTE GRID
+        =================================== */}
 
         <div className="route-grid">
 
+          {filteredRoutes.map((route) => (
 
-          {
-            filteredRoutes.map((route)=>(
+            <div
+              className="route-card"
+              key={route.id}
+            >
 
-
-              <div 
-                className="route-card" 
-                key={route.id}
-              >
-
-
-
-                <img
-
-                  src={route.image}
-
-                  alt={`${route.from} to ${route.to}`}
-
-                />
+              <img
+                src={route.image}
+                alt={`${route.from} ${t("to")} ${route.to}`}
+              />
 
 
+              <div className="route-content">
 
 
+                {/* ROUTE NAME */}
 
-                <div className="route-content">
-
-
-
-                  <h2>
-
-                    {route.from} → {route.to}
-
-                  </h2>
+                <h2>
+                  {route.from} → {route.to}
+                </h2>
 
 
+                {/* ROUTE DETAILS */}
 
+                <div className="route-details">
 
+                  <span>
+                    🕒 {route.duration}
+                  </span>
 
-                  <div className="route-details">
-
-
-                    <span>
-
-                      🕒 {route.duration}
-
-                    </span>
-
-
-
-                    <span>
-
-                      {route.type}
-
-                    </span>
-
-
-
-                  </div>
-
-
-
-
-
-                  <h3>
-
-                    XAF {route.price.toLocaleString("en-GB")}
-
-                  </h3>
-
-
-
-
-
-                  <NavLink to="/booking"state={{ route }}>
-
-                    <button>
-
-                      Book Now
-
-                    </button>
-
-
-                  </NavLink>
-
-
-
+                  <span>
+                    {route.type}
+                  </span>
 
                 </div>
 
 
+                {/* PRICE */}
+
+                <h3>
+                  XAF{" "}
+                  {route.price.toLocaleString("en-GB")}
+                </h3>
+
+
+                {/* BOOK */}
+
+                <NavLink
+                  to="/booking"
+                  state={{ route }}
+                >
+
+                  <button>
+                    {t("bookNow")}
+                  </button>
+
+                </NavLink>
+
 
               </div>
 
+            </div>
+
+          ))}
 
 
-            ))
-          }
+          {/* =================================
+              NO RESULTS
+          ================================= */}
 
+          {filteredRoutes.length === 0 && (
 
+            <h2 className="no-results">
 
+              {t("noRoutesFound")}
 
+            </h2>
 
-          {
-            filteredRoutes.length === 0 && (
-
-              <h2 className="no-results">
-
-                No routes found.
-
-              </h2>
-
-            )
-          }
-
-
+          )}
 
         </div>
-
-
-
 
       </section>
 
 
-
-
-
       <Footer />
-
-
 
     </>
   );
-
 }
-
-
 
 export default Routes;

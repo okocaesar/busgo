@@ -25,17 +25,14 @@ import Profile from "./pages/Profile/Profile";
 import BackButton from "./components/BackButton/BackButton";
 import AdminRoute from "./components/AdminRoute/AdminRoute";
 
+import {
+  LanguageProvider,
+  useLanguage
+} from "./context/LanguageContext";
+
 
 // =========================================
 // CLIENT ROUTE
-// =========================================
-// Prevent ADMIN users from accessing
-// normal client pages.
-//
-// Normal users and logged-out visitors
-// can continue using the normal website.
-//
-// Admin users are redirected to /admin.
 // =========================================
 
 function ClientRoute() {
@@ -44,30 +41,19 @@ function ClientRoute() {
     localStorage.getItem("currentUser") || "null"
   );
 
-  // =======================================
-  // ADMIN USERS
-  // =======================================
-
   if (
     currentUser &&
     currentUser.role === "admin"
   ) {
-
     return (
       <Navigate
         to="/admin"
         replace
       />
     );
-
   }
 
-  // =======================================
-  // NORMAL USERS / PUBLIC USERS
-  // =======================================
-
   return <Outlet />;
-
 }
 
 
@@ -79,22 +65,23 @@ function MobileBackButton() {
 
   const location = useLocation();
 
-  // =======================================
-  // DO NOT SHOW ON HOME
-  // DO NOT SHOW ON ADMIN DASHBOARD
-  // =======================================
+  const hiddenPages = [
+    "/",
+    "/admin",
+    "/login",
+    "/register",
+    "/verify-otp"
+  ];
 
   if (
-    location.pathname === "/" ||
-    location.pathname === "/admin"
+    hiddenPages.includes(
+      location.pathname
+    )
   ) {
-
     return null;
-
   }
 
   return (
-
     <div
       className="global-mobile-back"
       style={{
@@ -106,21 +93,160 @@ function MobileBackButton() {
         pointerEvents: "none"
       }}
     >
-
       <div
         style={{
           pointerEvents: "auto"
         }}
       >
-
         <BackButton />
+      </div>
+    </div>
+  );
+}
+
+
+// =========================================
+// APP CONTENT
+// =========================================
+
+function AppContent() {
+
+  const { language } = useLanguage();
+
+  return (
+    <BrowserRouter>
+
+      {/* Keeps React aware of the
+          currently selected language */}
+      <div
+        key={language}
+        className="app-root"
+      >
+
+        <MobileBackButton />
+
+        <div className="app-page-wrapper">
+
+          <Routes>
+
+            {/* ===================================
+                CLIENT / PUBLIC ROUTES
+            =================================== */}
+
+            <Route element={<ClientRoute />}>
+
+              <Route
+                path="/"
+                element={<Home />}
+              />
+
+              <Route
+                path="/routes"
+                element={<RoutesPage />}
+              />
+
+              <Route
+                path="/login"
+                element={<Login />}
+              />
+
+              <Route
+                path="/register"
+                element={<Register />}
+              />
+
+              <Route
+                path="/verify-otp"
+                element={<VerifyOTP />}
+              />
+
+              <Route
+                path="/booking"
+                element={<Booking />}
+              />
+
+              <Route
+                path="/offers"
+                element={<Offers />}
+              />
+
+              <Route
+                path="/about"
+                element={<About />}
+              />
+
+              <Route
+                path="/confirmation"
+                element={<Confirmation />}
+              />
+
+              <Route
+                path="/dashboard"
+                element={<Dashboard />}
+              />
+
+              <Route
+                path="/payment"
+                element={<Payment />}
+              />
+
+              <Route
+                path="/notifications"
+                element={<Notifications />}
+              />
+
+              <Route
+                path="/profile"
+                element={<Profile />}
+              />
+
+              <Route
+                path="*"
+                element={
+                  <PageNotFound />
+                }
+              />
+
+            </Route>
+
+
+            {/* ===================================
+                ADMIN
+            =================================== */}
+
+            <Route element={<AdminRoute />}>
+
+              <Route
+                path="/admin"
+                element={<AdminDashboard />}
+              />
+
+            </Route>
+
+          </Routes>
+
+        </div>
 
       </div>
 
-    </div>
-
+    </BrowserRouter>
   );
+}
 
+
+// =========================================
+// PAGE NOT FOUND
+// =========================================
+
+function PageNotFound() {
+
+  const { t } = useLanguage();
+
+  return (
+    <h1>
+      {t("pageNotFound")}
+    </h1>
+  );
 }
 
 
@@ -131,214 +257,10 @@ function MobileBackButton() {
 function App() {
 
   return (
-
-    <BrowserRouter>
-
-      {/* =====================================
-          GLOBAL BACK BUTTON
-
-          Appears on all pages except:
-          - Home
-          - Admin Dashboard
-      ===================================== */}
-
-      <MobileBackButton />
-
-
-      {/* =====================================
-          PAGE WRAPPER
-      ===================================== */}
-
-      <div className="app-page-wrapper">
-
-        <Routes>
-
-
-          {/* ===================================
-              CLIENT / PUBLIC ROUTES
-          ===================================
-
-              ClientRoute prevents an admin
-              from entering these pages.
-          =================================== */}
-
-          <Route element={<ClientRoute />}>
-
-
-            {/* ================================
-                HOME
-            ================================= */}
-
-            <Route
-              path="/"
-              element={<Home />}
-            />
-
-
-            {/* ================================
-                ROUTES
-            ================================= */}
-
-            <Route
-              path="/routes"
-              element={<RoutesPage />}
-            />
-
-
-            {/* ================================
-                LOGIN
-            ================================= */}
-
-            <Route
-              path="/login"
-              element={<Login />}
-            />
-
-
-            {/* ================================
-                REGISTER
-            ================================= */}
-
-            <Route
-              path="/register"
-              element={<Register />}
-            />
-
-
-            {/* ================================
-                VERIFY OTP
-            ================================= */}
-
-            <Route
-              path="/verify-otp"
-              element={<VerifyOTP />}
-            />
-
-
-            {/* ================================
-                BOOKING
-            ================================= */}
-
-            <Route
-              path="/booking"
-              element={<Booking />}
-            />
-
-
-            {/* ================================
-                OFFERS
-            ================================= */}
-
-            <Route
-              path="/offers"
-              element={<Offers />}
-            />
-
-
-            {/* ================================
-                ABOUT
-            ================================= */}
-
-            <Route
-              path="/about"
-              element={<About />}
-            />
-
-
-            {/* ================================
-                CONFIRMATION
-            ================================= */}
-
-            <Route
-              path="/confirmation"
-              element={<Confirmation />}
-            />
-
-
-            {/* ================================
-                DASHBOARD
-            ================================= */}
-
-            <Route
-              path="/dashboard"
-              element={<Dashboard />}
-            />
-
-
-            {/* ================================
-                PAYMENT
-            ================================= */}
-
-            <Route
-              path="/payment"
-              element={<Payment />}
-            />
-
-
-            {/* ================================
-                NOTIFICATIONS
-            ================================= */}
-
-            <Route
-              path="/notifications"
-              element={<Notifications />}
-            />
-
-            <Route
-              path="/profile"
-              element={<Profile />}
-            />
-
-
-            {/* ================================
-                PAGE NOT FOUND
-            ================================= */}
-
-            <Route
-              path="*"
-              element={
-                <h1>
-                  Page Not Found
-                </h1>
-              }
-            />
-
-
-          </Route>
-
-
-          {/* ===================================
-              ADMIN ROUTES
-          ===================================
-
-              AdminRoute verifies:
-              - authToken exists
-              - currentUser exists
-              - currentUser.role === "admin"
-
-              Normal users cannot enter /admin.
-          =================================== */}
-
-          <Route element={<AdminRoute />}>
-
-
-            <Route
-              path="/admin"
-              element={<AdminDashboard />}
-            />
-
-
-          </Route>
-
-
-        </Routes>
-
-      </div>
-
-    </BrowserRouter>
-
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
-
 }
 
 
