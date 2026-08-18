@@ -3,7 +3,8 @@ import React, {
   useContext,
   useEffect,
   useMemo,
-  useState
+  useState,
+  useCallback
 } from "react";
 
 const LanguageContext = createContext(null);
@@ -219,22 +220,42 @@ const translations = {
     profileUpdated:
       "Profil mis à jour avec succès.",
 
-    saving: "Enregistrement..."
+    saving:
+      "Enregistrement..."
   }
 };
 
+
+// =========================================
+// LANGUAGE PROVIDER
+// =========================================
+
 export function LanguageProvider({ children }) {
+
   const [language, setLanguage] = useState(() => {
-    return localStorage.getItem("appLanguage") || "en";
+
+    return (
+      localStorage.getItem(
+        "appLanguage"
+      ) || "en"
+    );
+
   });
 
+
+  // =========================================
+  // SAVE LANGUAGE
+  // =========================================
+
   useEffect(() => {
+
     localStorage.setItem(
       "appLanguage",
       language
     );
 
-    document.documentElement.lang = language;
+    document.documentElement.lang =
+      language;
 
     window.dispatchEvent(
       new CustomEvent(
@@ -246,10 +267,20 @@ export function LanguageProvider({ children }) {
         }
       )
     );
+
   }, [language]);
 
+
+  // =========================================
+  // LISTEN FOR LANGUAGE CHANGES
+  // =========================================
+
   useEffect(() => {
-    const handleLanguageChange = (event) => {
+
+    const handleLanguageChange = (
+      event
+    ) => {
+
       const newLanguage =
         event.detail?.language;
 
@@ -257,71 +288,146 @@ export function LanguageProvider({ children }) {
         newLanguage === "en" ||
         newLanguage === "fr"
       ) {
-        setLanguage(newLanguage);
+
+        setLanguage(
+          newLanguage
+        );
+
       }
+
     };
+
 
     window.addEventListener(
       "busgo-language-change",
       handleLanguageChange
     );
 
+
     return () => {
+
       window.removeEventListener(
         "busgo-language-change",
         handleLanguageChange
       );
+
     };
+
   }, []);
 
-  const changeLanguage = (newLanguage) => {
-    if (
-      newLanguage !== "en" &&
-      newLanguage !== "fr"
-    ) {
-      return;
-    }
 
-    setLanguage(newLanguage);
-  };
+  // =========================================
+  // CHANGE LANGUAGE
+  // =========================================
 
-  const t = (key) => {
-    return (
-      translations[language]?.[key] ||
-      translations.en[key] ||
-      key
+  const changeLanguage =
+    useCallback(
+      (newLanguage) => {
+
+        if (
+          newLanguage !== "en" &&
+          newLanguage !== "fr"
+        ) {
+
+          return;
+
+        }
+
+        setLanguage(
+          newLanguage
+        );
+
+      },
+      []
     );
-  };
 
-  const value = useMemo(
-    () => ({
-      language,
-      changeLanguage,
-      t
-    }),
-    [language]
-  );
+
+  // =========================================
+  // TRANSLATION FUNCTION
+  // =========================================
+
+  const t =
+    useCallback(
+      (key) => {
+
+        return (
+          translations[
+            language
+          ]?.[key] ||
+
+          translations
+            .en[key] ||
+
+          key
+        );
+
+      },
+      [language]
+    );
+
+
+  // =========================================
+  // CONTEXT VALUE
+  // =========================================
+
+  const value =
+    useMemo(
+      () => ({
+
+        language,
+
+        changeLanguage,
+
+        t
+
+      }),
+      [
+        language,
+        changeLanguage,
+        t
+      ]
+    );
+
 
   return (
+
     <LanguageContext.Provider
       value={value}
     >
+
       {children}
+
     </LanguageContext.Provider>
+
   );
+
 }
 
+
+// =========================================
+// USE LANGUAGE
+// =========================================
+
 export function useLanguage() {
+
   const context =
-    useContext(LanguageContext);
+    useContext(
+      LanguageContext
+    );
+
 
   if (!context) {
+
     throw new Error(
       "useLanguage must be used inside LanguageProvider."
     );
+
   }
 
+
   return context;
+
 }
+
 
 export default LanguageContext;

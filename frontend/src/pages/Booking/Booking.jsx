@@ -24,6 +24,7 @@ import { useTranslation } from "../../useTranslation";
 
 import "./Booking.css";
 
+
 function Booking() {
 
   const navigate = useNavigate();
@@ -31,19 +32,26 @@ function Booking() {
 
   const { t } = useTranslation();
 
+
   // =========================================
   // SEARCH CARD DATA
   // =========================================
 
-  const searchData = location.state || {};
+  const searchData =
+    location.state || {};
+
 
   // =========================================
   // LOGGED-IN USER
   // =========================================
 
-  const currentUser = JSON.parse(
-    localStorage.getItem("currentUser") || "null"
-  );
+  const currentUser =
+    JSON.parse(
+      localStorage.getItem(
+        "currentUser"
+      ) || "null"
+    );
+
 
   // =========================================
   // SELECTED SEATS
@@ -54,6 +62,7 @@ function Booking() {
     setSelectedSeats
   ] = useState([]);
 
+
   // =========================================
   // BOOKED SEATS
   // =========================================
@@ -62,6 +71,7 @@ function Booking() {
     bookedSeats,
     setBookedSeats
   ] = useState([]);
+
 
   // =========================================
   // LOADING BOOKED SEATS
@@ -72,6 +82,7 @@ function Booking() {
     setLoadingSeats
   ] = useState(false);
 
+
   // =========================================
   // AVAILABILITY ERROR
   // =========================================
@@ -80,6 +91,7 @@ function Booking() {
     availabilityError,
     setAvailabilityError
   ] = useState("");
+
 
   // =========================================
   // PROCESSING
@@ -90,12 +102,14 @@ function Booking() {
     setIsProcessing
   ] = useState(false);
 
+
   // =========================================
   // OFFER
   // =========================================
 
   const selectedOffer =
     location.state?.offer || null;
+
 
   // =========================================
   // BOOKING INFORMATION
@@ -129,24 +143,32 @@ function Booking() {
 
   });
 
+
   // =========================================
   // FIND SELECTED BUS
   // =========================================
 
-  const selectedBus = buses.find(
-    (bus) =>
-      bus.name === booking.busType
-  );
+  const selectedBus =
+    buses.find(
+      (bus) =>
+        bus.name ===
+        booking.busType
+    );
+
 
   // =========================================
   // FIND SELECTED ROUTE
   // =========================================
 
-  const selectedRoute = routes.find(
-    (route) =>
-      route.from === booking.from &&
-      route.to === booking.to
-  );
+  const selectedRoute =
+    routes.find(
+      (route) =>
+        route.from ===
+          booking.from &&
+        route.to ===
+          booking.to
+    );
+
 
   // =========================================
   // NORMALIZE SEAT DATA
@@ -160,6 +182,7 @@ function Booking() {
 
     return [
       ...new Set(
+
         seats
           .map((seat) => {
 
@@ -184,10 +207,12 @@ function Booking() {
               Number.isInteger(seat) &&
               seat > 0
           )
+
       )
     ];
 
   };
+
 
   // =========================================
   // FETCH BOOKED SEATS
@@ -245,10 +270,13 @@ function Booking() {
         );
 
       const serverSeats =
-        response.data?.bookedSeats || [];
+        response.data?.bookedSeats ||
+        [];
 
       const normalizedServerSeats =
-        normalizeSeats(serverSeats);
+        normalizeSeats(
+          serverSeats
+        );
 
       setBookedSeats(
         normalizedServerSeats
@@ -265,7 +293,9 @@ function Booking() {
                 )
             );
 
-          if (lostSeats.length > 0) {
+          if (
+            lostSeats.length > 0
+          ) {
 
             alert(
               `${t("seat")} ${
@@ -299,7 +329,9 @@ function Booking() {
       );
 
       setAvailabilityError(
-        t("unableCheckAvailability")
+        t(
+          "unableCheckAvailability"
+        )
       );
 
       return null;
@@ -313,6 +345,7 @@ function Booking() {
     }
 
   };
+
 
   // =========================================
   // LOAD BOOKED SEATS WHEN TRIP CHANGES
@@ -383,10 +416,13 @@ function Booking() {
         }
 
         const serverSeats =
-          response.data?.bookedSeats || [];
+          response.data?.bookedSeats ||
+          [];
 
         const normalizedServerSeats =
-          normalizeSeats(serverSeats);
+          normalizeSeats(
+            serverSeats
+          );
 
         setBookedSeats(
           normalizedServerSeats
@@ -416,7 +452,9 @@ function Booking() {
         setBookedSeats([]);
 
         setAvailabilityError(
-          t("unableCheckAvailability")
+          t(
+            "unableCheckAvailability"
+          )
         );
 
       } finally {
@@ -440,8 +478,10 @@ function Booking() {
     selectedRoute?.id,
     booking.from,
     booking.to,
-    booking.date
+    booking.date,
+    t
   ]);
+
 
   // =========================================
   // AUTOMATIC SEAT REFRESH
@@ -491,10 +531,13 @@ function Booking() {
           );
 
         const serverSeats =
-          response.data?.bookedSeats || [];
+          response.data?.bookedSeats ||
+          [];
 
         const normalizedServerSeats =
-          normalizeSeats(serverSeats);
+          normalizeSeats(
+            serverSeats
+          );
 
         setBookedSeats(
           normalizedServerSeats
@@ -511,7 +554,9 @@ function Booking() {
                   )
               );
 
-            if (lostSeats.length > 0) {
+            if (
+              lostSeats.length > 0
+            ) {
 
               alert(
                 `${t("seat")} ${
@@ -561,8 +606,10 @@ function Booking() {
     selectedRoute?.id,
     booking.from,
     booking.to,
-    booking.date
+    booking.date,
+    t
   ]);
+
 
   // =========================================
   // HANDLE INPUT CHANGES
@@ -575,10 +622,12 @@ function Booking() {
       value
     } = e.target;
 
-    setBooking((prev) => ({
-      ...prev,
-      [name]: value
-    }));
+    setBooking(
+      (prev) => ({
+        ...prev,
+        [name]: value
+      })
+    );
 
     if (
       name === "busType" ||
@@ -594,6 +643,7 @@ function Booking() {
     }
 
   };
+
 
   // =========================================
   // CALCULATE PRICE
@@ -611,7 +661,9 @@ function Booking() {
     }
 
     const pricePerPerson =
-      Number(selectedRoute.price) +
+      Number(
+        selectedRoute.price
+      ) +
       Number(
         selectedBus.extraPrice || 0
       );
@@ -624,6 +676,7 @@ function Booking() {
     );
 
   };
+
 
   // =========================================
   // GET DISCOUNT PERCENTAGE
@@ -648,6 +701,7 @@ function Booking() {
     );
 
   };
+
 
   // =========================================
   // CALCULATE DISCOUNT
@@ -679,6 +733,7 @@ function Booking() {
 
   };
 
+
   // =========================================
   // CALCULATE FINAL PAYMENT
   // =========================================
@@ -698,6 +753,7 @@ function Booking() {
 
   };
 
+
   // =========================================
   // PRICE VARIABLES
   // =========================================
@@ -713,6 +769,7 @@ function Booking() {
 
   const discountPercentage =
     getDiscountPercentage();
+
 
   // =========================================
   // CONTINUE TO PAYMENT
@@ -746,7 +803,9 @@ function Booking() {
       ) {
 
         alert(
-          t("selectDepartureDestination")
+          t(
+            "selectDepartureDestination"
+          )
         );
 
         return;
@@ -874,7 +933,9 @@ function Booking() {
             )
             .replace(
               "{passengers}",
-              Number(booking.passengers)
+              Number(
+                booking.passengers
+              )
             )
         );
 
@@ -994,6 +1055,7 @@ function Booking() {
 
   };
 
+
   // =========================================
   // PAGE
   // =========================================
@@ -1004,7 +1066,9 @@ function Booking() {
 
       <Navbar />
 
+
       <section className="booking-page">
+
 
         <div className="booking-header">
 
@@ -1018,15 +1082,20 @@ function Booking() {
 
         </div>
 
+
         <div className="booking-container">
 
-          {/* LEFT SIDE */}
+
+          {/* =================================
+              LEFT SIDE
+          ================================= */}
 
           <div className="booking-summary">
 
             <h2>
               {t("tripDetails")}
             </h2>
+
 
             {selectedOffer ? (
 
@@ -1078,6 +1147,7 @@ function Booking() {
 
             )}
 
+
             <div className="form-group">
 
               <label>
@@ -1110,6 +1180,7 @@ function Booking() {
               </select>
 
             </div>
+
 
             <div className="form-group">
 
@@ -1151,6 +1222,7 @@ function Booking() {
 
             </div>
 
+
             <div className="form-group">
 
               <label>
@@ -1181,6 +1253,7 @@ function Booking() {
 
               </select>
 
+
               {availabilityError && (
 
                 <div
@@ -1207,6 +1280,7 @@ function Booking() {
 
               )}
 
+
               {booking.busType && (
 
                 <>
@@ -1218,7 +1292,9 @@ function Booking() {
                     <div className="seat-loading">
 
                       <p>
-                        {t("selectRouteAndDate")}
+                        {t(
+                          "selectRouteAndDate"
+                        )}
                       </p>
 
                     </div>
@@ -1228,7 +1304,8 @@ function Booking() {
                     <div className="seat-loading">
 
                       <p>
-                        🔄 {t("checkingSeats")}
+                        🔄{" "}
+                        {t("checkingSeats")}
                       </p>
 
                     </div>
@@ -1264,6 +1341,7 @@ function Booking() {
 
             </div>
 
+
             <div className="summary-item">
 
               <span>
@@ -1281,6 +1359,7 @@ function Booking() {
 
             </div>
 
+
             <div className="summary-item">
 
               <span>
@@ -1296,6 +1375,7 @@ function Booking() {
               </strong>
 
             </div>
+
 
             <div className="summary-item">
 
@@ -1313,6 +1393,7 @@ function Booking() {
 
             </div>
 
+
             <div className="price-summary">
 
               <span>
@@ -1329,6 +1410,7 @@ function Booking() {
 
             </div>
 
+
             <div className="summary-item">
 
               <span>
@@ -1344,6 +1426,7 @@ function Booking() {
               </strong>
 
             </div>
+
 
             <div className="summary-item">
 
@@ -1363,13 +1446,17 @@ function Booking() {
 
           </div>
 
-          {/* RIGHT SIDE */}
+
+          {/* =================================
+              RIGHT SIDE
+          ================================= */}
 
           <div className="booking-form">
 
             <h2>
               {t("passengerInformation")}
             </h2>
+
 
             <div className="form-group">
 
@@ -1382,10 +1469,13 @@ function Booking() {
                 name="name"
                 value={booking.name}
                 onChange={handleChange}
-                placeholder={t("enterYourName")}
+                placeholder={
+                  t("enterYourName")
+                }
               />
 
             </div>
+
 
             <div className="form-group">
 
@@ -1398,10 +1488,13 @@ function Booking() {
                 name="phone"
                 value={booking.phone}
                 onChange={handleChange}
-                placeholder={t("enterPhoneNumber")}
+                placeholder={
+                  t("enterPhoneNumber")
+                }
               />
 
             </div>
+
 
             <div className="form-group">
 
@@ -1417,6 +1510,7 @@ function Booking() {
               />
 
             </div>
+
 
             <div className="form-group">
 
@@ -1450,6 +1544,7 @@ function Booking() {
 
             </div>
 
+
             <div className="payment-preview">
 
               <div>
@@ -1467,6 +1562,7 @@ function Booking() {
 
               </div>
 
+
               <div className="preview-discount">
 
                 <span>
@@ -1482,6 +1578,7 @@ function Booking() {
                 </strong>
 
               </div>
+
 
               <div>
 
@@ -1499,6 +1596,7 @@ function Booking() {
                 </strong>
 
               </div>
+
 
               <div className="preview-total">
 
@@ -1519,6 +1617,7 @@ function Booking() {
 
             </div>
 
+
             <button
               type="button"
               className="confirm-btn"
@@ -1538,8 +1637,12 @@ function Booking() {
             >
 
               {isProcessing
-                ? `🔄 ${t("checkingAvailability")}`
-                : t("continueToPayment")}
+                ? `🔄 ${t(
+                    "checkingAvailability"
+                  )}`
+                : t(
+                    "continueToPayment"
+                  )}
 
             </button>
 
@@ -1549,6 +1652,7 @@ function Booking() {
 
       </section>
 
+
       <Footer />
 
     </>
@@ -1556,5 +1660,6 @@ function Booking() {
   );
 
 }
+
 
 export default Booking;
