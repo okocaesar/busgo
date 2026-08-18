@@ -20,6 +20,7 @@ import Payment from "./pages/Payment/Payment";
 import AdminDashboard from "./pages/AdminDashboard/AdminDashboard";
 import VerifyOTP from "./pages/VerifyOTP/VerifyOTP";
 import Notifications from "./pages/Notifications/Notifications";
+import Profile from "./pages/Profile/Profile";
 
 import BackButton from "./components/BackButton/BackButton";
 import AdminRoute from "./components/AdminRoute/AdminRoute";
@@ -281,6 +282,11 @@ function App() {
             <Route
               path="/notifications"
               element={<Notifications />}
+            />
+
+            <Route
+              path="/profile"
+              element={<Profile />}
             />
 
 

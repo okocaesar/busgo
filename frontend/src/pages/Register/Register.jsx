@@ -20,16 +20,20 @@ function Register() {
   const [loading, setLoading] = useState(false);
 
   // =========================================
-  // EMAIL FALLBACK PROMPT
+  // VERIFICATION METHOD SELECTION
   // =========================================
 
-  const [showEmailPrompt, setShowEmailPrompt] = useState(false);
+  const [showVerificationChoice, setShowVerificationChoice] =
+    useState(false);
 
-  const [emailFallbackLoading, setEmailFallbackLoading] =
+  const [verificationLoading, setVerificationLoading] =
     useState(false);
 
   const [registrationResponse, setRegistrationResponse] =
     useState(null);
+
+  const [selectedMethod, setSelectedMethod] =
+    useState("");
 
 
   // =========================================
@@ -62,19 +66,16 @@ function Register() {
       phone ||
       formData.phone.trim();
 
-    // Save email
     localStorage.setItem(
       "pendingVerificationEmail",
       verificationEmail
     );
 
-    // Save phone
     localStorage.setItem(
       "pendingVerificationPhone",
       verificationPhone
     );
 
-    // Save OTP channel
     if (otpChannel) {
       localStorage.setItem(
         "pendingVerificationChannel",
@@ -97,8 +98,6 @@ function Register() {
     email,
     phone,
     otpChannel,
-    whatsappAvailable,
-    requiresEmailPermission,
   }) => {
 
     const verificationData =
@@ -110,24 +109,9 @@ function Register() {
 
     navigate("/verify-otp", {
       state: {
-
-        email:
-          verificationData.email,
-
-        phone:
-          verificationData.phone,
-
-        otpChannel:
-          otpChannel || "",
-
-        whatsappAvailable:
-          typeof whatsappAvailable !== "undefined"
-            ? whatsappAvailable
-            : null,
-
-        requiresEmailPermission:
-          requiresEmailPermission || false,
-
+        email: verificationData.email,
+        phone: verificationData.phone,
+        otpChannel: otpChannel || "",
       },
     });
   };
@@ -140,7 +124,6 @@ function Register() {
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    // Prevent double clicking
     if (loading) {
       return;
     }
@@ -185,7 +168,12 @@ function Register() {
 
 
       // =========================================
-      // SEND REGISTRATION REQUEST
+      // REGISTER ACCOUNT
+      //
+      // IMPORTANT:
+      //
+      // The backend creates and stores the OTP.
+      // It does NOT send the OTP yet.
       // =========================================
 
       const response = await axios.post(
@@ -218,122 +206,41 @@ function Register() {
       );
 
 
-      // =========================================
-      // SAVE RESPONSE
-      // =========================================
-
       setRegistrationResponse(data);
 
 
       // =========================================
-      // WHATSAPP OTP SENT
-      //
-      // This is the preferred path.
-      //
-      // NO EMAIL PROMPT.
-      // NO EMAIL SENT.
+      // SAVE BASIC VERIFICATION DATA
+      // =========================================
+
+      saveVerificationData({
+
+        email:
+          data.email ||
+          formData.email
+            .trim()
+            .toLowerCase(),
+
+        phone:
+          data.phone ||
+          formData.phone.trim(),
+
+        otpChannel:
+          "none",
+
+      });
+
+
+      // =========================================
+      // SHOW METHOD SELECTION
       // =========================================
 
       if (
-        data.otpChannel === "whatsapp" &&
-        data.whatsappAvailable === true
+        data.requiresVerification === true ||
+        data.chooseVerificationMethod === true
       ) {
 
-        goToOTPPage({
-
-          email:
-            data.email ||
-            formData.email
-              .trim()
-              .toLowerCase(),
-
-          phone:
-            data.phone ||
-            formData.phone.trim(),
-
-          otpChannel:
-            "whatsapp",
-
-          whatsappAvailable:
-            true,
-
-          requiresEmailPermission:
-            false,
-
-        });
-
-        return;
-      }
-
-
-      // =========================================
-      // WHATSAPP NOT AVAILABLE
-      //
-      // IMPORTANT:
-      //
-      // The backend has NOT sent an email.
-      //
-      // We ask the user first.
-      // =========================================
-
-      if (
-        data.requiresEmailPermission === true
-      ) {
-
-        // Save verification information
-        saveVerificationData({
-
-          email:
-            data.email ||
-            formData.email
-              .trim()
-              .toLowerCase(),
-
-          phone:
-            data.phone ||
-            formData.phone.trim(),
-
-          otpChannel:
-            "none",
-
-        });
-
-        setShowEmailPrompt(true);
-
-        return;
-      }
-
-
-      // =========================================
-      // UNEXPECTED RESPONSE
-      // =========================================
-
-      if (
-        data.requiresVerification
-      ) {
-
-        goToOTPPage({
-
-          email:
-            data.email ||
-            formData.email
-              .trim()
-              .toLowerCase(),
-
-          phone:
-            data.phone ||
-            formData.phone.trim(),
-
-          otpChannel:
-            data.otpChannel || "",
-
-          whatsappAvailable:
-            data.whatsappAvailable,
-
-          requiresEmailPermission:
-            data.requiresEmailPermission,
-
-        });
+        setShowVerificationChoice(true);
 
         return;
       }
@@ -345,7 +252,7 @@ function Register() {
 
       alert(
         data.message ||
-          "Registration completed."
+        "Registration completed."
       );
 
     } catch (error) {
@@ -358,7 +265,7 @@ function Register() {
 
       alert(
         error.response?.data?.message ||
-          "Registration failed. Please try again."
+        "Registration failed. Please try again."
       );
 
     } finally {
@@ -370,25 +277,24 @@ function Register() {
 
 
   // =========================================
-  // SEND OTP TO EMAIL
-  //
-  // IMPORTANT:
-  //
-  // This ONLY runs after the user clicks
-  // "Send OTP to Email".
+  // SEND OTP USING SELECTED METHOD
   // =========================================
 
-  const handleSendEmailOTP = async () => {
+  const handleVerificationMethod = async (
+    method
+  ) => {
 
-    if (emailFallbackLoading) {
+    if (verificationLoading) {
       return;
     }
 
 
+    setSelectedMethod(method);
+
+    setVerificationLoading(true);
+
+
     try {
-
-      setEmailFallbackLoading(true);
-
 
       const email =
         registrationResponse?.email ||
@@ -397,110 +303,192 @@ function Register() {
           .toLowerCase();
 
 
+      const phone =
+        registrationResponse?.phone ||
+        formData.phone.trim();
+
+
       // =========================================
-      // REQUEST EMAIL OTP
+      // WHATSAPP
       // =========================================
 
-      const response =
-        await axios.post(
-          `${API_URL}/api/auth/send-email-otp`,
-          {
-            email,
-          }
+      if (method === "whatsapp") {
+
+        const response =
+          await axios.post(
+            `${API_URL}/api/auth/send-whatsapp-otp`,
+            {
+              email,
+            }
+          );
+
+
+        const data =
+          response.data || {};
+
+
+        console.log(
+          "WHATSAPP OTP RESPONSE:",
+          data
         );
 
 
-      const data =
-        response.data || {};
+        // =========================================
+        // WHATSAPP SUCCESS
+        // =========================================
+
+        if (
+          data.otpChannel === "whatsapp" ||
+          data.requiresVerification === true
+        ) {
+
+          goToOTPPage({
+
+            email:
+              data.email ||
+              email,
+
+            phone,
+
+            otpChannel:
+              "whatsapp",
+
+          });
+
+          return;
+        }
 
 
-      console.log(
-        "EMAIL FALLBACK RESPONSE:",
-        data
-      );
-
-
-      // =========================================
-      // SAVE VERIFICATION INFORMATION
-      // =========================================
-
-      const verificationData =
-        saveVerificationData({
-
-          email:
-            data.email ||
-            email,
-
-          phone:
-            registrationResponse?.phone ||
-            formData.phone.trim(),
-
-          otpChannel:
-            "email",
-
-        });
-
-
-      // =========================================
-      // CLOSE PROMPT
-      // =========================================
-
-      setShowEmailPrompt(false);
+        throw new Error(
+          data.message ||
+          "Unable to send OTP through WhatsApp."
+        );
+      }
 
 
       // =========================================
-      // GO TO OTP PAGE
+      // EMAIL
       // =========================================
 
-      goToOTPPage({
+      if (method === "email") {
 
-        email:
-          verificationData.email,
+        const response =
+          await axios.post(
+            `${API_URL}/api/auth/send-email-otp`,
+            {
+              email,
+            }
+          );
 
-        phone:
-          verificationData.phone,
 
-        otpChannel:
-          "email",
+        const data =
+          response.data || {};
 
-        whatsappAvailable:
-          false,
 
-        requiresEmailPermission:
-          false,
+        console.log(
+          "EMAIL OTP RESPONSE:",
+          data
+        );
 
-      });
+
+        // =========================================
+        // EMAIL SUCCESS
+        // =========================================
+
+        if (
+          data.otpChannel === "email" ||
+          data.requiresVerification === true
+        ) {
+
+          goToOTPPage({
+
+            email:
+              data.email ||
+              email,
+
+            phone,
+
+            otpChannel:
+              "email",
+
+          });
+
+          return;
+        }
+
+
+        throw new Error(
+          data.message ||
+          "Unable to send OTP through email."
+        );
+      }
 
     } catch (error) {
 
       console.error(
-        "Email OTP fallback error:",
+        `${method} OTP error:`,
         error
       );
 
 
-      alert(
-        error.response?.data?.message ||
-          "Unable to send the verification email. Please try again."
-      );
+      // =========================================
+      // WHATSAPP FAILURE
+      // =========================================
+
+      if (method === "whatsapp") {
+
+        const message =
+          error.response?.data?.message ||
+          error.message ||
+          "Unable to send the verification code through WhatsApp.";
+
+        alert(message);
+
+        return;
+      }
+
+
+      // =========================================
+      // EMAIL FAILURE
+      // =========================================
+
+      if (method === "email") {
+
+        const message =
+          error.response?.data?.message ||
+          error.message ||
+          "Unable to send the verification email.";
+
+        alert(message);
+
+        return;
+      }
 
     } finally {
 
-      setEmailFallbackLoading(false);
+      setVerificationLoading(false);
+
+      setSelectedMethod("");
 
     }
   };
 
 
   // =========================================
-  // CANCEL EMAIL FALLBACK
+  // CANCEL METHOD SELECTION
   // =========================================
 
-  const handleCancelEmailFallback = () => {
+  const handleCancelVerification = () => {
 
-    setShowEmailPrompt(false);
+    if (verificationLoading) {
+      return;
+    }
+
+    setShowVerificationChoice(false);
 
     setRegistrationResponse(null);
+
+    setSelectedMethod("");
 
   };
 
@@ -555,6 +543,7 @@ function Register() {
                 placeholder="Enter your full name"
                 autoComplete="name"
                 disabled={loading}
+                required
               />
 
             </div>
@@ -576,6 +565,7 @@ function Register() {
                 placeholder="Enter your email"
                 autoComplete="email"
                 disabled={loading}
+                required
               />
 
             </div>
@@ -597,6 +587,7 @@ function Register() {
                 placeholder="Enter your phone number"
                 autoComplete="tel"
                 disabled={loading}
+                required
               />
 
             </div>
@@ -618,6 +609,7 @@ function Register() {
                 placeholder="Create a password"
                 autoComplete="new-password"
                 disabled={loading}
+                required
               />
 
             </div>
@@ -639,6 +631,7 @@ function Register() {
                 placeholder="Confirm your password"
                 autoComplete="new-password"
                 disabled={loading}
+                required
               />
 
             </div>
@@ -682,47 +675,48 @@ function Register() {
 
 
       {/* =========================================
-          EMAIL FALLBACK MODAL
+          VERIFICATION METHOD MODAL
       ========================================= */}
 
-      {showEmailPrompt && (
+      {showVerificationChoice && (
 
         <div
-          className="email-fallback-overlay"
+          className="verification-method-overlay"
         >
 
           <div
-            className="email-fallback-modal"
+            className="verification-method-modal"
           >
 
             {/* ICON */}
 
             <div
-              className="email-fallback-icon"
+              className="verification-method-icon"
             >
-              📱
+              🔐
             </div>
 
 
             <h2>
-              WhatsApp Unavailable
+              Verify Your Account
             </h2>
 
 
             <p>
-              We couldn't find WhatsApp on
-              this phone number.
+              Your account has been created successfully.
             </p>
 
 
             <p>
-              Would you like BusGo to send
-              your verification code to:
+              How would you like to receive
+              your verification code?
             </p>
 
 
+            {/* EMAIL ADDRESS */}
+
             <div
-              className="email-fallback-address"
+              className="verification-email-display"
             >
               {registrationResponse?.email ||
                 formData.email
@@ -731,52 +725,122 @@ function Register() {
             </div>
 
 
+            {/* =====================================
+                WHATSAPP OPTION
+            ====================================== */}
+
+            <button
+              type="button"
+              className="verification-method-btn whatsapp-method-btn"
+              onClick={() =>
+                handleVerificationMethod(
+                  "whatsapp"
+                )
+              }
+              disabled={
+                verificationLoading
+              }
+            >
+
+              <span className="verification-method-btn-icon">
+                💬
+              </span>
+
+              <span className="verification-method-btn-content">
+
+                <strong>
+                  {selectedMethod === "whatsapp" &&
+                  verificationLoading
+                    ? "Sending..."
+                    : "WhatsApp"}
+                </strong>
+
+                <small>
+                  Send the code to{" "}
+                  {registrationResponse?.phone ||
+                    formData.phone}
+                </small>
+
+              </span>
+
+              <span className="verification-method-arrow">
+                →
+              </span>
+
+            </button>
+
+
+            {/* =====================================
+                EMAIL OPTION
+            ====================================== */}
+
+            <button
+              type="button"
+              className="verification-method-btn email-method-btn"
+              onClick={() =>
+                handleVerificationMethod(
+                  "email"
+                )
+              }
+              disabled={
+                verificationLoading
+              }
+            >
+
+              <span className="verification-method-btn-icon">
+                ✉️
+              </span>
+
+              <span className="verification-method-btn-content">
+
+                <strong>
+                  {selectedMethod === "email" &&
+                  verificationLoading
+                    ? "Sending..."
+                    : "Email"}
+                </strong>
+
+                <small>
+                  Send the code to{" "}
+                  {registrationResponse?.email ||
+                    formData.email}
+                </small>
+
+              </span>
+
+              <span className="verification-method-arrow">
+                →
+              </span>
+
+            </button>
+
+
+            {/* =====================================
+                CANCEL
+            ====================================== */}
+
+            <button
+              type="button"
+              className="verification-method-cancel"
+              onClick={
+                handleCancelVerification
+              }
+              disabled={
+                verificationLoading
+              }
+            >
+              Cancel
+            </button>
+
+
+            {/* NOTE */}
+
             <p
-              className="email-fallback-note"
+              className="verification-method-note"
             >
               Your verification code will
               expire in 10 minutes.
             </p>
-
-
-            {/* BUTTONS */}
-
-            <div
-              className="email-fallback-actions"
-            >
-
-              <button
-                type="button"
-                className="email-fallback-cancel"
-                onClick={
-                  handleCancelEmailFallback
-                }
-                disabled={
-                  emailFallbackLoading
-                }
-              >
-                Cancel
-              </button>
-
-
-              <button
-                type="button"
-                className="email-fallback-confirm"
-                onClick={
-                  handleSendEmailOTP
-                }
-                disabled={
-                  emailFallbackLoading
-                }
-              >
-
-                {emailFallbackLoading
-                  ? "Sending..."
-                  : "Send OTP to Email"}
-
-              </button>
-
-            </div>
 
           </div>
 

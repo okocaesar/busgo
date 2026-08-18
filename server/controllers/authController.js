@@ -37,9 +37,6 @@ const getOTPExpiration = () => {
 
 // =========================================
 // SEND OTP EMAIL
-//
-// Kept as a separate function because email
-// is now a FALLBACK only.
 // =========================================
 
 const sendOTPEmail = async ({
@@ -136,6 +133,18 @@ const sendOTPEmail = async ({
 
 // =========================================
 // REGISTER
+//
+// IMPORTANT:
+//
+// Registration NO LONGER automatically
+// sends OTP through WhatsApp.
+//
+// The frontend will ask the user to choose:
+//
+// 1. WhatsApp
+// 2. Email
+//
+// The OTP is generated and saved first.
 // =========================================
 
 exports.register = async (req, res) => {
@@ -176,7 +185,9 @@ exports.register = async (req, res) => {
     // =========================================
 
     User.findByEmail(
+
       email,
+
       async (findError, users) => {
 
         if (findError) {
@@ -231,6 +242,7 @@ exports.register = async (req, res) => {
           // EXISTING BUT NOT VERIFIED
           //
           // Generate fresh OTP.
+          // DO NOT SEND IT YET.
           // =========================================
 
           const otp =
@@ -241,10 +253,14 @@ exports.register = async (req, res) => {
 
 
           User.updateOTP(
+
             existingUser.id,
+
             otp,
+
             otpExpiresAt,
-            async (updateError) => {
+
+            (updateError) => {
 
               if (updateError) {
 
@@ -264,152 +280,42 @@ exports.register = async (req, res) => {
 
 
               // =========================================
-              // TRY WHATSAPP FIRST
+              // WAIT FOR USER METHOD SELECTION
               // =========================================
 
-              try {
+              return res.status(200).json({
 
-                const whatsappResult =
-                  await checkAndSendWhatsAppOTP({
+                message:
+                  "Please choose how you would like to receive your verification code.",
 
-                    to:
-                      existingUser.phone ||
-                      phone,
+                requiresVerification:
+                  true,
 
-                    otp,
+                chooseVerificationMethod:
+                  true,
 
-                    name:
-                      existingUser.name ||
-                      name
+                userId:
+                  existingUser.id,
 
-                  });
+                email:
+                  existingUser.email,
 
+                phone:
+                  existingUser.phone ||
+                  phone,
 
-                // =========================================
-                // WHATSAPP SUCCESS
-                // =========================================
+                verificationMethods: [
 
-                if (
-                  whatsappResult.sent &&
-                  whatsappResult.channel === "whatsapp"
-                ) {
+                  "whatsapp",
 
-                  console.log(
-                    "REGISTRATION OTP SENT THROUGH WHATSAPP:",
-                    existingUser.phone ||
-                    phone
-                  );
+                  "email"
 
+                ]
 
-                  return res.status(200).json({
-
-                    message:
-                      "Your verification code has been sent to WhatsApp.",
-
-                    requiresVerification:
-                      true,
-
-                    otpChannel:
-                      "whatsapp",
-
-                    whatsappAvailable:
-                      true,
-
-                    email:
-                      existingUser.email,
-
-                    phone:
-                      existingUser.phone ||
-                      phone
-
-                  });
-
-                }
-
-
-                // =========================================
-                // WHATSAPP NOT AVAILABLE
-                //
-                // IMPORTANT:
-                //
-                // DO NOT SEND EMAIL.
-                //
-                // The frontend will ask the user.
-                // =========================================
-
-                if (
-                  whatsappResult.requiresEmailFallback
-                ) {
-
-                  console.log(
-                    "WHATSAPP NOT AVAILABLE. WAITING FOR USER EMAIL FALLBACK APPROVAL."
-                  );
-
-
-                  return res.status(200).json({
-
-                    message:
-                      "This phone number does not appear to have WhatsApp.",
-
-                    requiresVerification:
-                      true,
-
-                    otpChannel:
-                      "none",
-
-                    whatsappAvailable:
-                      false,
-
-                    requiresEmailPermission:
-                      true,
-
-                    email:
-                      existingUser.email,
-
-                    phone:
-                      existingUser.phone ||
-                      phone,
-
-                    fallbackMessage:
-                      "This phone number does not appear to have WhatsApp. Would you like us to send the verification code to your email?"
-
-                  });
-
-                }
-
-
-                // =========================================
-                // UNKNOWN RESULT
-                // =========================================
-
-                return res.status(503).json({
-
-                  message:
-                    "We could not determine whether this phone number has WhatsApp. Please try again."
-
-                });
-
-              } catch (whatsappError) {
-
-                console.error(
-                  "WHATSAPP OTP ERROR:",
-                  whatsappError
-                );
-
-
-                return res.status(503).json({
-
-                  message:
-                    "We could not send the verification code through WhatsApp. Please try again.",
-
-                  whatsappError:
-                    true
-
-                });
-
-              }
+              });
 
             }
+
           );
 
           return;
@@ -463,7 +369,7 @@ exports.register = async (req, res) => {
 
           },
 
-          async (err, result) => {
+          (err, result) => {
 
             if (err) {
 
@@ -485,161 +391,46 @@ exports.register = async (req, res) => {
             // =========================================
             // USER CREATED
             //
-            // NOW TRY WHATSAPP FIRST
+            // DO NOT SEND OTP AUTOMATICALLY.
+            //
+            // The frontend will now ask the user
+            // whether they want WhatsApp or Email.
             // =========================================
 
-            try {
+            return res.status(201).json({
 
-              const whatsappResult =
-                await checkAndSendWhatsAppOTP({
+              message:
+                "Registration successful. Please choose how you would like to receive your verification code.",
 
-                  to:
-                    phone,
+              userId:
+                result.insertId,
 
-                  otp,
+              requiresVerification:
+                true,
 
-                  name
+              chooseVerificationMethod:
+                true,
 
-                });
+              email,
 
+              phone,
 
-              // =========================================
-              // WHATSAPP OTP SENT
-              // =========================================
+              verificationMethods: [
 
-              if (
-                whatsappResult.sent &&
-                whatsappResult.channel === "whatsapp"
-              ) {
+                "whatsapp",
 
-                console.log(
-                  "NEW USER OTP SENT THROUGH WHATSAPP:",
-                  phone
-                );
+                "email"
 
+              ]
 
-                return res.status(201).json({
-
-                  message:
-                    "Registration successful. Your verification code has been sent to WhatsApp.",
-
-                  userId:
-                    result.insertId,
-
-                  requiresVerification:
-                    true,
-
-                  otpChannel:
-                    "whatsapp",
-
-                  whatsappAvailable:
-                    true,
-
-                  email,
-
-                  phone
-
-                });
-
-              }
-
-
-              // =========================================
-              // WHATSAPP NOT AVAILABLE
-              //
-              // DO NOT SEND EMAIL.
-              // =========================================
-
-              if (
-                whatsappResult.requiresEmailFallback
-              ) {
-
-                console.log(
-                  "NEW USER WHATSAPP UNAVAILABLE. WAITING FOR EMAIL PERMISSION."
-                );
-
-
-                return res.status(201).json({
-
-                  message:
-                    "Registration successful, but this phone number does not appear to have WhatsApp.",
-
-                  userId:
-                    result.insertId,
-
-                  requiresVerification:
-                    true,
-
-                  otpChannel:
-                    "none",
-
-                  whatsappAvailable:
-                    false,
-
-                  requiresEmailPermission:
-                    true,
-
-                  email,
-
-                  phone,
-
-                  fallbackMessage:
-                    "This phone number does not appear to have WhatsApp. Would you like us to send the verification code to your email?"
-
-                });
-
-              }
-
-
-              // =========================================
-              // UNKNOWN RESULT
-              // =========================================
-
-              return res.status(503).json({
-
-                message:
-                  "Your account was created, but we could not determine whether your phone number has WhatsApp. Please try again.",
-
-                userId:
-                  result.insertId,
-
-                requiresVerification:
-                  true
-
-              });
-
-
-            } catch (whatsappError) {
-
-              console.error(
-                "NEW USER WHATSAPP OTP ERROR:",
-                whatsappError
-              );
-
-
-              return res.status(503).json({
-
-                message:
-                  "Your account was created, but we could not send the verification code through WhatsApp. Please try again.",
-
-                userId:
-                  result.insertId,
-
-                requiresVerification:
-                  true,
-
-                whatsappError:
-                  true
-
-              });
-
-            }
+            });
 
           }
 
         );
 
       }
+
     );
 
   } catch (error) {
@@ -662,16 +453,258 @@ exports.register = async (req, res) => {
 
 
 // =========================================
-// SEND OTP TO EMAIL AFTER USER APPROVES
+// SEND OTP TO WHATSAPP
+//
+// POST /api/auth/send-whatsapp-otp
+//
+// Called ONLY after the user chooses
+// WhatsApp as their verification method.
+// =========================================
+
+exports.sendWhatsAppOTP = (req, res) => {
+
+  const {
+    email
+  } = req.body;
+
+
+  // =========================================
+  // VALIDATION
+  // =========================================
+
+  if (!email) {
+
+    return res.status(400).json({
+
+      message:
+        "Email is required."
+
+    });
+
+  }
+
+
+  // =========================================
+  // FIND USER
+  // =========================================
+
+  User.findByEmail(
+
+    email,
+
+    async (err, results) => {
+
+      if (err) {
+
+        console.error(
+          "SEND WHATSAPP OTP DATABASE ERROR:",
+          err
+        );
+
+        return res.status(500).json({
+
+          message:
+            "Unable to find your account."
+
+        });
+
+      }
+
+
+      if (
+        !results ||
+        results.length === 0
+      ) {
+
+        return res.status(404).json({
+
+          message:
+            "No account was found with this email."
+
+        });
+
+      }
+
+
+      const user =
+        results[0];
+
+
+      // =========================================
+      // ALREADY VERIFIED
+      // =========================================
+
+      if (
+        user.email_verified
+      ) {
+
+        return res.status(400).json({
+
+          message:
+            "This account is already verified."
+
+        });
+
+      }
+
+
+      // =========================================
+      // CHECK OTP EXISTS
+      // =========================================
+
+      if (
+        !user.otp_code ||
+        !user.otp_expires_at
+      ) {
+
+        return res.status(400).json({
+
+          message:
+            "Your verification code is no longer available. Please request a new code."
+
+        });
+
+      }
+
+
+      // =========================================
+      // CHECK OTP EXPIRATION
+      // =========================================
+
+      if (
+        new Date(user.otp_expires_at) < new Date()
+      ) {
+
+        return res.status(400).json({
+
+          message:
+            "Your verification code has expired. Please request a new code."
+
+        });
+
+      }
+
+
+      // =========================================
+      // SEND EXISTING OTP TO WHATSAPP
+      // =========================================
+
+      try {
+
+        const whatsappResult =
+          await checkAndSendWhatsAppOTP({
+
+            to:
+              user.phone,
+
+            otp:
+              user.otp_code,
+
+            name:
+              user.name
+
+          });
+
+
+        // =========================================
+        // WHATSAPP SENT
+        // =========================================
+
+        if (
+          whatsappResult.sent &&
+          whatsappResult.channel === "whatsapp"
+        ) {
+
+          console.log(
+            "OTP SENT THROUGH USER-SELECTED WHATSAPP METHOD:",
+            user.phone
+          );
+
+
+          return res.status(200).json({
+
+            message:
+              "Your verification code has been sent to WhatsApp.",
+
+            requiresVerification:
+              true,
+
+            otpChannel:
+              "whatsapp",
+
+            email:
+              user.email
+
+          });
+
+        }
+
+
+        // =========================================
+        // WHATSAPP NOT AVAILABLE
+        // =========================================
+
+        if (
+          whatsappResult.requiresEmailFallback
+        ) {
+
+          return res.status(400).json({
+
+            message:
+              "This phone number does not appear to have WhatsApp. Please choose email instead.",
+
+            whatsappAvailable:
+              false,
+
+            canUseEmail:
+              true
+
+          });
+
+        }
+
+
+        // =========================================
+        // UNKNOWN RESULT
+        // =========================================
+
+        return res.status(503).json({
+
+          message:
+            "We could not send the verification code through WhatsApp. Please choose email instead."
+
+        });
+
+      } catch (whatsappError) {
+
+        console.error(
+          "USER-SELECTED WHATSAPP OTP ERROR:",
+          whatsappError
+        );
+
+        return res.status(503).json({
+
+          message:
+            "Unable to send the verification code through WhatsApp. Please try again or choose email."
+
+        });
+
+      }
+
+    }
+
+  );
+
+};
+
+
+// =========================================
+// SEND OTP TO EMAIL
 //
 // POST /api/auth/send-email-otp
 //
-// IMPORTANT:
-//
-// This endpoint is what the frontend will call
-// ONLY after the user clicks:
-//
-// "Send OTP to Email"
+// Called ONLY after the user chooses
+// Email as their verification method.
 // =========================================
 
 exports.sendEmailOTP = (req, res) => {
@@ -762,112 +795,103 @@ exports.sendEmailOTP = (req, res) => {
 
 
       // =========================================
-      // GENERATE NEW OTP
+      // CHECK OTP
       // =========================================
 
-      const otp =
-        generateOTP();
+      if (
+        !user.otp_code ||
+        !user.otp_expires_at
+      ) {
 
+        return res.status(400).json({
 
-      const otpExpiresAt =
-        getOTPExpiration();
+          message:
+            "Your verification code is no longer available. Please request a new code."
+
+        });
+
+      }
 
 
       // =========================================
-      // UPDATE OTP
+      // CHECK EXPIRATION
       // =========================================
 
-      User.updateOTP(
+      if (
+        new Date(user.otp_expires_at) < new Date()
+      ) {
 
-        user.id,
+        return res.status(400).json({
 
-        otp,
+          message:
+            "Your verification code has expired. Please request a new code."
 
-        otpExpiresAt,
+        });
 
-        async (updateError) => {
-
-          if (updateError) {
-
-            console.error(
-              "EMAIL FALLBACK OTP UPDATE ERROR:",
-              updateError
-            );
-
-            return res.status(500).json({
-
-              message:
-                "Unable to generate a new verification code."
-
-            });
-
-          }
+      }
 
 
-          // =========================================
-          // SEND EMAIL
-          // =========================================
+      // =========================================
+      // SEND EXISTING OTP BY EMAIL
+      // =========================================
 
-          try {
+      try {
 
-            await sendOTPEmail({
+        await sendOTPEmail({
 
-              email:
-                user.email,
+          email:
+            user.email,
 
-              name:
-                user.name,
+          name:
+            user.name,
 
-              otp,
+          otp:
+            user.otp_code,
 
-              subject:
-                "BusGo - Email Verification Code"
+          subject:
+            "BusGo - Email Verification Code"
 
-            });
-
-
-            console.log(
-              "EMAIL FALLBACK OTP SENT:",
-              user.email
-            );
+        });
 
 
-            return res.status(200).json({
-
-              message:
-                "Your verification code has been sent to your email.",
-
-              requiresVerification:
-                true,
-
-              otpChannel:
-                "email",
-
-              email:
-                user.email
-
-            });
+        console.log(
+          "OTP SENT THROUGH USER-SELECTED EMAIL METHOD:",
+          user.email
+        );
 
 
-          } catch (emailError) {
+        return res.status(200).json({
 
-            console.error(
-              "EMAIL FALLBACK SEND ERROR:",
-              emailError
-            );
+          message:
+            "Your verification code has been sent to your email.",
 
-            return res.status(500).json({
+          requiresVerification:
+            true,
 
-              message:
-                "Unable to send the verification email."
+          otpChannel:
+            "email",
 
-            });
+          email:
+            user.email
 
-          }
+        });
 
-        }
 
-      );
+      } catch (emailError) {
+
+        console.error(
+          "EMAIL OTP SEND ERROR:",
+          emailError
+        );
+
+        return res.status(500).json({
+
+          message:
+            "Unable to send the verification email."
+
+        });
+
+      }
 
     }
 
@@ -991,14 +1015,13 @@ exports.verifyOTP = (req, res) => {
 // =========================================
 // RESEND OTP
 //
-// IMPORTANT:
+// Resend now DOES NOT automatically send
+// through WhatsApp.
 //
-// Resend now follows the same priority:
+// It generates a new OTP and asks the
+// frontend to let the user choose:
 //
-// WhatsApp first.
-//
-// If WhatsApp is unavailable,
-// frontend must ask before email.
+// WhatsApp OR Email
 // =========================================
 
 exports.resendOTP = (req, res) => {
@@ -1024,7 +1047,7 @@ exports.resendOTP = (req, res) => {
 
     email,
 
-    async (err, results) => {
+    (err, results) => {
 
       if (err) {
 
@@ -1100,7 +1123,7 @@ exports.resendOTP = (req, res) => {
 
         otpExpiresAt,
 
-        async (updateError) => {
+        (updateError) => {
 
           if (updateError) {
 
@@ -1120,115 +1143,37 @@ exports.resendOTP = (req, res) => {
 
 
           // =========================================
-          // TRY WHATSAPP FIRST
+          // DO NOT SEND OTP YET
+          //
+          // ASK USER TO CHOOSE METHOD AGAIN.
           // =========================================
 
-          try {
+          return res.status(200).json({
 
-            const whatsappResult =
-              await checkAndSendWhatsAppOTP({
+            message:
+              "A new verification code is ready. Please choose how you would like to receive it.",
 
-                to:
-                  user.phone,
+            requiresVerification:
+              true,
 
-                otp,
+            chooseVerificationMethod:
+              true,
 
-                name:
-                  user.name
+            email:
+              user.email,
 
-              });
+            phone:
+              user.phone,
 
+            verificationMethods: [
 
-            // =========================================
-            // WHATSAPP SENT
-            // =========================================
+              "whatsapp",
 
-            if (
-              whatsappResult.sent &&
-              whatsappResult.channel === "whatsapp"
-            ) {
+              "email"
 
-              return res.status(200).json({
+            ]
 
-                message:
-                  "A new verification code has been sent to your WhatsApp.",
-
-                requiresVerification:
-                  true,
-
-                otpChannel:
-                  "whatsapp",
-
-                whatsappAvailable:
-                  true,
-
-                email:
-                  user.email
-
-              });
-
-            }
-
-
-            // =========================================
-            // WHATSAPP NOT AVAILABLE
-            // =========================================
-
-            if (
-              whatsappResult.requiresEmailFallback
-            ) {
-
-              return res.status(200).json({
-
-                message:
-                  "Your phone number does not appear to have WhatsApp.",
-
-                requiresVerification:
-                  true,
-
-                otpChannel:
-                  "none",
-
-                whatsappAvailable:
-                  false,
-
-                requiresEmailPermission:
-                  true,
-
-                email:
-                  user.email,
-
-                fallbackMessage:
-                  "WhatsApp is unavailable for this number. Would you like us to send your verification code to your email?"
-
-              });
-
-            }
-
-
-            return res.status(503).json({
-
-              message:
-                "Unable to determine WhatsApp availability."
-
-            });
-
-
-          } catch (whatsappError) {
-
-            console.error(
-              "RESEND WHATSAPP OTP ERROR:",
-              whatsappError
-            );
-
-            return res.status(503).json({
-
-              message:
-                "Unable to send the verification code through WhatsApp."
-
-            });
-
-          }
+          });
 
         }
 
@@ -1391,7 +1336,18 @@ exports.login = (req, res) => {
             user.email,
 
           phone:
-            user.phone
+            user.phone,
+
+          chooseVerificationMethod:
+            true,
+
+          verificationMethods: [
+
+            "whatsapp",
+
+            "email"
+
+          ]
 
         });
 
@@ -1467,13 +1423,331 @@ exports.login = (req, res) => {
 
 
 // =========================================
-// EXPORT
-// =========================================
+// GET PROFILE
 //
-// This is optional depending on how your
-// auth routes currently reference the
-// controller functions.
-//
-// The functions are already attached to
-// exports above.
+// GET /api/auth/profile
+// Requires authentication
 // =========================================
+
+exports.getProfile = (req, res) => {
+
+  const userId =
+    req.user.id;
+
+
+  if (!userId) {
+
+    return res.status(401).json({
+
+      message:
+        "User authentication information is missing."
+
+    });
+
+  }
+
+
+  User.findById(
+
+    userId,
+
+    (err, results) => {
+
+      if (err) {
+
+        console.error(
+          "GET PROFILE DATABASE ERROR:",
+          err
+        );
+
+        return res.status(500).json({
+
+          message:
+            "Unable to load your profile."
+
+        });
+
+      }
+
+
+      if (
+        !results ||
+        results.length === 0
+      ) {
+
+        return res.status(404).json({
+
+          message:
+            "User profile not found."
+
+        });
+
+      }
+
+
+      const user =
+        results[0];
+
+
+      return res.status(200).json({
+
+        user: {
+
+          id:
+            user.id,
+
+          name:
+            user.name,
+
+          email:
+            user.email,
+
+          phone:
+            user.phone,
+
+          role:
+            user.role,
+
+          email_verified:
+            user.email_verified,
+
+          profile_picture:
+            user.profile_picture,
+
+          created_at:
+            user.created_at
+
+        }
+
+      });
+
+    }
+
+  );
+
+};
+
+
+// =========================================
+// UPDATE PROFILE
+//
+// PUT /api/auth/profile
+// Requires authentication
+//
+// Updates:
+// - Name
+// - Email
+// - Phone
+// - Profile picture
+// =========================================
+
+exports.updateProfile = (req, res) => {
+
+  const userId =
+    req.user.id;
+
+
+  const {
+    name,
+    email,
+    phone,
+    profilePicture
+  } = req.body;
+
+
+  // =========================================
+  // VALIDATION
+  // =========================================
+
+  if (
+    !name ||
+    !email ||
+    !phone
+  ) {
+
+    return res.status(400).json({
+
+      message:
+        "Name, email and phone are required."
+
+    });
+
+  }
+
+
+  // =========================================
+  // CHECK IF EMAIL BELONGS TO ANOTHER USER
+  // =========================================
+
+  User.findByEmail(
+
+    email,
+
+    (findError, users) => {
+
+      if (findError) {
+
+        console.error(
+          "PROFILE EMAIL CHECK ERROR:",
+          findError
+        );
+
+        return res.status(500).json({
+
+          message:
+            "Unable to verify your email address."
+
+        });
+
+      }
+
+
+      // =========================================
+      // EMAIL ALREADY USED BY ANOTHER ACCOUNT
+      // =========================================
+
+      if (
+        users &&
+        users.length > 0 &&
+        Number(users[0].id) !== Number(userId)
+      ) {
+
+        return res.status(409).json({
+
+          message:
+            "This email address is already being used by another account."
+
+        });
+
+      }
+
+
+      // =========================================
+      // UPDATE PROFILE
+      // =========================================
+
+      User.updateProfile(
+
+        userId,
+
+        name.trim(),
+
+        email.trim(),
+
+        phone.trim(),
+
+        profilePicture,
+
+        (updateError) => {
+
+          if (updateError) {
+
+            console.error(
+              "UPDATE PROFILE DATABASE ERROR:",
+              updateError
+            );
+
+            return res.status(500).json({
+
+              message:
+                "Unable to update your profile."
+
+            });
+
+          }
+
+
+          // =========================================
+          // GET UPDATED PROFILE
+          // =========================================
+
+          User.findById(
+
+            userId,
+
+            (profileError, results) => {
+
+              if (profileError) {
+
+                console.error(
+                  "UPDATED PROFILE FETCH ERROR:",
+                  profileError
+                );
+
+                return res.status(500).json({
+
+                  message:
+                    "Profile was updated, but we could not reload it."
+
+                });
+
+              }
+
+
+              if (
+                !results ||
+                results.length === 0
+              ) {
+
+                return res.status(404).json({
+
+                  message:
+                    "Profile updated, but user account could not be found."
+
+                });
+
+              }
+
+
+              const user =
+                results[0];
+
+
+              return res.status(200).json({
+
+                message:
+                  "Profile updated successfully.",
+
+                user: {
+
+                  id:
+                    user.id,
+
+                  name:
+                    user.name,
+
+                  email:
+                    user.email,
+
+                  phone:
+                    user.phone,
+
+                  role:
+                    user.role,
+
+                  email_verified:
+                    user.email_verified,
+
+                  profile_picture:
+                    user.profile_picture,
+
+                  created_at:
+                    user.created_at
+
+                }
+
+              });
+
+            }
+
+          );
+
+        }
+
+      );
+
+    }
+
+  );
+
+};

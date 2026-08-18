@@ -4,6 +4,9 @@ const router = express.Router();
 
 const authController = require("../controllers/authController");
 
+const {
+  requireAuth
+} = require("../middleware/authMiddleware");
 
 // =========================================
 // REGISTER
@@ -65,6 +68,59 @@ router.post(
 router.post(
   "/login",
   authController.login
+);
+
+// =========================================
+// GET PROFILE
+//
+// GET /api/auth/profile
+// Requires authentication
+// =========================================
+
+router.get(
+  "/profile",
+  require("../middleware/authMiddleware").requireAuth,
+  authController.getProfile
+);
+
+
+// =========================================
+// UPDATE PROFILE
+//
+// PUT /api/auth/profile
+// Requires authentication
+// =========================================
+
+router.put(
+  "/profile",
+  require("../middleware/authMiddleware").requireAuth,
+  authController.updateProfile
+);
+
+
+// =========================================
+// GET PROFILE
+//
+// GET /api/auth/profile
+// =========================================
+
+router.get(
+  "/profile",
+  requireAuth,
+  authController.getProfile
+);
+
+
+// =========================================
+// UPDATE PROFILE
+//
+// PUT /api/auth/profile
+// =========================================
+
+router.put(
+  "/profile",
+  requireAuth,
+  authController.updateProfile
 );
 
 

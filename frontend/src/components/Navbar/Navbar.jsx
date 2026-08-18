@@ -479,7 +479,7 @@ function Navbar() {
             to="/"
             onClick={closeMenu}
           >
-            Home
+            Dashboard
           </NavLink>
 
 
@@ -513,7 +513,7 @@ function Navbar() {
               to="/dashboard"
               onClick={closeMenu}
             >
-              Dashboard
+              Profile
             </NavLink>
 
           )}
@@ -549,7 +549,7 @@ function Navbar() {
             >
 
               <span className="notification-icon">
-                🔔
+                Notification 🔔
               </span>
 
 

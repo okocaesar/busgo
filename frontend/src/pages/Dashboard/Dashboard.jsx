@@ -943,37 +943,91 @@ function Dashboard() {
 
           <div className="dashboard-header">
 
-            <div>
+  {/* =================================
+      PROFILE / WELCOME
+  ================================= */}
 
-              <span className="dashboard-eyebrow">
-                MY BUSGO ACCOUNT
-              </span>
+  <div className="dashboard-profile-area">
 
-              <h1>
-                Welcome back,{" "}
-                <span>
-                  {user?.name ||
-                    "Traveller"}
-                </span>
-              </h1>
+    <div className="profile-decoration">
 
-              <p>
-                View and manage all your
-                BusGo travel bookings.
-              </p>
+      <div className="profile-avatar">
+        {(
+          user?.name ||
+          "Traveller"
+        )
+          .charAt(0)
+          .toUpperCase()}
+      </div>
 
-            </div>
+      <div className="profile-decoration-ring"></div>
 
-            <button
-              className="new-booking-btn"
-              onClick={() =>
-                navigate("/booking")
-              }
-            >
-              Book a Trip
-            </button>
+    </div>
 
-          </div>
+    <div className="dashboard-welcome">
+
+      <span className="dashboard-eyebrow">
+        MY BUSGO ACCOUNT
+      </span>
+
+      <h1>
+        Welcome back,{" "}
+        <span className="decorated-profile-name">
+          {user?.name ||
+            "Traveller"}
+
+          <span className="profile-name-badge">
+            ✓
+          </span>
+        </span>
+      </h1>
+
+      <div className="profile-member-label">
+        <span className="member-dot"></span>
+        VERIFIED BUSGO MEMBER
+      </div>
+
+      <p>
+        View and manage all your
+        BusGo travel bookings.
+      </p>
+
+    </div>
+
+  </div>
+
+
+  {/* =================================
+      HEADER ACTIONS
+  ================================= */}
+
+  <div className="dashboard-header-actions">
+
+    <button
+      className="edit-profile-btn"
+      onClick={() =>
+        navigate("/profile")
+      }
+    >
+      <span className="edit-profile-icon">
+        ✎
+      </span>
+
+      Edit Profile
+    </button>
+
+    <button
+      className="new-booking-btn"
+      onClick={() =>
+        navigate("/booking")
+      }
+    >
+      Book a Trip
+    </button>
+
+  </div>
+
+</div>
 
           {/* =================================
               STATISTICS

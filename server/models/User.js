@@ -58,6 +58,95 @@ const User = {
 
 
   // =========================================
+  // FIND USER BY ID
+  // =========================================
+
+  findById: (userId, callback) => {
+    const sql = `
+      SELECT
+        id,
+        name,
+        email,
+        phone,
+        role,
+        email_verified,
+        profile_picture,
+        created_at
+      FROM users
+      WHERE id = ?
+      LIMIT 1
+    `;
+
+    db.query(
+      sql,
+      [userId],
+      callback
+    );
+  },
+
+
+  // =========================================
+  // UPDATE PROFILE
+  // =========================================
+
+  updateProfile: (
+    userId,
+    name,
+    email,
+    phone,
+    callback
+  ) => {
+
+    const sql = `
+      UPDATE users
+      SET
+        name = ?,
+        email = ?,
+        phone = ?
+      WHERE id = ?
+    `;
+
+    db.query(
+      sql,
+      [
+        name,
+        email,
+        phone,
+        userId
+      ],
+      callback
+    );
+  },
+
+
+  // =========================================
+  // UPDATE PROFILE PICTURE
+  // =========================================
+
+  updateProfilePicture: (
+    userId,
+    profilePicture,
+    callback
+  ) => {
+
+    const sql = `
+      UPDATE users
+      SET profile_picture = ?
+      WHERE id = ?
+    `;
+
+    db.query(
+      sql,
+      [
+        profilePicture,
+        userId
+      ],
+      callback
+    );
+  },
+
+
+  // =========================================
   // VERIFY OTP
   // =========================================
 

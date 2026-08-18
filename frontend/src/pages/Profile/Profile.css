@@ -1,0 +1,715 @@
+/* =========================================================
+   BUSGO PROFILE
+========================================================= */
+
+.profile-page {
+  min-height: 80vh;
+  padding: 55px 25px 90px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #f4f8f6 0%,
+      #ffffff 100%
+    );
+}
+
+.profile-container {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.profile-header {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 30px;
+
+  margin-bottom: 30px;
+}
+
+.profile-eyebrow {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #0b7d45;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  letter-spacing: 2px;
+}
+
+.profile-header h1 {
+  margin: 0;
+
+  color: #17221b;
+
+  font-size: 34px;
+
+  font-weight: 800;
+}
+
+.profile-header p {
+  margin: 10px 0 0;
+
+  color: #7b8580;
+
+  font-size: 14px;
+
+  line-height: 1.6;
+}
+
+.profile-back-btn {
+  min-height: 44px;
+
+  padding: 0 18px;
+
+  border: 1px solid #dce6e0;
+
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #344039;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: .2s ease;
+}
+
+.profile-back-btn:hover {
+  border-color: #0b7d45;
+
+  color: #0b7d45;
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   PROFILE CARD
+========================================================= */
+
+.profile-card {
+  margin-bottom: 18px;
+
+  padding: 28px;
+
+  background: #ffffff;
+
+  border: 1px solid #e1e8e4;
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 6px 20px
+    rgba(0, 0, 0, .035);
+}
+
+.profile-card-title {
+  margin-bottom: 24px;
+}
+
+.profile-card-title > span {
+  color: #0b7d45;
+
+  font-size: 9px;
+
+  font-weight: 800;
+
+  letter-spacing: 1.5px;
+}
+
+.profile-card-title h2 {
+  margin: 6px 0 0;
+
+  color: #17221b;
+
+  font-size: 21px;
+
+  font-weight: 800;
+}
+
+.profile-card-title p {
+  margin: 7px 0 0;
+
+  color: #7b8580;
+
+  font-size: 12px;
+
+  line-height: 1.6;
+}
+
+
+/* =========================================================
+   USER PREVIEW
+========================================================= */
+
+.profile-user-preview {
+  display: flex;
+
+  align-items: center;
+
+  gap: 16px;
+
+  margin-bottom: 28px;
+
+  padding: 18px;
+
+  background: #f7faf8;
+
+  border: 1px solid #e4ece7;
+
+  border-radius: 13px;
+}
+
+.profile-avatar {
+  width: 70px;
+  height: 70px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  overflow: hidden;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      135deg,
+      #0b7d45,
+      #16a05e
+    );
+
+  color: #ffffff;
+
+  font-size: 22px;
+
+  font-weight: 800;
+}
+
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.profile-user-preview h3 {
+  margin: 0;
+
+  color: #17221b;
+
+  font-size: 18px;
+
+  font-weight: 800;
+}
+
+.profile-user-preview p {
+  margin: 5px 0 0;
+
+  color: #7b8580;
+
+  font-size: 12px;
+}
+
+
+/* =========================================================
+   FORM
+========================================================= */
+
+.profile-form-grid {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 18px;
+}
+
+.profile-field {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 7px;
+}
+
+.profile-field-full {
+  grid-column: 1 / -1;
+}
+
+.profile-field label {
+  color: #69746e;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  text-transform: uppercase;
+
+  letter-spacing: .7px;
+}
+
+.profile-field input {
+  width: 100%;
+
+  min-height: 45px;
+
+  padding: 0 13px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #dce5df;
+
+  border-radius: 8px;
+
+  outline: none;
+
+  background: #f8faf9;
+
+  color: #303934;
+
+  font-size: 13px;
+}
+
+
+/* =========================================================
+   EDIT BUTTON
+========================================================= */
+
+.edit-profile-btn {
+  margin-top: 22px;
+
+  min-height: 43px;
+
+  padding: 0 20px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: #0b7d45;
+
+  color: #ffffff;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: .2s ease;
+}
+
+.edit-profile-btn:hover {
+  background: #086237;
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   THEME
+========================================================= */
+
+.theme-options {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 14px;
+}
+
+.theme-option {
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 17px;
+
+  border: 1px solid #dfe8e3;
+
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition: .2s ease;
+}
+
+.theme-option:hover {
+  border-color: #0b7d45;
+
+  transform: translateY(-1px);
+}
+
+.theme-option.active {
+  border-color: #0b7d45;
+
+  background: #eef8f2;
+}
+
+.theme-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 10px;
+
+  background: #eaf7ef;
+
+  font-size: 19px;
+}
+
+.theme-option div {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.theme-option strong {
+  color: #26322c;
+
+  font-size: 12px;
+}
+
+.theme-option small {
+  color: #89928d;
+
+  font-size: 10px;
+}
+
+
+/* =========================================================
+   REPORT
+========================================================= */
+
+.report-textarea {
+  width: 100%;
+
+  min-height: 130px;
+
+  padding: 14px;
+
+  box-sizing: border-box;
+
+  resize: vertical;
+
+  border: 1px solid #dce5df;
+
+  border-radius: 9px;
+
+  outline: none;
+
+  background: #f8faf9;
+
+  color: #303934;
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  line-height: 1.6;
+}
+
+.report-textarea:focus {
+  border-color: #0b7d45;
+
+  background: #ffffff;
+}
+
+.report-btn {
+  margin-top: 12px;
+
+  min-height: 43px;
+
+  padding: 0 20px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: #0b7d45;
+
+  color: #ffffff;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   APP INFORMATION
+========================================================= */
+
+.app-info-row {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 17px;
+
+  background: #f7faf8;
+
+  border: 1px solid #e3ebe6;
+
+  border-radius: 11px;
+}
+
+.app-info-row > div {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+.app-info-row span {
+  color: #89928d;
+
+  font-size: 9px;
+
+  font-weight: 800;
+
+  text-transform: uppercase;
+
+  letter-spacing: .8px;
+}
+
+.app-info-row strong {
+  color: #26322c;
+
+  font-size: 13px;
+}
+
+.update-btn {
+  min-height: 40px;
+
+  padding: 0 17px;
+
+  border: 1px solid #cfe0d5;
+
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #0b7d45;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+.profile-logout-card {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 25px;
+
+  padding: 25px 28px;
+
+  background: #fff8f8;
+
+  border: 1px solid #f0dcdc;
+
+  border-radius: 16px;
+}
+
+.profile-logout-card > div {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+.profile-logout-card span {
+  color: #c13232;
+
+  font-size: 9px;
+
+  font-weight: 800;
+
+  letter-spacing: 1.5px;
+}
+
+.profile-logout-card h2 {
+  margin: 0;
+
+  color: #352727;
+
+  font-size: 17px;
+}
+
+.profile-logout-card p {
+  margin: 0;
+
+  color: #8b7777;
+
+  font-size: 11px;
+}
+
+.logout-profile-btn {
+  min-height: 43px;
+
+  padding: 0 22px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: #c13232;
+
+  color: #ffffff;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: .2s ease;
+}
+
+.logout-profile-btn:hover {
+  background: #a62626;
+
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.profile-loading {
+  min-height: 60vh;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  color: #0b7d45;
+
+  font-size: 14px;
+
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .profile-page {
+    padding:
+      35px 15px 60px;
+  }
+
+  .profile-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .profile-header h1 {
+    font-size: 28px;
+  }
+
+  .profile-back-btn {
+    display: none;
+  }
+
+  .profile-card {
+    padding: 20px;
+  }
+
+  .profile-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-field-full {
+    grid-column: auto;
+  }
+
+  .theme-options {
+    grid-template-columns: 1fr;
+  }
+
+  .app-info-row {
+    align-items: stretch;
+
+    flex-direction: column;
+  }
+
+  .update-btn {
+    width: 100%;
+  }
+
+  .profile-logout-card {
+    align-items: stretch;
+
+    flex-direction: column;
+  }
+
+  .logout-profile-btn {
+    width: 100%;
+  }
+
+}
