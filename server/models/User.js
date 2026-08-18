@@ -7,6 +7,7 @@ const User = {
   // =========================================
 
   create: (user, callback) => {
+
     const sql = `
       INSERT INTO users
       (
@@ -34,6 +35,7 @@ const User = {
       ],
       callback
     );
+
   },
 
 
@@ -42,6 +44,7 @@ const User = {
   // =========================================
 
   findByEmail: (email, callback) => {
+
     const sql = `
       SELECT *
       FROM users
@@ -54,6 +57,7 @@ const User = {
       [email],
       callback
     );
+
   },
 
 
@@ -62,6 +66,7 @@ const User = {
   // =========================================
 
   findById: (userId, callback) => {
+
     const sql = `
       SELECT
         id,
@@ -82,11 +87,18 @@ const User = {
       [userId],
       callback
     );
+
   },
 
 
   // =========================================
   // UPDATE PROFILE
+  //
+  // Updates:
+  // - Name
+  // - Email
+  // - Phone
+  // - Profile picture
   // =========================================
 
   updateProfile: (
@@ -94,6 +106,7 @@ const User = {
     name,
     email,
     phone,
+    profilePicture,
     callback
   ) => {
 
@@ -102,7 +115,8 @@ const User = {
       SET
         name = ?,
         email = ?,
-        phone = ?
+        phone = ?,
+        profile_picture = ?
       WHERE id = ?
     `;
 
@@ -112,10 +126,12 @@ const User = {
         name,
         email,
         phone,
+        profilePicture || null,
         userId
       ],
       callback
     );
+
   },
 
 
@@ -131,7 +147,8 @@ const User = {
 
     const sql = `
       UPDATE users
-      SET profile_picture = ?
+      SET
+        profile_picture = ?
       WHERE id = ?
     `;
 
@@ -143,6 +160,7 @@ const User = {
       ],
       callback
     );
+
   },
 
 
@@ -150,7 +168,12 @@ const User = {
   // VERIFY OTP
   // =========================================
 
-  verifyOTP: (email, otp, callback) => {
+  verifyOTP: (
+    email,
+    otp,
+    callback
+  ) => {
+
     const sql = `
       SELECT *
       FROM users
@@ -162,9 +185,13 @@ const User = {
 
     db.query(
       sql,
-      [email, otp],
+      [
+        email,
+        otp
+      ],
       callback
     );
+
   },
 
 
@@ -172,7 +199,11 @@ const User = {
   // MARK EMAIL VERIFIED
   // =========================================
 
-  markEmailVerified: (userId, callback) => {
+  markEmailVerified: (
+    userId,
+    callback
+  ) => {
+
     const sql = `
       UPDATE users
       SET
@@ -187,6 +218,7 @@ const User = {
       [userId],
       callback
     );
+
   },
 
 
@@ -218,6 +250,7 @@ const User = {
       ],
       callback
     );
+
   }
 
 };
