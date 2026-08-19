@@ -23,14 +23,20 @@ router.use(requireAuth);
 // GET /api/notifications/test
 // =========================================
 
-router.get("/test", (req, res) => {
+router.get(
+  "/test",
+  (req, res) => {
 
-  res.json({
-    message: "Notification routes are working",
-    userId: req.user.id
-  });
+    res.json({
+      message:
+        "Notification routes are working",
 
-});
+      userId:
+        req.user.id
+    });
+
+  }
+);
 
 
 // =========================================

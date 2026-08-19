@@ -4,12 +4,14 @@ const {
   sendBookingTicketEmail
 } = require("../services/emailService");
 
+
 // =========================================
 // GET ADMIN STATISTICS
 // GET /api/admin/stats
 // =========================================
 
 exports.getStats = (req, res) => {
+
   const sql = `
     SELECT
       (SELECT COUNT(*) FROM users) AS totalUsers,
@@ -39,46 +41,45 @@ exports.getStats = (req, res) => {
     sql,
     ["Confirmed", "Cancelled", "Confirmed"],
     (err, results) => {
+
       if (err) {
+
         console.error(
           "ADMIN STATS DATABASE ERROR:",
           err
         );
 
         return res.status(500).json({
-          message: "Unable to load admin statistics.",
-          error: err.message
+          message:
+            "Unable to load admin statistics.",
+          error:
+            err.message
         });
+
       }
 
-      console.log(
-        "ADMIN STATS:",
-        results[0]
-      );
-
       res.json({
-        totalUsers: Number(
-          results[0].totalUsers || 0
-        ),
 
-        totalBookings: Number(
-          results[0].totalBookings || 0
-        ),
+        totalUsers:
+          Number(results[0].totalUsers || 0),
 
-        confirmedBookings: Number(
-          results[0].confirmedBookings || 0
-        ),
+        totalBookings:
+          Number(results[0].totalBookings || 0),
 
-        cancelledBookings: Number(
-          results[0].cancelledBookings || 0
-        ),
+        confirmedBookings:
+          Number(results[0].confirmedBookings || 0),
 
-        totalRevenue: Number(
-          results[0].totalRevenue || 0
-        )
+        cancelledBookings:
+          Number(results[0].cancelledBookings || 0),
+
+        totalRevenue:
+          Number(results[0].totalRevenue || 0)
+
       });
+
     }
   );
+
 };
 
 
@@ -88,6 +89,7 @@ exports.getStats = (req, res) => {
 // =========================================
 
 exports.getUsers = (req, res) => {
+
   const sql = `
     SELECT
       id,
@@ -100,23 +102,33 @@ exports.getUsers = (req, res) => {
     ORDER BY created_at DESC
   `;
 
-  db.query(sql, (err, results) => {
-    if (err) {
-      console.error(
-        "ADMIN USERS DATABASE ERROR:",
-        err
-      );
+  db.query(
+    sql,
+    (err, results) => {
 
-      return res.status(500).json({
-        message: "Unable to load users.",
-        error: err.message
+      if (err) {
+
+        console.error(
+          "ADMIN USERS DATABASE ERROR:",
+          err
+        );
+
+        return res.status(500).json({
+          message:
+            "Unable to load users.",
+          error:
+            err.message
+        });
+
+      }
+
+      res.json({
+        users: results
       });
-    }
 
-    res.json({
-      users: results
-    });
-  });
+    }
+  );
+
 };
 
 
@@ -126,6 +138,7 @@ exports.getUsers = (req, res) => {
 // =========================================
 
 exports.getBookings = (req, res) => {
+
   const sql = `
     SELECT
       bookings.*,
@@ -157,30 +170,35 @@ exports.getBookings = (req, res) => {
     ORDER BY bookings.created_at DESC
   `;
 
-  db.query(sql, (err, results) => {
-    if (err) {
-      console.error(
-        "ADMIN BOOKINGS DATABASE ERROR:",
-        err
-      );
+  db.query(
+    sql,
+    (err, results) => {
 
-      return res.status(500).json({
-        message: "Unable to load bookings.",
-        error: err.message
+      if (err) {
+
+        console.error(
+          "ADMIN BOOKINGS DATABASE ERROR:",
+          err
+        );
+
+        return res.status(500).json({
+          message:
+            "Unable to load bookings.",
+          error:
+            err.message
+        });
+
+      }
+
+      res.json({
+        bookings: results
       });
-    }
 
-    res.json({
-      bookings: results
-    });
-  });
+    }
+  );
+
 };
 
-
-// =========================================
-// UPDATE BOOKING STATUS
-// PATCH /api/admin/bookings/:bookingId/status
-// =========================================
 
 // =========================================
 // UPDATE BOOKING STATUS
@@ -197,16 +215,10 @@ exports.updateBookingStatus = (req, res) => {
     bookingStatus
   } = req.body;
 
-
-  // =========================================
-  // ALLOWED STATUSES
-  // =========================================
-
   const allowedStatuses = [
     "Confirmed",
     "Cancelled"
   ];
-
 
   if (
     !allowedStatuses.includes(
@@ -220,11 +232,6 @@ exports.updateBookingStatus = (req, res) => {
     });
 
   }
-
-
-  // =========================================
-  // GET BOOKING INFORMATION FIRST
-  // =========================================
 
   const bookingSql = `
     SELECT
@@ -254,7 +261,6 @@ exports.updateBookingStatus = (req, res) => {
     LIMIT 1
   `;
 
-
   db.query(
     bookingSql,
     [bookingId],
@@ -268,21 +274,13 @@ exports.updateBookingStatus = (req, res) => {
         );
 
         return res.status(500).json({
-
           message:
             "Unable to retrieve booking information.",
-
           error:
             bookingError.message
-
         });
 
       }
-
-
-      // =========================================
-      // BOOKING NOT FOUND
-      // =========================================
 
       if (
         !bookingResults ||
@@ -290,44 +288,28 @@ exports.updateBookingStatus = (req, res) => {
       ) {
 
         return res.status(404).json({
-
           message:
             "Booking not found."
-
         });
 
       }
 
-
       const booking =
         bookingResults[0];
 
-
       const oldStatus =
         booking.booking_status;
-
-
-      // =========================================
-      // NO STATUS CHANGE
-      // =========================================
 
       if (
         oldStatus === bookingStatus
       ) {
 
         return res.status(200).json({
-
           message:
             `Booking is already ${bookingStatus}.`
-
         });
 
       }
-
-
-      // =========================================
-      // UPDATE BOOKING STATUS
-      // =========================================
 
       const updateSql = `
         UPDATE bookings
@@ -336,7 +318,6 @@ exports.updateBookingStatus = (req, res) => {
 
         WHERE id = ?
       `;
-
 
       db.query(
         updateSql,
@@ -354,46 +335,28 @@ exports.updateBookingStatus = (req, res) => {
             );
 
             return res.status(500).json({
-
               message:
                 "Unable to update booking status.",
-
               error:
                 updateError.message
-
             });
 
           }
-
 
           if (
             result.affectedRows === 0
           ) {
 
             return res.status(404).json({
-
               message:
                 "Booking was not updated."
-
             });
 
           }
 
-
-          // =========================================
-          // DETERMINE NOTIFICATION
-          // =========================================
-
           let notificationTitle = "";
-
           let notificationMessage = "";
-
           let notificationType = "info";
-
-
-          // =========================================
-          // BOOKING CANCELLED
-          // =========================================
 
           if (
             bookingStatus === "Cancelled"
@@ -402,20 +365,13 @@ exports.updateBookingStatus = (req, res) => {
             notificationTitle =
               "Booking Cancelled ❌";
 
-
             notificationMessage =
               `Hello ${booking.user_name || "BusGo customer"}, your BusGo ticket ${booking.ticket_number} for ${booking.departure} to ${booking.destination} has been cancelled. Please contact BusGo support if you need further assistance.`;
-
 
             notificationType =
               "warning";
 
           }
-
-
-          // =========================================
-          // BOOKING RESTORED
-          // =========================================
 
           if (
             bookingStatus === "Confirmed"
@@ -424,20 +380,13 @@ exports.updateBookingStatus = (req, res) => {
             notificationTitle =
               "Booking Restored 🎫";
 
-
             notificationMessage =
               `Hello ${booking.user_name || "BusGo customer"}, your BusGo ticket ${booking.ticket_number} from ${booking.departure} to ${booking.destination} is active again. Please prepare for your travel date ${booking.travel_date}. We wish you a safe and pleasant journey!`;
-
 
             notificationType =
               "success";
 
           }
-
-
-          // =========================================
-          // CREATE NOTIFICATION
-          // =========================================
 
           const notificationSql = `
             INSERT INTO notifications
@@ -452,7 +401,6 @@ exports.updateBookingStatus = (req, res) => {
             VALUES (?, ?, ?, ?, 0)
           `;
 
-
           db.query(
             notificationSql,
             [
@@ -463,10 +411,6 @@ exports.updateBookingStatus = (req, res) => {
             ],
             (notificationError) => {
 
-              // =========================================
-              // NOTIFICATION ERROR
-              // =========================================
-
               if (notificationError) {
 
                 console.error(
@@ -474,52 +418,14 @@ exports.updateBookingStatus = (req, res) => {
                   notificationError
                 );
 
-
-                // ---------------------------------------
-                // IMPORTANT
-                // ---------------------------------------
-                //
-                // The booking status was already updated.
-                //
-                // Therefore we do NOT return an Internal
-                // Server Error to the admin.
-                //
-                // The booking update succeeded.
-                // ---------------------------------------
-
                 return res.status(200).json({
-
                   message:
                     `Booking status changed to ${bookingStatus}, but the user notification could not be created.`,
-
                   bookingStatus,
-
-                  notification:
-                    false
-
+                  notification: false
                 });
 
               }
-
-
-              // =========================================
-              // SUCCESS
-              // =========================================
-
-              console.log(
-                "BOOKING STATUS UPDATED:",
-                booking.ticket_number,
-                oldStatus,
-                "→",
-                bookingStatus
-              );
-
-
-              console.log(
-                "BOOKING STATUS NOTIFICATION CREATED FOR USER:",
-                booking.user_id
-              );
-
 
               return res.status(200).json({
 
@@ -559,29 +465,23 @@ exports.sendNotification = (req, res) => {
     type
   } = req.body;
 
-
-  // =========================================
-  // VALIDATION
-  // =========================================
-
   if (!title || !title.trim()) {
+
     return res.status(400).json({
       message:
         "Notification title is required."
     });
+
   }
 
   if (!message || !message.trim()) {
+
     return res.status(400).json({
       message:
         "Notification message is required."
     });
+
   }
-
-
-  // =========================================
-  // NOTIFICATION TYPE
-  // =========================================
 
   const notificationType =
     type || "info";
@@ -598,12 +498,13 @@ exports.sendNotification = (req, res) => {
       notificationType
     )
   ) {
+
     return res.status(400).json({
       message:
         "Invalid notification type."
     });
-  }
 
+  }
 
   // =========================================
   // SEND TO ALL USERS
@@ -636,7 +537,6 @@ exports.sendNotification = (req, res) => {
       WHERE role != 'admin'
     `;
 
-
     db.query(
       sql,
       [
@@ -659,31 +559,24 @@ exports.sendNotification = (req, res) => {
             error:
               err.message
           });
+
         }
 
-
-        console.log(
-          "ADMIN NOTIFICATION SENT:",
-          result.affectedRows,
-          "users"
-        );
-
-
         return res.status(201).json({
+
           message:
             "Notification sent to all users successfully.",
 
           recipients:
             result.affectedRows
+
         });
 
       }
     );
 
-
     return;
   }
-
 
   // =========================================
   // SEND TO ONE USER
@@ -695,7 +588,6 @@ exports.sendNotification = (req, res) => {
     FROM users
     WHERE id = ?
   `;
-
 
   db.query(
     checkUserSql,
@@ -712,12 +604,11 @@ exports.sendNotification = (req, res) => {
         return res.status(500).json({
           message:
             "Unable to find the selected user.",
-
           error:
             userError.message
         });
-      }
 
+      }
 
       if (
         !users ||
@@ -728,8 +619,8 @@ exports.sendNotification = (req, res) => {
           message:
             "Selected user was not found."
         });
-      }
 
+      }
 
       const insertSql = `
         INSERT INTO notifications
@@ -743,7 +634,6 @@ exports.sendNotification = (req, res) => {
 
         VALUES (?, ?, ?, ?, 0)
       `;
-
 
       db.query(
         insertSql,
@@ -765,18 +655,19 @@ exports.sendNotification = (req, res) => {
             return res.status(500).json({
               message:
                 "Unable to send notification.",
-
               error:
                 insertError.message
             });
+
           }
 
-
           return res.status(201).json({
+
             message:
               "Notification sent successfully.",
 
             recipients: 1
+
           });
 
         }
@@ -784,7 +675,166 @@ exports.sendNotification = (req, res) => {
 
     }
   );
+
 };
+
+
+// =========================================
+// GET ALL REPORTS
+// GET /api/admin/reports
+// =========================================
+
+exports.getReports = (req, res) => {
+
+  const sql = `
+    SELECT
+      reports.*,
+
+      users.name AS user_name,
+      users.email AS user_email,
+      users.phone AS user_phone
+
+    FROM reports
+
+    LEFT JOIN users
+      ON reports.user_id = users.id
+
+    ORDER BY reports.created_at DESC
+  `;
+
+  db.query(
+    sql,
+    (err, results) => {
+
+      if (err) {
+
+        console.error(
+          "ADMIN REPORTS DATABASE ERROR:",
+          err
+        );
+
+        return res.status(500).json({
+
+          message:
+            "Unable to load reports.",
+
+          error:
+            err.message
+
+        });
+
+      }
+
+      return res.status(200).json({
+
+        reports:
+          results || []
+
+      });
+
+    }
+  );
+
+};
+
+
+// =========================================
+// UPDATE REPORT STATUS
+// PATCH /api/admin/reports/:reportId/status
+// =========================================
+
+exports.updateReportStatus = (req, res) => {
+
+  const {
+    reportId
+  } = req.params;
+
+  const {
+    status
+  } = req.body;
+
+  const allowedStatuses = [
+    "Pending",
+    "Reviewed",
+    "Resolved",
+    "Rejected"
+  ];
+
+  if (
+    !allowedStatuses.includes(status)
+  ) {
+
+    return res.status(400).json({
+
+      message:
+        "Invalid report status."
+
+    });
+
+  }
+
+  const sql = `
+    UPDATE reports
+
+    SET status = ?
+
+    WHERE id = ?
+  `;
+
+  db.query(
+    sql,
+    [
+      status,
+      reportId
+    ],
+    (err, result) => {
+
+      if (err) {
+
+        console.error(
+          "ADMIN UPDATE REPORT STATUS ERROR:",
+          err
+        );
+
+        return res.status(500).json({
+
+          message:
+            "Unable to update report status.",
+
+          error:
+            err.message
+
+        });
+
+      }
+
+      if (
+        result.affectedRows === 0
+      ) {
+
+        return res.status(404).json({
+
+          message:
+            "Report not found."
+
+        });
+
+      }
+
+      return res.status(200).json({
+
+        message:
+          "Report status updated successfully.",
+
+        status
+
+      });
+
+    }
+  );
+
+};
+
 
 // =========================================
 // GET ALL PAYMENTS
@@ -820,7 +870,6 @@ exports.getPayments = (req, res) => {
     ORDER BY payments.payment_date DESC
   `;
 
-
   db.query(
     sql,
     (err, results) => {
@@ -843,7 +892,6 @@ exports.getPayments = (req, res) => {
         });
 
       }
-
 
       res.json({
 
@@ -869,10 +917,8 @@ exports.acceptPaymentReversal = (req, res) => {
     paymentId
   } = req.params;
 
-
   const adminId =
     req.user?.id || null;
-
 
   const sql = `
     UPDATE payments
@@ -890,7 +936,6 @@ exports.acceptPaymentReversal = (req, res) => {
 
     AND status = 'Requested Reversal'
   `;
-
 
   db.query(
     sql,
@@ -919,7 +964,6 @@ exports.acceptPaymentReversal = (req, res) => {
 
       }
 
-
       if (
         result.affectedRows === 0
       ) {
@@ -932,7 +976,6 @@ exports.acceptPaymentReversal = (req, res) => {
         });
 
       }
-
 
       res.json({
 
@@ -958,7 +1001,6 @@ exports.denyPaymentReversal = (req, res) => {
     paymentId
   } = req.params;
 
-
   const sql = `
     UPDATE payments
 
@@ -973,7 +1015,6 @@ exports.denyPaymentReversal = (req, res) => {
 
     AND status = 'Requested Reversal'
   `;
-
 
   db.query(
     sql,
@@ -999,7 +1040,6 @@ exports.denyPaymentReversal = (req, res) => {
 
       }
 
-
       if (
         result.affectedRows === 0
       ) {
@@ -1013,7 +1053,6 @@ exports.denyPaymentReversal = (req, res) => {
 
       }
 
-
       res.json({
 
         message:
@@ -1025,6 +1064,7 @@ exports.denyPaymentReversal = (req, res) => {
   );
 
 };
+
 
 // =========================================
 // CREATE BOOKING FOR REGISTERED USER
@@ -1043,61 +1083,72 @@ exports.createBooking = (req, res) => {
     busType,
     seats,
     totalPrice,
-    discount,
-    totalPayment,
-    paymentMethod,
-    paymentStatus
+    discount
   } = req.body;
 
-
-  // =========================================
-  // VALIDATION
-  // =========================================
-
-  if (!email || !email.trim()) {
+  if (
+    !email ||
+    !email.trim()
+  ) {
 
     return res.status(400).json({
-      message: "Registered user email is required."
+
+      message:
+        "Registered user email is required."
+
     });
 
   }
-
 
   if (!from || !to) {
 
     return res.status(400).json({
-      message: "Departure and destination are required."
+
+      message:
+        "Departure and destination are required."
+
     });
 
   }
-
 
   if (!date) {
 
     return res.status(400).json({
-      message: "Travel date is required."
+
+      message:
+        "Travel date is required."
+
     });
 
   }
 
-
-  if (!name || !name.trim()) {
+  if (
+    !name ||
+    !name.trim()
+  ) {
 
     return res.status(400).json({
-      message: "Passenger name is required."
+
+      message:
+        "Passenger name is required."
+
     });
 
   }
 
-
-  if (!busType || !busType.trim()) {
+  if (
+    !busType ||
+    !busType.trim()
+  ) {
 
     return res.status(400).json({
-      message: "Bus type is required."
+
+      message:
+        "Bus type is required."
+
     });
 
   }
-
 
   if (
     !Array.isArray(seats) ||
@@ -1105,15 +1156,13 @@ exports.createBooking = (req, res) => {
   ) {
 
     return res.status(400).json({
-      message: "At least one seat must be selected."
+
+      message:
+        "At least one seat must be selected."
+
     });
 
   }
-
-
-  // =========================================
-  // FIND REGISTERED USER
-  // =========================================
 
   const userSql = `
     SELECT
@@ -1125,7 +1174,6 @@ exports.createBooking = (req, res) => {
     WHERE email = ?
     LIMIT 1
   `;
-
 
   db.query(
     userSql,
@@ -1140,18 +1188,16 @@ exports.createBooking = (req, res) => {
         );
 
         return res.status(500).json({
+
           message:
             "Unable to verify the registered user.",
+
           error:
             userError.message
+
         });
 
       }
-
-
-      // =========================================
-      // USER NOT FOUND
-      // =========================================
 
       if (
         !users ||
@@ -1159,19 +1205,16 @@ exports.createBooking = (req, res) => {
       ) {
 
         return res.status(404).json({
+
           message:
             "No registered user was found with this email address."
+
         });
 
       }
 
-
-      const user = users[0];
-
-
-      // =========================================
-      // FIND ROUTE
-      // =========================================
+      const user =
+        users[0];
 
       const routeSql = `
         SELECT
@@ -1183,7 +1226,6 @@ exports.createBooking = (req, res) => {
           AND destination = ?
         LIMIT 1
       `;
-
 
       db.query(
         routeSql,
@@ -1201,18 +1243,16 @@ exports.createBooking = (req, res) => {
             );
 
             return res.status(500).json({
+
               message:
                 "Unable to find the selected route.",
+
               error:
                 routeError.message
+
             });
 
           }
-
-
-          // =========================================
-          // ROUTE NOT FOUND
-          // =========================================
 
           if (
             !routes ||
@@ -1220,19 +1260,16 @@ exports.createBooking = (req, res) => {
           ) {
 
             return res.status(404).json({
+
               message:
                 "The selected route does not exist."
+
             });
 
           }
 
-
-          const route = routes[0];
-
-
-          // =========================================
-          // FIND BUS
-          // =========================================
+          const route =
+            routes[0];
 
           const busSql = `
             SELECT
@@ -1242,7 +1279,6 @@ exports.createBooking = (req, res) => {
             WHERE name = ?
             LIMIT 1
           `;
-
 
           db.query(
             busSql,
@@ -1257,18 +1293,16 @@ exports.createBooking = (req, res) => {
                 );
 
                 return res.status(500).json({
+
                   message:
                     "Unable to find the selected bus.",
+
                   error:
                     busError.message
+
                 });
 
               }
-
-
-              // =========================================
-              // BUS NOT FOUND
-              // =========================================
 
               if (
                 !buses ||
@@ -1276,19 +1310,16 @@ exports.createBooking = (req, res) => {
               ) {
 
                 return res.status(404).json({
+
                   message:
                     "The selected bus type does not exist."
+
                 });
 
               }
 
-
-              const bus = buses[0];
-
-
-              // =========================================
-              // GENERATE TICKET NUMBER
-              // =========================================
+              const bus =
+                buses[0];
 
               const ticketNumber =
                 "BG-" +
@@ -1299,104 +1330,60 @@ exports.createBooking = (req, res) => {
                   Math.random() * 9000
                 );
 
-
-              // =========================================
-              // PREPARE BOOKING
-              // =========================================
-
               const booking = {
 
-  ticketNumber,
+                ticketNumber,
 
-  userId:
-    user.id,
+                userId:
+                  user.id,
 
-  routeId:
-    route.id,
+                routeId:
+                  route.id,
 
-  busId:
-    bus.id,
+                busId:
+                  bus.id,
 
-  passengerName:
-    name.trim(),
+                passengerName:
+                  name.trim(),
 
-  passengerPhone:
-    phone ||
-    user.phone ||
-    "",
+                passengerPhone:
+                  phone ||
+                  user.phone ||
+                  "",
 
-  travelDate:
-    date,
+                travelDate:
+                  date,
 
-  seats,
+                seats,
 
-  offerId:
-    null,
+                offerId:
+                  null,
 
-  totalPrice:
-    Number(totalPrice || 0),
+                totalPrice:
+                  Number(totalPrice || 0),
 
-  discount:
-    Number(discount || 0),
+                discount:
+                  Number(discount || 0),
 
-  // =========================================
-  // ADMIN CASH BOOKING
-  //
-  // IMPORTANT:
-  // Admin-created bookings skip online payment.
-  //
-  // The database records total_payment as 0
-  // because no online payment transaction was
-  // made.
-  // =========================================
+                totalPayment:
+                  0,
 
-  totalPayment:
-    0,
+                paymentMethod:
+                  "Cash",
 
-  // =========================================
-  // CASH PAYMENT
-  // =========================================
+                paymentStatus:
+                  "Successful",
 
-  paymentMethod:
-    "Cash",
+                bookingStatus:
+                  "Confirmed",
 
-  // =========================================
-  // CASH RECEIVED BY ADMIN
-  //
-  // We consider the ticket paid because the
-  // admin has received cash directly.
-  // =========================================
+                paymentDate:
+                  new Date()
 
-  paymentStatus:
-    "Successful",
-
-  // =========================================
-  // TICKET IS ACTIVE IMMEDIATELY
-  // =========================================
-
-  bookingStatus:
-    "Confirmed",
-
-  // =========================================
-  // ADMIN CASH PAYMENT TIME
-  // =========================================
-
-  paymentDate:
-    new Date()
-
-};
-
-
-              // =========================================
-              // CREATE BOOKING SAFELY
-              //
-              // REUSES THE EXISTING
-              // TRANSACTION + SEAT LOCKING SYSTEM
-              // =========================================
+              };
 
               const Booking =
                 require("../models/Booking");
-
 
               Booking.createBookingSafely(
                 booking,
@@ -1408,11 +1395,6 @@ exports.createBooking = (req, res) => {
                       "ADMIN CREATE BOOKING ERROR:",
                       bookingError
                     );
-
-
-                    // =========================================
-                    // SEAT CONFLICT
-                    // =========================================
 
                     if (
                       bookingError.code ===
@@ -1432,11 +1414,6 @@ exports.createBooking = (req, res) => {
 
                     }
 
-
-                    // =========================================
-                    // BUS NOT FOUND
-                    // =========================================
-
                     if (
                       bookingError.code ===
                       "BUS_NOT_FOUND"
@@ -1450,11 +1427,6 @@ exports.createBooking = (req, res) => {
                       });
 
                     }
-
-
-                    // =========================================
-                    // INVALID SEATS
-                    // =========================================
 
                     if (
                       bookingError.code ===
@@ -1470,7 +1442,6 @@ exports.createBooking = (req, res) => {
 
                     }
 
-
                     return res.status(500).json({
 
                       message:
@@ -1483,18 +1454,8 @@ exports.createBooking = (req, res) => {
 
                   }
 
-
-                  // =========================================
-                  // BOOKING CREATED
-                  // =========================================
-
                   const bookingId =
                     result.insertId;
-
-
-                  // =========================================
-                  // CREATE IN-APP NOTIFICATION
-                  // =========================================
 
                   const notificationSql = `
                     INSERT INTO notifications
@@ -1509,218 +1470,180 @@ exports.createBooking = (req, res) => {
                     VALUES (?, ?, ?, ?, 0)
                   `;
 
-
                   const notificationTitle =
-  "BusGo Ticket Created Successfully 🎫";
+                    "BusGo Ticket Created Successfully 🎫";
 
-
-const notificationMessage =
-  `Hello ${user.name || name}, your BusGo ticket ${ticketNumber} has been created successfully. ` +
-  `Your trip is from ${from} to ${to} on ${date}. ` +
-  `Passenger: ${booking.passengerName}. ` +
-  `Seat(s): ${result.bookedSeats.join(", ")}. ` +
-  `Bus: ${bus.name}. ` +
-  `Payment method: Cash. ` +
-  `Your ticket is confirmed. Please keep this ticket information safe for your journey.`;
-
+                  const notificationMessage =
+                    `Hello ${user.name || name}, your BusGo ticket ${ticketNumber} has been created successfully. ` +
+                    `Your trip is from ${from} to ${to} on ${date}. ` +
+                    `Passenger: ${booking.passengerName}. ` +
+                    `Seat(s): ${result.bookedSeats.join(", ")}. ` +
+                    `Bus: ${bus.name}. ` +
+                    `Payment method: Cash. ` +
+                    `Your ticket is confirmed. Please keep this ticket information safe for your journey.`;
 
                   db.query(
-  notificationSql,
-  [
-    user.id,
-    notificationTitle,
-    notificationMessage,
-    "booking"
-  ],
-  async (notificationError) => {
+                    notificationSql,
+                    [
+                      user.id,
+                      notificationTitle,
+                      notificationMessage,
+                      "booking"
+                    ],
+                    async (notificationError) => {
 
-    // =========================================
-    // NOTIFICATION ERROR
-    // =========================================
+                      if (notificationError) {
 
-    if (notificationError) {
+                        console.error(
+                          "ADMIN CREATE BOOKING NOTIFICATION ERROR:",
+                          notificationError
+                        );
 
-      console.error(
-        "ADMIN CREATE BOOKING NOTIFICATION ERROR:",
-        notificationError
-      );
+                      }
 
-    }
+                      let emailSent =
+                        false;
 
+                      try {
 
-    // =========================================
-    // SEND TICKET EMAIL
-    //
-    // IMPORTANT:
-    // The booking has already been successfully
-    // committed to the database at this point.
-    //
-    // Therefore the email is only sent AFTER
-    // the ticket actually exists.
-    // =========================================
+                        await sendBookingTicketEmail({
 
-    let emailSent = false;
+                          userName:
+                            user.name ||
+                            name,
 
-    try {
+                          userEmail:
+                            user.email,
 
-      await sendBookingTicketEmail({
+                          ticketNumber,
 
-        userName:
-          user.name ||
-          name,
+                          from:
+                            route.departure,
 
-        userEmail:
-          user.email,
+                          to:
+                            route.destination,
 
-        ticketNumber,
+                          travelDate:
+                            date,
 
-        from:
-          route.departure,
+                          passengerName:
+                            booking.passengerName,
 
-        to:
-          route.destination,
+                          passengerPhone:
+                            booking.passengerPhone,
 
-        travelDate:
-          date,
+                          busName:
+                            bus.name,
 
-        passengerName:
-          booking.passengerName,
+                          seats:
+                            result.bookedSeats,
 
-        passengerPhone:
-          booking.passengerPhone,
+                          totalPrice:
+                            booking.totalPrice,
 
-        busName:
-          bus.name,
+                          discount:
+                            booking.discount,
 
-        seats:
-          result.bookedSeats,
+                          paymentMethod:
+                            booking.paymentMethod,
 
-        totalPrice:
-          booking.totalPrice,
+                          paymentStatus:
+                            booking.paymentStatus
 
-        discount:
-          booking.discount,
+                        });
 
-        paymentMethod:
-          booking.paymentMethod,
+                        emailSent =
+                          true;
 
-        paymentStatus:
-          booking.paymentStatus
+                        console.log(
+                          "ADMIN BOOKING TICKET EMAIL SENT:",
+                          {
+                            ticketNumber,
+                            email:
+                              user.email
+                          }
+                        );
 
-      });
+                      } catch (emailError) {
 
-      emailSent = true;
+                        console.error(
+                          "ADMIN CREATE BOOKING EMAIL ERROR:",
+                          emailError
+                        );
 
+                      }
 
-      console.log(
-        "ADMIN BOOKING TICKET EMAIL SENT:",
-        {
-          ticketNumber,
-          email:
-            user.email
-        }
-      );
+                      return res.status(201).json({
 
-    } catch (emailError) {
+                        message:
+                          "Booking registered successfully.",
 
-      // =========================================
-      // EMAIL ERROR
-      //
-      // IMPORTANT:
-      // Do NOT cancel/delete the booking.
-      //
-      // The ticket was already successfully
-      // created. Only the email failed.
-      // =========================================
+                        booking: {
 
-      console.error(
-        "ADMIN CREATE BOOKING EMAIL ERROR:",
-        emailError
-      );
+                          id:
+                            bookingId,
 
-    }
+                          ticketNumber,
 
+                          userId:
+                            user.id,
 
-    // =========================================
-    // RESPONSE
-    // =========================================
+                          userName:
+                            user.name,
 
-    return res.status(201).json({
+                          userEmail:
+                            user.email,
 
-      message:
-        "Booking registered successfully.",
+                          from:
+                            route.departure,
 
-      booking: {
+                          to:
+                            route.destination,
 
-        id:
-          bookingId,
+                          date,
 
-        ticketNumber,
+                          passengerName:
+                            booking.passengerName,
 
-        userId:
-          user.id,
+                          passengerPhone:
+                            booking.passengerPhone,
 
-        userName:
-          user.name,
+                          busType:
+                            bus.name,
 
-        userEmail:
-          user.email,
+                          seats:
+                            result.bookedSeats,
 
-        from:
-          route.departure,
+                          totalPrice:
+                            booking.totalPrice,
 
-        to:
-          route.destination,
+                          discount:
+                            booking.discount,
 
-        date,
+                          totalPayment:
+                            0,
 
-        passengerName:
-          booking.passengerName,
+                          paymentMethod:
+                            "Cash",
 
-        passengerPhone:
-          booking.passengerPhone,
+                          paymentStatus:
+                            "Successful",
 
-        busType:
-          bus.name,
+                          bookingStatus:
+                            "Confirmed"
 
-        seats:
-          result.bookedSeats,
+                        },
 
-        totalPrice:
-          booking.totalPrice,
+                        notification:
+                          !notificationError,
 
-        discount:
-          booking.discount,
+                        email:
+                          emailSent
 
-        // =========================================
-        // IMPORTANT
-        // ADMIN CASH BOOKING
-        // =========================================
+                      });
 
-        totalPayment:
-          0,
-
-        paymentMethod:
-          "Cash",
-
-        paymentStatus:
-          "Successful",
-
-        bookingStatus:
-          "Confirmed"
-
-      },
-
-      notification:
-        !notificationError,
-
-      email:
-        emailSent
-
-    });
-
-  }
-);
+                    }
+                  );
 
                 }
               );
@@ -1735,6 +1658,7 @@ const notificationMessage =
   );
 
 };
+
 
 // =========================================
 // GET ALL ROUTES FOR ADMIN
@@ -1762,11 +1686,13 @@ exports.getRoutes = (req, res) => {
         );
 
         return res.status(500).json({
+
           message:
             "Unable to load routes.",
 
           error:
             err.message
+
         });
 
       }

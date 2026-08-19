@@ -21,6 +21,7 @@ import AdminDashboard from "./pages/AdminDashboard/AdminDashboard";
 import VerifyOTP from "./pages/VerifyOTP/VerifyOTP";
 import Notifications from "./pages/Notifications/Notifications";
 import Profile from "./pages/Profile/Profile";
+import Report from "./pages/Report/Report";
 
 import BackButton from "./components/BackButton/BackButton";
 import AdminRoute from "./components/AdminRoute/AdminRoute";
@@ -116,8 +117,6 @@ function AppContent() {
   return (
     <BrowserRouter>
 
-      {/* Keeps React aware of the
-          currently selected language */}
       <div
         key={language}
         className="app-root"
@@ -198,6 +197,15 @@ function AppContent() {
               <Route
                 path="/profile"
                 element={<Profile />}
+              />
+
+              {/* =================================
+                  REPORT
+              ================================= */}
+
+              <Route
+                path="/report"
+                element={<Report />}
               />
 
               <Route

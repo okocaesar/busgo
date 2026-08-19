@@ -2,7 +2,13 @@ const express = require("express");
 
 const router = express.Router();
 
-const adminController = require("../controllers/adminController");
+const {
+  getAllReports,
+  updateReportStatus
+} = require("../controllers/reportController");
+
+const adminController =
+  require("../controllers/adminController");
 
 const {
   requireAdmin
@@ -59,6 +65,7 @@ router.get(
   adminController.getRoutes
 );
 
+
 // =========================================
 // CREATE BOOKING FOR REGISTERED USER
 // POST /api/admin/bookings/create
@@ -89,6 +96,33 @@ router.patch(
 router.post(
   "/notifications",
   adminController.sendNotification
+);
+
+
+// =========================================
+// REPORTS
+// GET /api/admin/reports
+// =========================================
+
+// =========================================
+// REPORTS
+// GET /api/admin/reports
+// =========================================
+
+router.get(
+  "/reports",
+  getAllReports
+);
+
+
+// =========================================
+// UPDATE REPORT STATUS
+// PATCH /api/admin/reports/:reportId/status
+// =========================================
+
+router.patch(
+  "/reports/:reportId/status",
+  updateReportStatus
 );
 
 

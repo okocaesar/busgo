@@ -52,7 +52,6 @@ const corsOptions = {
 
   origin: function(origin, callback) {
 
-
     // Allow requests without origin
     // (Postman, mobile apps, server requests)
 
@@ -125,22 +124,21 @@ app.use(
 );
 
 
-
 // =========================================
 // SERVER TEST
 // =========================================
 
 app.get(
   "/api/server-test",
-  (req,res)=>{
+  (req, res) => {
 
     res.status(200).json({
 
       message:
-      "BusGo server is working correctly.",
+        "BusGo server is working correctly.",
 
       time:
-      new Date().toISOString()
+        new Date().toISOString()
 
     });
 
@@ -148,11 +146,9 @@ app.get(
 );
 
 
-
 // =========================================
 // ROUTES
 // =========================================
-
 
 app.use(
   "/api/auth",
@@ -172,21 +168,55 @@ app.use(
 );
 
 
+// =========================================
+// USER NOTIFICATIONS
+// =========================================
+
 app.use(
   "/api/notifications",
   require("./routes/notificationRoutes")
 );
 
 
+// =========================================
+// USER REPORTS
+// =========================================
+//
+// User:
+// POST /api/reports
+//
+// User:
+// GET /api/reports
+//
+// The report routes will handle:
+// - Sending reports to BusGo admin
+// - Viewing the user's own reports
+// - Report delivery confirmation
+// - Admin replies through notifications
+//
+// =========================================
+
+app.use(
+  "/api/reports",
+  require("./routes/reportRoutes")
+);
+
+
+// =========================================
+// ADMIN
+// =========================================
+
 app.use(
   "/api/admin",
   require("./routes/adminRoutes")
 );
 
+
 app.use(
   "/api/version",
   require("./routes/versionRoutes")
 );
+
 
 // =========================================
 // ROOT
@@ -194,7 +224,7 @@ app.use(
 
 app.get(
   "/",
-  (req,res)=>{
+  (req, res) => {
 
     res.send(
       "BusGo API Server Running"
@@ -204,13 +234,12 @@ app.get(
 );
 
 
-
 // =========================================
 // 404
 // =========================================
 
 app.use(
-  (req,res)=>{
+  (req, res) => {
 
     console.log(
       "404:",
@@ -222,10 +251,10 @@ app.use(
     res.status(404).json({
 
       message:
-      "API route not found",
+        "API route not found",
 
       path:
-      req.originalUrl
+        req.originalUrl
 
     });
 
@@ -233,14 +262,12 @@ app.use(
 );
 
 
-
 // =========================================
 // ERROR HANDLER
 // =========================================
 
 app.use(
-  (err,req,res,next)=>{
-
+  (err, req, res, next) => {
 
     console.error(
       "SERVER ERROR:",
@@ -251,14 +278,12 @@ app.use(
     res.status(500).json({
 
       message:
-      "Internal server error."
+        "Internal server error."
 
     });
 
-
   }
 );
-
 
 
 // =========================================
@@ -266,12 +291,12 @@ app.use(
 // =========================================
 
 const PORT =
-process.env.PORT || 5000;
+  process.env.PORT || 5000;
 
 
 app.listen(
   PORT,
-  ()=>{
+  () => {
 
     console.log(
       "========================================="
