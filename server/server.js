@@ -48,54 +48,47 @@ const server = http.createServer(app);
 // CORS
 // =========================================
 
+const normalizeOrigin = (value) =>
+  String(value || "").trim().replace(/\/+$/, "");
+
 const allowedOrigins = [
   "http://localhost:3000",
-  "http://localhost:10001",
   "http://localhost:10000",
-
+  "http://localhost:10001",
   "http://127.0.0.1:3000",
-  "http://127.0.0.1:10001",
   "http://127.0.0.1:10000",
-
-  "https://okocaesar-group2internship.vercel.app"
+  "http://127.0.0.1:10001",
+  "https://okocaesar-group2internship.vercel.app",
+  ...String(process.env.FRONTEND_URLS || "")
+    .split(",")
+    .map(normalizeOrigin)
+    .filter(Boolean)
 ];
 
+const isAllowedOrigin = (origin) => {
+  const normalizedOrigin = normalizeOrigin(origin);
+
+  if (allowedOrigins.includes(normalizedOrigin)) {
+    return true;
+  }
+
+  // Allows preview deployments belonging to this Vercel project.
+  return /^https:\/\/okocaesar-group2internship(-[a-z0-9-]+)?\.vercel\.app$/i.test(
+    normalizedOrigin
+  );
+};
+
 const corsOptions = {
-  origin: function (origin, callback) {
-
-    if (!origin) {
+  origin(origin, callback) {
+    if (!origin || isAllowedOrigin(origin)) {
       return callback(null, true);
     }
 
-    if (allowedOrigins.includes(origin)) {
-
-      console.log(
-        "CORS ALLOWED:",
-        origin
-      );
-
-      return callback(null, true);
-    }
-
-    console.log(
-      "CORS BLOCKED:",
-      origin
-    );
-
-    return callback(null, false);
+    console.warn("CORS BLOCKED:", origin);
+    return callback(new Error(`CORS blocked for origin: ${origin}`));
   },
-
   credentials: true,
-
-  methods: [
-    "GET",
-    "POST",
-    "PUT",
-    "PATCH",
-    "DELETE",
-    "OPTIONS"
-  ],
-
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: [
     "Content-Type",
     "Authorization",
@@ -103,44 +96,32 @@ const corsOptions = {
     "Origin",
     "X-Requested-With"
   ],
-
   optionsSuccessStatus: 204
 };
 
-// =========================================
-// APPLY CORS
-// =========================================
-
-app.use(
-  cors(corsOptions)
-);
-
-app.use(
-  express.json()
-);
+app.use(cors(corsOptions));
+app.use(express.json());
 
 // =========================================
 // SOCKET.IO
 // =========================================
 
 const io = new Server(server, {
-
   cors: {
-    origin: allowedOrigins,
+    origin(origin, callback) {
+      if (!origin || isAllowedOrigin(origin)) {
+        return callback(null, true);
+      }
 
-    methods: [
-      "GET",
-      "POST"
-    ],
-
-    credentials: true
+      console.warn("SOCKET CORS BLOCKED:", origin);
+      return callback(new Error(`Socket CORS blocked for origin: ${origin}`));
+    },
+    credentials: true,
+    methods: ["GET", "POST"]
   },
-
-  transports: [
-    "websocket",
-    "polling"
-  ]
+  transports: ["websocket", "polling"]
 });
+
 
 // =========================================
 // COMMUNITY DATA
