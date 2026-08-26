@@ -1,4 +1,9 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useCallback
+} from "react";
 
 import {
   useLocation,
@@ -227,183 +232,194 @@ function Booking() {
   // This function DOES NOT hide SeatSelection.
   // =========================================
 
-  const fetchBookedSeats = async (
-    showChecking = false,
-    showAlert = false
-  ) => {
-
-    if (
-      !selectedBus?.id ||
-      !selectedRoute?.id ||
-      !booking.from ||
-      !booking.to ||
-      !booking.date
-    ) {
-
-      setBookedSeats([]);
-
-      return [];
-
-    }
-
-
-    const currentRequestId =
-      ++requestIdRef.current;
-
-
-    try {
-
-      if (showChecking) {
-        setCheckingSeats(true);
-      }
-
-
-      const response =
-        await axios.get(
-          `${API_URL}/api/bookings/availability`,
-          {
-            params: {
-
-              busId:
-                selectedBus.id,
-
-              routeId:
-                selectedRoute.id,
-
-              from:
-                booking.from,
-
-              to:
-                booking.to,
-
-              date:
-                booking.date
-
-            }
-          }
-        );
-
-
-      // =========================================
-      // IGNORE OLD REQUEST
-      // =========================================
+  const fetchBookedSeats = useCallback(
+    async (
+      showChecking = false,
+      showAlert = false
+    ) => {
 
       if (
-        currentRequestId !==
-        requestIdRef.current
+        !selectedBus?.id ||
+        !selectedRoute?.id ||
+        !booking.from ||
+        !booking.to ||
+        !booking.date
       ) {
 
-        return null;
+        setBookedSeats([]);
+
+        return [];
 
       }
 
 
-      const serverSeats =
-        response.data?.bookedSeats ||
-        [];
+      const currentRequestId =
+        ++requestIdRef.current;
 
 
-      const normalizedServerSeats =
-        normalizeSeats(
-          serverSeats
+      try {
+
+        if (showChecking) {
+          setCheckingSeats(true);
+        }
+
+
+        const response =
+          await axios.get(
+            `${API_URL}/api/bookings/availability`,
+            {
+              params: {
+
+                busId:
+                  selectedBus.id,
+
+                routeId:
+                  selectedRoute.id,
+
+                from:
+                  booking.from,
+
+                to:
+                  booking.to,
+
+                date:
+                  booking.date
+
+              }
+            }
+          );
+
+
+        // =========================================
+        // IGNORE OLD REQUEST
+        // =========================================
+
+        if (
+          currentRequestId !==
+          requestIdRef.current
+        ) {
+
+          return null;
+
+        }
+
+
+        const serverSeats =
+          response.data?.bookedSeats ||
+          [];
+
+
+        const normalizedServerSeats =
+          normalizeSeats(
+            serverSeats
+          );
+
+
+        // =========================================
+        // UPDATE BOOKED SEATS
+        //
+        // This does NOT affect loading state
+        // or remove SeatSelection.
+        // =========================================
+
+        setBookedSeats(
+          normalizedServerSeats
         );
 
 
-      // =========================================
-      // UPDATE BOOKED SEATS
-      //
-      // This does NOT affect loading state
-      // or remove SeatSelection.
-      // =========================================
+        // =========================================
+        // REMOVE SEATS THAT BECAME BOOKED
+        // =========================================
 
-      setBookedSeats(
-        normalizedServerSeats
-      );
+        setSelectedSeats(
+          (currentSelected) => {
+
+            const lostSeats =
+              currentSelected.filter(
+                (seat) =>
+                  normalizedServerSeats.includes(
+                    Number(seat)
+                  )
+              );
 
 
-      // =========================================
-      // REMOVE SEATS THAT BECAME BOOKED
-      // =========================================
+            // Only show the alert during
+            // background refreshes.
 
-      setSelectedSeats(
-        (currentSelected) => {
+            if (
+              showAlert &&
+              lostSeats.length > 0
+            ) {
 
-          const lostSeats =
-            currentSelected.filter(
+              alert(
+                `${t("seat")} ${
+                  lostSeats.join(", ")
+                } ${
+                  lostSeats.length > 1
+                    ? t("wereJustBooked")
+                    : t("wasJustBooked")
+                }`
+              );
+
+            }
+
+
+            return currentSelected.filter(
               (seat) =>
-                normalizedServerSeats.includes(
+                !normalizedServerSeats.includes(
                   Number(seat)
                 )
             );
 
-
-          // Only show the alert during
-          // background refreshes.
-          if (
-            showAlert &&
-            lostSeats.length > 0
-          ) {
-
-            alert(
-              `${t("seat")} ${
-                lostSeats.join(", ")
-              } ${
-                lostSeats.length > 1
-                  ? t("wereJustBooked")
-                  : t("wasJustBooked")
-              }`
-            );
-
           }
+        );
 
 
-          return currentSelected.filter(
-            (seat) =>
-              !normalizedServerSeats.includes(
-                Number(seat)
-              )
-          );
+        return normalizedServerSeats;
+
+      } catch (error) {
+
+        console.error(
+          "Seat availability error:",
+          error
+        );
+
+
+        // Do not destroy the seat layout.
+        // Just show the error message.
+
+        setAvailabilityError(
+          t(
+            "unableCheckAvailability"
+          )
+        );
+
+
+        return null;
+
+      } finally {
+
+        if (
+          currentRequestId ===
+          requestIdRef.current
+        ) {
+
+          setCheckingSeats(false);
 
         }
-      );
-
-
-      return normalizedServerSeats;
-
-    } catch (error) {
-
-      console.error(
-        "Seat availability error:",
-        error
-      );
-
-
-      // Do not destroy the seat layout.
-      // Just show the error message.
-
-      setAvailabilityError(
-        t(
-          "unableCheckAvailability"
-        )
-      );
-
-
-      return null;
-
-    } finally {
-
-      if (
-        currentRequestId ===
-        requestIdRef.current
-      ) {
-
-        setCheckingSeats(false);
 
       }
 
-    }
-
-  };
+    },
+    [
+      selectedBus?.id,
+      selectedRoute?.id,
+      booking.from,
+      booking.to,
+      booking.date,
+      t
+    ]
+  );
 
 
   // =========================================
@@ -564,14 +580,6 @@ function Booking() {
     loadSeats();
 
 
-    return () => {
-
-      cancelled = true;
-
-      requestIdRef.current++;
-
-    };
-
 
   }, [
     selectedBus?.id,
@@ -634,7 +642,8 @@ function Booking() {
     selectedRoute?.id,
     booking.from,
     booking.to,
-    booking.date
+    booking.date,
+    fetchBookedSeats
   ]);
 
 

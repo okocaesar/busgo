@@ -17,17 +17,11 @@ import { API_URL } from "../../api";
 
 import "./Navbar.css";
 
+import packageJson from "../../../package.json";
+
 // =========================================================
 // BUSGO APP VERSION
 // =========================================================
-// Connected directly to package.json.
-//
-// When package.json version changes and the app is rebuilt,
-// the version displayed in the hamburger menu changes
-// automatically.
-// =========================================================
-
-import packageJson from "../../../package.json";
 
 const APP_VERSION =
   packageJson.version || "0.1.0";
@@ -35,23 +29,9 @@ const APP_VERSION =
 // =========================================================
 // REMOTE UPDATE CHECK
 // =========================================================
-// Backend endpoint expected:
-//
-// GET /api/app/version
-//
-// Example response:
-//
-// {
-//   "version": "1.1.0"
-// }
-//
-// The remote version is compared with the currently
-// installed package.json version.
-// =========================================================
 
 const APP_UPDATE_URL =
   `${API_URL}/api/app/version`;
-
 
 // =========================================================
 // VERSION COMPARISON
@@ -61,7 +41,6 @@ const compareVersions = (
   currentVersion,
   latestVersion
 ) => {
-
   const current = String(
     currentVersion || "0.0.0"
   )
@@ -82,7 +61,6 @@ const compareVersions = (
   );
 
   for (let i = 0; i < length; i++) {
-
     const currentPart =
       Number.isFinite(current[i])
         ? current[i]
@@ -105,13 +83,11 @@ const compareVersions = (
   return 0;
 };
 
-
 // =========================================================
 // NAVBAR
 // =========================================================
 
 function Navbar() {
-
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -137,9 +113,6 @@ function Navbar() {
     localStorage.getItem("appLanguage") || "en"
   );
 
-  const [showLanguageOptions, setShowLanguageOptions] =
-    useState(false);
-
   // =======================================================
   // UPDATE STATE
   // =======================================================
@@ -152,135 +125,81 @@ function Navbar() {
   // =======================================================
 
   const translations = {
-
     en: {
-
       dashboard: "Dashboard",
-
       routes: "Routes",
-
       offers: "Offers",
-
       about: "About Us",
-
       profile: "Profile",
-
       myProfile: "Profile",
-
       notifications: "Notifications",
-
       notification: "Notification",
-
       community: "Community",
-
+      ticket: "Ticket",
       login: "Login",
-
       register: "Register",
-
       logout: "Logout",
-
       report: "Report",
-
       language: "Language",
-
       english: "English",
-
       french: "Français",
-
       appVersion: "App Version",
-
       requestUpdate: "Request Update",
-
       mobileNavigation: "Mobile navigation",
-
       checkingUpdate: "Checking for updates...",
-
       updateAvailable:
         "A new version of BusGo is available. Update now?",
-
       updateStarted:
         "Updating BusGo...",
-
       updateError:
         "Unable to check for updates. Please try again.",
-
       upToDate:
         "Your BusGo app is up to date.",
-
       unreadNotification:
         "unread notification",
-
       unreadNotifications:
         "unread notifications"
-
     },
 
     fr: {
-
       dashboard: "Tableau de bord",
-
       routes: "Itinéraires",
-
       offers: "Offres",
-
       about: "À propos",
-
       profile: "Profil",
-
       myProfile: "Profil",
-
       notifications: "Notifications",
-
       notification: "Notification",
-
       community: "Communauté",
-
+      ticket: "Billet",
       login: "Connexion",
-
       register: "Inscription",
-
       logout: "Déconnexion",
-
       report: "Signaler",
-
       language: "Langue",
-
       english: "Anglais",
-
       french: "Français",
-
       appVersion:
         "Version de l'application",
-
       requestUpdate:
         "Rechercher une mise à jour",
-
       mobileNavigation:
         "Navigation mobile",
-
       checkingUpdate:
         "Recherche de mises à jour...",
-
       updateAvailable:
         "Une nouvelle version de BusGo est disponible. Mettre à jour maintenant ?",
-
       updateStarted:
         "Mise à jour de BusGo...",
-
       updateError:
         "Impossible de vérifier les mises à jour. Veuillez réessayer.",
-
       upToDate:
         "Votre application BusGo est à jour.",
-
       unreadNotification:
         "notification non lue",
-
       unreadNotifications:
         "notifications non lues"
-
     }
-
   };
 
   const t =
@@ -306,17 +225,13 @@ function Navbar() {
   // =======================================================
 
   const getCurrentUser = () => {
-
     try {
-
       return JSON.parse(
         localStorage.getItem(
           "currentUser"
         ) || "null"
       );
-
     } catch (error) {
-
       console.error(
         "Unable to read current user:",
         error
@@ -324,7 +239,6 @@ function Navbar() {
 
       return null;
     }
-
   };
 
   // =======================================================
@@ -333,7 +247,6 @@ function Navbar() {
 
   const loadNotifications = useCallback(
     async () => {
-
       const isUserLoggedIn =
         localStorage.getItem(
           "loggedIn"
@@ -356,18 +269,14 @@ function Navbar() {
         !currentUser?.id ||
         !token
       ) {
-
         setNotifications([]);
-
         setLoggedIn(false);
-
         return;
       }
 
       setLoggedIn(true);
 
       try {
-
         const response =
           await axios.get(
             `${API_URL}/api/notifications`,
@@ -382,9 +291,7 @@ function Navbar() {
         setNotifications(
           response.data?.notifications || []
         );
-
       } catch (error) {
-
         console.error(
           "Unable to load notifications:",
           error
@@ -397,7 +304,6 @@ function Navbar() {
         if (
           error.response?.status === 401
         ) {
-
           localStorage.removeItem(
             "authToken"
           );
@@ -411,12 +317,9 @@ function Navbar() {
           );
 
           setNotifications([]);
-
           setLoggedIn(false);
         }
-
       }
-
     },
     []
   );
@@ -426,9 +329,7 @@ function Navbar() {
   // =======================================================
 
   useEffect(() => {
-
     loadNotifications();
-
   }, [
     loadNotifications
   ]);
@@ -438,9 +339,7 @@ function Navbar() {
   // =======================================================
 
   useEffect(() => {
-
     loadNotifications();
-
   }, [
     location.pathname,
     loadNotifications
@@ -451,24 +350,18 @@ function Navbar() {
   // =======================================================
 
   useEffect(() => {
-
     if (!loggedIn) {
-      return;
+      return undefined;
     }
 
     const interval =
       setInterval(() => {
-
         loadNotifications();
-
       }, 10000);
 
     return () => {
-
       clearInterval(interval);
-
     };
-
   }, [
     loggedIn,
     loadNotifications
@@ -479,11 +372,8 @@ function Navbar() {
   // =======================================================
 
   useEffect(() => {
-
     const handleFocus = () => {
-
       loadNotifications();
-
     };
 
     window.addEventListener(
@@ -492,14 +382,11 @@ function Navbar() {
     );
 
     return () => {
-
       window.removeEventListener(
         "focus",
         handleFocus
       );
-
     };
-
   }, [
     loadNotifications
   ]);
@@ -509,9 +396,7 @@ function Navbar() {
   // =======================================================
 
   useEffect(() => {
-
     const handleStorage = () => {
-
       const isLoggedIn =
         localStorage.getItem(
           "loggedIn"
@@ -522,11 +407,8 @@ function Navbar() {
       );
 
       if (!isLoggedIn) {
-
         setNotifications([]);
-
       }
-
     };
 
     window.addEventListener(
@@ -535,14 +417,11 @@ function Navbar() {
     );
 
     return () => {
-
       window.removeEventListener(
         "storage",
         handleStorage
       );
-
     };
-
   }, []);
 
   // =======================================================
@@ -550,7 +429,6 @@ function Navbar() {
   // =======================================================
 
   useEffect(() => {
-
     const savedLanguage =
       localStorage.getItem(
         "appLanguage"
@@ -565,7 +443,6 @@ function Navbar() {
 
     const handleLanguageChange =
       (event) => {
-
         const newLanguage =
           event.detail?.language ||
           localStorage.getItem(
@@ -579,7 +456,6 @@ function Navbar() {
 
         document.documentElement.lang =
           newLanguage;
-
       };
 
     window.addEventListener(
@@ -588,122 +464,58 @@ function Navbar() {
     );
 
     return () => {
-
       window.removeEventListener(
         "busgo-language-change",
         handleLanguageChange
       );
-
     };
-
   }, []);
-
-  // =======================================================
-  // CHANGE LANGUAGE
-  // =======================================================
-
-  const changeLanguage =
-    (newLanguage) => {
-
-      setLanguage(
-        newLanguage
-      );
-
-      localStorage.setItem(
-        "appLanguage",
-        newLanguage
-      );
-
-      document.documentElement.lang =
-        newLanguage;
-
-      setShowLanguageOptions(
-        false
-      );
-
-      window.dispatchEvent(
-        new CustomEvent(
-          "busgo-language-change",
-          {
-            detail: {
-              language:
-                newLanguage
-            }
-          }
-        )
-      );
-
-    };
 
   // =======================================================
   // DESKTOP NAVBAR SCROLL
   // =======================================================
 
   useEffect(() => {
-
     let lastScrollY =
       window.scrollY;
 
     let ticking = false;
 
     const handleScroll = () => {
-
       if (ticking) {
         return;
       }
 
       window.requestAnimationFrame(
         () => {
-
           const currentScrollY =
             window.scrollY;
 
           if (
             currentScrollY <= 10
           ) {
-
-            setNavbarHidden(
-              false
-            );
-
+            setNavbarHidden(false);
           } else if (
             currentScrollY >
             lastScrollY + 5
           ) {
-
-            setNavbarHidden(
-              true
-            );
-
-            setMenuOpen(
-              false
-            );
-
-            setShowLanguageOptions(
-              false
-            );
-
+            setNavbarHidden(true);
+            setMenuOpen(false);
           } else if (
             currentScrollY <
             lastScrollY - 5
           ) {
-
-            setNavbarHidden(
-              false
-            );
-
+            setNavbarHidden(false);
           }
 
           lastScrollY =
             currentScrollY;
 
           ticking = false;
-
         }
       );
 
       ticking = true;
-
     };
 
     window.addEventListener(
@@ -715,14 +527,11 @@ function Navbar() {
     );
 
     return () => {
-
       window.removeEventListener(
         "scroll",
         handleScroll
       );
-
     };
-
   }, []);
 
   // =======================================================
@@ -742,7 +551,6 @@ function Navbar() {
   // =======================================================
 
   const logout = () => {
-
     localStorage.removeItem(
       "loggedIn"
     );
@@ -756,19 +564,11 @@ function Navbar() {
     );
 
     setLoggedIn(false);
-
     setNotifications([]);
-
     setMenuOpen(false);
-
-    setShowLanguageOptions(
-      false
-    );
-
     setNavbarHidden(false);
 
     navigate("/login");
-
   };
 
   // =======================================================
@@ -776,13 +576,7 @@ function Navbar() {
   // =======================================================
 
   const closeMenu = () => {
-
     setMenuOpen(false);
-
-    setShowLanguageOptions(
-      false
-    );
-
   };
 
   // =======================================================
@@ -790,13 +584,11 @@ function Navbar() {
   // =======================================================
 
   const openNotifications = () => {
-
     closeMenu();
 
     navigate(
       "/notifications"
     );
-
   };
 
   // =======================================================
@@ -804,13 +596,11 @@ function Navbar() {
   // =======================================================
 
   const openOffers = () => {
-
     closeMenu();
 
     navigate(
       "/offers"
     );
-
   };
 
   // =======================================================
@@ -818,13 +608,11 @@ function Navbar() {
   // =======================================================
 
   const openAbout = () => {
-
     closeMenu();
 
     navigate(
       "/about"
     );
-
   };
 
   // =======================================================
@@ -832,188 +620,163 @@ function Navbar() {
   // =======================================================
 
   const openReport = () => {
-
     closeMenu();
 
     navigate(
       "/profile#report"
     );
-
   };
 
   // =======================================================
   // REQUEST APP UPDATE
   // =======================================================
 
-  const requestUpdate = async () => {
+  const requestUpdate =
+    async () => {
+      if (checkingUpdate) {
+        return;
+      }
 
-    if (checkingUpdate) {
-      return;
-    }
+      setCheckingUpdate(true);
 
-    setCheckingUpdate(true);
+      try {
+        const response =
+          await axios.get(
+            APP_UPDATE_URL,
+            {
+              params: {
+                currentVersion:
+                  APP_VERSION,
+                _: Date.now()
+              },
 
-    try {
+              headers: {
+                "Cache-Control":
+                  "no-cache"
+              }
+            }
+          );
 
-      const response =
-        await axios.get(
-          APP_UPDATE_URL,
-          {
-            params: {
-              currentVersion:
-                APP_VERSION,
-              _: Date.now()
-            },
+        const latestVersion =
+          response.data?.version ||
+          response.data?.latestVersion ||
+          response.data?.appVersion;
 
-            headers: {
-              "Cache-Control":
-                "no-cache"
+        if (!latestVersion) {
+          alert(
+            t.updateError
+          );
+
+          return;
+        }
+
+        const comparison =
+          compareVersions(
+            APP_VERSION,
+            latestVersion
+          );
+
+        // ---------------------------------------------------
+        // NEW VERSION AVAILABLE
+        // ---------------------------------------------------
+
+        if (comparison < 0) {
+          const confirmed =
+            window.confirm(
+              `${t.updateAvailable}\n\n` +
+              `Current version: v${APP_VERSION}\n` +
+              `New version: v${latestVersion}`
+            );
+
+          if (!confirmed) {
+            return;
+          }
+
+          alert(
+            t.updateStarted
+          );
+
+          closeMenu();
+
+          // -------------------------------------------------
+          // CLEAR BROWSER CACHE
+          // -------------------------------------------------
+
+          if (
+            "caches" in window
+          ) {
+            try {
+              const cacheNames =
+                await caches.keys();
+
+              await Promise.all(
+                cacheNames.map(
+                  (cacheName) =>
+                    caches.delete(
+                      cacheName
+                    )
+                )
+              );
+            } catch (cacheError) {
+              console.warn(
+                "Unable to clear cache:",
+                cacheError
+              );
             }
           }
+
+          // -------------------------------------------------
+          // SERVICE WORKER UPDATE
+          // -------------------------------------------------
+
+          if (
+            "serviceWorker" in
+            navigator
+          ) {
+            try {
+              const registration =
+                await navigator.serviceWorker.getRegistration();
+
+              if (registration) {
+                await registration.update();
+              }
+            } catch (swError) {
+              console.warn(
+                "Service worker update failed:",
+                swError
+              );
+            }
+          }
+
+          // -------------------------------------------------
+          // RELOAD APPLICATION
+          // -------------------------------------------------
+
+          window.location.reload();
+
+          return;
+        }
+
+        // ---------------------------------------------------
+        // ALREADY UP TO DATE
+        // ---------------------------------------------------
+
+        alert(
+          t.upToDate
         );
-
-      const latestVersion =
-        response.data?.version ||
-        response.data?.latestVersion ||
-        response.data?.appVersion;
-
-      if (!latestVersion) {
+      } catch (error) {
+        console.error(
+          "Unable to check app update:",
+          error
+        );
 
         alert(
           t.updateError
         );
-
-        return;
+      } finally {
+        setCheckingUpdate(false);
       }
-
-      const comparison =
-        compareVersions(
-          APP_VERSION,
-          latestVersion
-        );
-
-      // ---------------------------------------------------
-      // NEW VERSION AVAILABLE
-      // ---------------------------------------------------
-
-      if (comparison < 0) {
-
-        const confirmed =
-          window.confirm(
-            `${t.updateAvailable}\n\n` +
-            `Current version: v${APP_VERSION}\n` +
-            `New version: v${latestVersion}`
-          );
-
-        if (!confirmed) {
-          return;
-        }
-
-        alert(
-          t.updateStarted
-        );
-
-        // Close hamburger
-        closeMenu();
-
-        // -------------------------------------------------
-        // Clear browser cache where supported
-        // -------------------------------------------------
-
-        if (
-          "caches" in window
-        ) {
-
-          try {
-
-            const cacheNames =
-              await caches.keys();
-
-            await Promise.all(
-              cacheNames.map(
-                (cacheName) =>
-                  caches.delete(
-                    cacheName
-                  )
-              )
-            );
-
-          } catch (cacheError) {
-
-            console.warn(
-              "Unable to clear cache:",
-              cacheError
-            );
-
-          }
-
-        }
-
-        // -------------------------------------------------
-        // If a service worker exists, ask it to update
-        // -------------------------------------------------
-
-        if (
-          "serviceWorker" in navigator
-        ) {
-
-          try {
-
-            const registration =
-              await navigator.serviceWorker.getRegistration();
-
-            if (registration) {
-
-              await registration.update();
-
-            }
-
-          } catch (swError) {
-
-            console.warn(
-              "Service worker update failed:",
-              swError
-            );
-
-          }
-
-        }
-
-        // -------------------------------------------------
-        // Reload application
-        // -------------------------------------------------
-
-        window.location.reload();
-
-        return;
-      }
-
-      // ---------------------------------------------------
-      // ALREADY UP TO DATE
-      // ---------------------------------------------------
-
-      alert(
-        t.upToDate
-      );
-
-    } catch (error) {
-
-      console.error(
-        "Unable to check app update:",
-        error
-      );
-
-      alert(
-        t.updateError
-      );
-
-    } finally {
-
-      setCheckingUpdate(false);
-
-    }
-
-  };
+    };
 
   // =======================================================
   // AUTH PAGES
@@ -1061,7 +824,6 @@ function Navbar() {
 
   return (
     <>
-
       {/* =================================================
           TOP NAVBAR
           ================================================= */}
@@ -1083,15 +845,12 @@ function Navbar() {
           className="logo"
           onClick={closeMenu}
         >
-
           <img
             src={logo}
             alt="BusGo Logo"
             className="logo-img"
           />
-
         </NavLink>
-
 
         {/* ===============================================
             MOBILE HAMBURGER
@@ -1105,15 +864,9 @@ function Navbar() {
               : ""
           }`}
           onClick={() => {
-
             setMenuOpen(
               !menuOpen
             );
-
-            setShowLanguageOptions(
-              false
-            );
-
           }}
           aria-label={
             t.mobileNavigation
@@ -1122,15 +875,10 @@ function Navbar() {
             menuOpen
           }
         >
-
           <span></span>
-
           <span></span>
-
           <span></span>
-
         </button>
-
 
         {/* ===============================================
             NAVBAR MENU
@@ -1179,18 +927,15 @@ function Navbar() {
             </NavLink>
 
             {loggedIn && (
-
               <NavLink
                 to="/profile"
                 onClick={closeMenu}
               >
                 {t.profile}
               </NavLink>
-
             )}
 
           </div>
-
 
           {/* =============================================
               DESKTOP AUTH / NOTIFICATION
@@ -1199,7 +944,6 @@ function Navbar() {
           <div className="auth-buttons">
 
             {loggedIn && (
-
               <button
                 type="button"
                 className="notification-button"
@@ -1213,30 +957,21 @@ function Navbar() {
                   notificationTitle
                 }
               >
-
                 <span className="notification-icon">
                   🔔
                 </span>
 
                 {unreadCount > 0 && (
-
                   <span className="notification-badge">
-
                     {unreadCount > 99
                       ? "99+"
                       : unreadCount}
-
                   </span>
-
                 )}
-
               </button>
-
             )}
 
-
             {loggedIn ? (
-
               <button
                 type="button"
                 className="signup-btn"
@@ -1244,45 +979,35 @@ function Navbar() {
               >
                 {t.logout}
               </button>
-
             ) : (
-
               <>
                 <NavLink
                   to="/login"
                   onClick={closeMenu}
                 >
-
                   <button
                     type="button"
                     className="login-btn"
                   >
                     {t.login}
                   </button>
-
                 </NavLink>
-
 
                 <NavLink
                   to="/register"
                   onClick={closeMenu}
                 >
-
                   <button
                     type="button"
                     className="signup-btn"
                   >
                     {t.register}
                   </button>
-
                 </NavLink>
-
               </>
-
             )}
 
           </div>
-
 
           {/* =============================================
               MOBILE HAMBURGER MENU
@@ -1291,7 +1016,6 @@ function Navbar() {
           {loggedIn &&
             !isAuthPage &&
             !isAdminPage && (
-
               <div className="mobile-menu-content">
 
                 {/* =====================================
@@ -1305,7 +1029,6 @@ function Navbar() {
                     openOffers
                   }
                 >
-
                   <span className="mobile-menu-icon">
                     🎁
                   </span>
@@ -1317,9 +1040,7 @@ function Navbar() {
                   <span className="mobile-menu-value">
                     ›
                   </span>
-
                 </button>
-
 
                 {/* =====================================
                     ABOUT US
@@ -1332,7 +1053,6 @@ function Navbar() {
                     openAbout
                   }
                 >
-
                   <span className="mobile-menu-icon">
                     ℹ️
                   </span>
@@ -1344,9 +1064,7 @@ function Navbar() {
                   <span className="mobile-menu-value">
                     ›
                   </span>
-
                 </button>
-
 
                 {/* =====================================
                     REPORT
@@ -1359,7 +1077,6 @@ function Navbar() {
                     openReport
                   }
                 >
-
                   <span className="mobile-menu-icon">
                     📝
                   </span>
@@ -1371,9 +1088,7 @@ function Navbar() {
                   <span className="mobile-menu-value">
                     ›
                   </span>
-
                 </button>
-
 
                 {/* =====================================
                     APP VERSION
@@ -1382,7 +1097,6 @@ function Navbar() {
                 <div
                   className="mobile-menu-item mobile-version-item"
                 >
-
                   <span className="mobile-menu-icon">
                     📱
                   </span>
@@ -1394,9 +1108,7 @@ function Navbar() {
                   <span className="mobile-menu-version">
                     v{APP_VERSION}
                   </span>
-
                 </div>
-
 
                 {/* =====================================
                     REQUEST UPDATE
@@ -1412,7 +1124,6 @@ function Navbar() {
                     checkingUpdate
                   }
                 >
-
                   <span className="mobile-menu-icon">
                     {checkingUpdate
                       ? "⏳"
@@ -1420,19 +1131,15 @@ function Navbar() {
                   </span>
 
                   <span className="mobile-menu-label">
-
                     {checkingUpdate
                       ? t.checkingUpdate
                       : t.requestUpdate}
-
                   </span>
 
                   <span className="mobile-menu-value">
                     ›
                   </span>
-
                 </button>
-
 
                 {/* =====================================
                     LOGOUT
@@ -1445,7 +1152,6 @@ function Navbar() {
                     logout
                   }
                 >
-
                   <span className="mobile-menu-icon">
                     🚪
                   </span>
@@ -1453,24 +1159,19 @@ function Navbar() {
                   <span className="mobile-menu-label">
                     {t.logout}
                   </span>
-
                 </button>
 
               </div>
-
             )}
 
         </div>
-
       </nav>
-
 
       {/* =================================================
           MOBILE BOTTOM NAVIGATION
           ================================================= */}
 
       {showMobileBottomNav && (
-
         <nav
           className="mobile-bottom-nav"
           aria-label={
@@ -1492,7 +1193,6 @@ function Navbar() {
               }`
             }
           >
-
             <span className="mobile-bottom-nav-icon">
               🏠
             </span>
@@ -1500,9 +1200,7 @@ function Navbar() {
             <span className="mobile-bottom-nav-label">
               {t.dashboard}
             </span>
-
           </NavLink>
-
 
           {/* =============================================
               ROUTES
@@ -1518,36 +1216,37 @@ function Navbar() {
               }`
             }
           >
-
             <span className="mobile-bottom-nav-icon">
               🚌
             </span>
 
-             <span className="mobile-bottom-nav-label">
-        {t.routes}
-      </span>
-    </NavLink>
-
-
-    {/* TICKET */}
-    <NavLink
-      to="/dashboard"
-      className={({ isActive }) =>
-        `mobile-bottom-nav-item ${
-          isActive ? "active" : ""
-        }`
-      }
-    >
-      <span className="mobile-bottom-nav-icon">
-        🎫
-      </span>
-
             <span className="mobile-bottom-nav-label">
               {t.routes}
             </span>
-
           </NavLink>
 
+          {/* =============================================
+              TICKET
+              ============================================= */}
+
+          <NavLink
+            to="/dashboard"
+            className={({ isActive }) =>
+              `mobile-bottom-nav-item ${
+                isActive
+                  ? "active"
+                  : ""
+              }`
+            }
+          >
+            <span className="mobile-bottom-nav-icon">
+              🎫
+            </span>
+
+            <span className="mobile-bottom-nav-label">
+              {t.ticket}
+            </span>
+          </NavLink>
 
           {/* =============================================
               NOTIFICATIONS
@@ -1563,30 +1262,22 @@ function Navbar() {
               }`
             }
           >
-
             <span className="mobile-bottom-nav-icon notification-nav-icon">
               🔔
 
               {unreadCount > 0 && (
-
                 <span className="mobile-bottom-nav-badge">
-
                   {unreadCount > 99
                     ? "99+"
                     : unreadCount}
-
                 </span>
-
               )}
-
             </span>
 
             <span className="mobile-bottom-nav-label">
               {t.notifications}
             </span>
-
           </NavLink>
-
 
           {/* =============================================
               COMMUNITY
@@ -1602,7 +1293,6 @@ function Navbar() {
               }`
             }
           >
-
             <span className="mobile-bottom-nav-icon">
               💬
             </span>
@@ -1610,9 +1300,7 @@ function Navbar() {
             <span className="mobile-bottom-nav-label">
               {t.community}
             </span>
-
           </NavLink>
-
 
           {/* =============================================
               PROFILE
@@ -1628,7 +1316,6 @@ function Navbar() {
               }`
             }
           >
-
             <span className="mobile-bottom-nav-icon">
               👤
             </span>
@@ -1636,16 +1323,13 @@ function Navbar() {
             <span className="mobile-bottom-nav-label">
               {t.profile}
             </span>
-
           </NavLink>
 
         </nav>
-
       )}
 
     </>
   );
 }
-
 
 export default Navbar;
