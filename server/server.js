@@ -59,6 +59,7 @@ const allowedOrigins = [
   "http://127.0.0.1:10000",
   "http://127.0.0.1:10001",
   "https://okocaesar-group2internship.vercel.app",
+  "https://okocaesar-group2internship-f21au0ck3-okocaesars-projects.vercel.app",
   ...String(process.env.FRONTEND_URLS || "")
     .split(",")
     .map(normalizeOrigin)
