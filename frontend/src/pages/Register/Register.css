@@ -1,226 +1,288 @@
-.auth-page{
-
-    min-height:100vh;
-
-    background-size:cover;
-
-    background-position:center;
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-}
-
-
-.auth-overlay{
-
-    width:100%;
-
-    min-height:100vh;
-
-    background:rgba(0,0,0,.55);
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-}
-
-
-
-.auth-card{
-
-    width:420px;
-
-    max-width:90%;
-
-    background:rgba(255,255,255,.95);
-
-    padding:45px;
-
-    border-radius:20px;
-
-    box-shadow:
-    0 20px 50px rgba(0,0,0,.25);
-
-}
-
-
-
-.auth-card h1{
-
-    text-align:center;
-
-    font-size:38px;
-
-    color:#111;
-
-    margin-bottom:10px;
-
-}
-
-
-
-.auth-card p{
-
-    text-align:center;
-
-    color:#666;
-
-    margin-bottom:35px;
-
-}
-
-
-
-.input-box{
-
-    margin-bottom:20px;
-
-}
-
-
-
-.input-box label{
-
-    display:block;
-
-    margin-bottom:8px;
-
-    font-weight:600;
-
-}
-
-
-
-.input-box input{
-
-    width:100%;
-
-    height:50px;
-
-    padding:0 15px;
-
-    border:1px solid #ddd;
-
-    border-radius:10px;
-
-    font-size:15px;
-
-    outline:none;
-
-}
-
-
-
-.input-box input:focus{
-
-    border-color:#0b7d45;
-
-}
-
-
-
-.auth-card button{
-
-    width:100%;
-
-    height:52px;
-
-    border:none;
-
-    border-radius:10px;
-
-    background:#0b7d45;
-
-    color:white;
-
-    font-size:17px;
-
-    font-weight:600;
-
-    cursor:pointer;
-
-}
-
-
-
-.auth-card button:hover{
-
-    background:#086237;
-
-}
-
-
-
-.auth-link{
-
-    text-align:center;
-
-    margin-top:25px;
-
-    color:#555;
-
-}
-
-
-
-.auth-link a{
-
-    color:#0b7d45;
-
-    font-weight:600;
-
-    margin-left:5px;
-
-    text-decoration:none;
-
-}
-
 /* =========================================
-   VERIFICATION PAGE
+   REGISTER / AUTH PAGE
    ========================================= */
 
-.verification-page {
+.auth-page {
   min-height: 100vh;
   width: 100%;
-}
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 
-
-/* =========================================
-   VERIFICATION OVERLAY
-   ========================================= */
-
-.verification-page .auth-overlay {
-  min-height: 100vh;
-  width: 100%;
   display: flex;
+  justify-content: center;
+  align-items: center;
+
+  position: relative;
+}
+
+.auth-overlay {
+  width: 100%;
+  min-height: 100vh;
+
+  background: rgba(0, 0, 0, 0.55);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 30px 20px;
+  box-sizing: border-box;
+}
+
+.auth-card {
+  width: 420px;
+  max-width: 100%;
+
+  background: rgba(255, 255, 255, 0.96);
+
+  padding: 45px;
+
+  border-radius: 20px;
+
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.25);
+
+  box-sizing: border-box;
+}
+
+.auth-card h1 {
+  text-align: center;
+
+  font-size: 38px;
+
+  color: #111;
+
+  margin:
+    0 0 10px;
+}
+
+.auth-card p {
+  text-align: center;
+
+  color: #666;
+
+  margin:
+    0 0 35px;
+
+  line-height: 1.5;
+}
+
+
+/* =========================================
+   INPUTS
+   ========================================= */
+
+.input-box {
+  margin-bottom: 20px;
+}
+
+.input-box label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  font-weight: 600;
+
+  color: #222;
+}
+
+.input-box input {
+  width: 100%;
+  height: 50px;
+
+  padding:
+    0 15px;
+
+  border:
+    1px solid #ddd;
+
+  border-radius: 10px;
+
+  font-size: 15px;
+
+  outline: none;
+
+  box-sizing: border-box;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.input-box input:focus {
+  border-color: #0b7d45;
+
+  box-shadow:
+    0 0 0 3px rgba(11, 125, 69, 0.10);
+}
+
+
+/* =========================================
+   REGISTER BUTTON
+   ========================================= */
+
+.auth-card button {
+  width: 100%;
+  height: 52px;
+
+  border: none;
+
+  border-radius: 10px;
+
+  background: #0b7d45;
+
+  color: white;
+
+  font-size: 17px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.auth-card button:hover {
+  background: #086237;
+}
+
+.auth-card button:active {
+  transform: scale(0.98);
+}
+
+.auth-card button:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.65;
+}
+
+
+/* =========================================
+   LOGIN LINK
+   ========================================= */
+
+.auth-link {
+  text-align: center;
+
+  margin-top: 25px;
+
+  color: #555;
+}
+
+.auth-link a {
+  color: #0b7d45;
+
+  font-weight: 600;
+
+  margin-left: 5px;
+
+  text-decoration: none;
+}
+
+.auth-link a:hover {
+  text-decoration: underline;
+}
+
+
+/* =========================================================
+   VERIFICATION METHOD OVERLAY
+   ========================================================= */
+
+/*
+   IMPORTANT:
+
+   This is the main fix.
+
+   The overlay covers the ENTIRE browser screen and
+   centers the verification card both horizontally
+   and vertically.
+*/
+
+.verification-method-overlay {
+  position: fixed;
+
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+
   align-items: center;
   justify-content: center;
-  padding: 30px 20px;
+
+  padding: 24px;
+
+  box-sizing: border-box;
+
+  background:
+    rgba(0, 0, 0, 0.68);
+
+  z-index: 9999;
+
+  overflow-y: auto;
+
+  animation:
+    verificationOverlayAppear
+    0.25s ease;
 }
 
 
 /* =========================================
-   VERIFICATION MODAL
+   OVERLAY ANIMATION
    ========================================= */
+
+@keyframes verificationOverlayAppear {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+
+/* =========================================================
+   VERIFICATION MODAL
+   ========================================================= */
 
 .verification-method-modal {
   width: 100%;
+
   max-width: 500px;
+
+  max-height: calc(100vh - 48px);
+
+  overflow-y: auto;
+
   background: #ffffff;
+
   border-radius: 24px;
+
   padding: 35px 30px;
+
   text-align: center;
-  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.30);
+
+  box-sizing: border-box;
+
+  box-shadow:
+    0 25px 70px rgba(0, 0, 0, 0.35);
+
   position: relative;
-  z-index: 10;
-  animation: verificationAppear 0.35s ease;
+
+  z-index: 10000;
+
+  animation:
+    verificationAppear
+    0.35s ease;
 }
 
 
@@ -229,257 +291,549 @@
    ========================================= */
 
 @keyframes verificationAppear {
-
   from {
     opacity: 0;
-    transform: translateY(25px) scale(0.97);
+
+    transform:
+      translateY(25px)
+      scale(0.96);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
-  }
 
+    transform:
+      translateY(0)
+      scale(1);
+  }
 }
 
 
 /* =========================================
-   ICON
+   VERIFICATION ICON
    ========================================= */
 
 .verification-method-icon {
   width: 70px;
   height: 70px;
-  margin: 0 auto 18px;
+
+  margin:
+    0 auto 18px;
+
   border-radius: 50%;
+
   display: flex;
+
   align-items: center;
   justify-content: center;
+
   background: #eef8f2;
+
   font-size: 32px;
 }
 
 
 /* =========================================
-   TITLE
+   VERIFICATION TITLE
    ========================================= */
 
 .verification-method-modal h2 {
-  margin: 0 0 12px;
+  margin:
+    0 0 12px;
+
   font-size: 28px;
+
+  line-height: 1.25;
+
   color: #111111;
 }
 
-
 .verification-method-modal > p {
-  margin: 7px 0;
+  margin:
+    7px 0;
+
   color: #666666;
+
   line-height: 1.6;
 }
 
 
-/* =========================================
+/* =========================================================
    EMAIL DISPLAY
-   ========================================= */
+   ========================================================= */
 
 .verification-email-display {
-  margin: 20px 0;
-  padding: 13px 15px;
+  width: 100%;
+
+  margin:
+    20px 0;
+
+  padding:
+    13px 15px;
+
   border-radius: 10px;
+
   background: #f3f7f5;
+
   color: #0b7d45;
+
   font-weight: 600;
+
   word-break: break-word;
+
+  box-sizing: border-box;
 }
 
 
-/* =========================================
-   METHOD BUTTON
-   ========================================= */
+/* =========================================================
+   VERIFICATION METHOD BUTTONS
+   ========================================================= */
 
 .verification-method-btn {
   width: 100%;
+
+  min-height: 78px;
+
   border: none;
+
   border-radius: 14px;
-  padding: 17px;
+
+  padding:
+    14px 16px;
+
   margin-top: 12px;
+
   display: flex;
+
   align-items: center;
+
   gap: 14px;
+
   text-align: left;
+
   cursor: pointer;
+
+  box-sizing: border-box;
+
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
     opacity 0.2s ease;
 }
 
-
 .verification-method-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.12);
 }
 
+.verification-method-btn:active {
+  transform: scale(0.98);
+}
 
 .verification-method-btn:disabled {
   cursor: not-allowed;
+
   opacity: 0.65;
+
   transform: none;
 }
 
 
 /* =========================================
-   ICON
+   METHOD ICON
    ========================================= */
 
 .verification-method-btn-icon {
   width: 44px;
   height: 44px;
+
   flex-shrink: 0;
+
   border-radius: 12px;
+
   display: flex;
+
   align-items: center;
   justify-content: center;
+
   font-size: 22px;
 }
 
 
 /* =========================================
-   CONTENT
+   METHOD CONTENT
    ========================================= */
 
 .verification-method-btn-content {
   flex: 1;
+
+  min-width: 0;
+
   display: flex;
+
   flex-direction: column;
+
   gap: 4px;
 }
 
-
 .verification-method-btn-content strong {
   font-size: 16px;
+
   color: #222222;
 }
 
-
 .verification-method-btn-content small {
   color: #777777;
+
   line-height: 1.4;
+
+  word-break: break-word;
 }
 
 
 /* =========================================
-   ARROW
+   METHOD ARROW
    ========================================= */
 
 .verification-method-arrow {
+  flex-shrink: 0;
+
   font-size: 22px;
+
   font-weight: bold;
 }
 
 
-/* =========================================
+/* =========================================================
    WHATSAPP
-   ========================================= */
+   ========================================================= */
 
 .whatsapp-method-btn {
   background: #eaf8ef;
 }
 
-
 .whatsapp-method-btn .verification-method-btn-icon {
   background: #d7f1df;
 }
-
 
 .whatsapp-method-btn .verification-method-arrow {
   color: #0b7d45;
 }
 
 
-/* =========================================
+/* =========================================================
    EMAIL
-   ========================================= */
+   ========================================================= */
 
 .email-method-btn {
   background: #eef4ff;
 }
 
-
 .email-method-btn .verification-method-btn-icon {
   background: #dce8ff;
 }
-
 
 .email-method-btn .verification-method-arrow {
   color: #2463d4;
 }
 
 
-/* =========================================
-   BACK BUTTON
-   ========================================= */
+/* =========================================================
+   CANCEL BUTTON
+   ========================================================= */
 
 .verification-method-cancel {
   width: 100%;
+
   margin-top: 18px;
+
   border: none;
+
   background: transparent;
+
   color: #555555;
+
   font-size: 15px;
+
   font-weight: 600;
+
   cursor: pointer;
+
   padding: 12px;
 }
-
 
 .verification-method-cancel:hover {
   color: #0b7d45;
 }
 
-
 .verification-method-cancel:disabled {
   cursor: not-allowed;
+
   opacity: 0.5;
 }
 
 
-/* =========================================
+/* =========================================================
    NOTE
-   ========================================= */
+   ========================================================= */
 
 .verification-method-note {
   margin-top: 18px !important;
+
+  margin-bottom: 0 !important;
+
   font-size: 13px;
+
   color: #888888 !important;
+
+  line-height: 1.5;
 }
 
 
-/* =========================================
-   MOBILE
-   ========================================= */
+/* =========================================================
+   TABLET
+   ========================================================= */
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
 
-  .verification-page .auth-overlay {
-    padding: 18px 12px;
+  .auth-overlay {
+    padding:
+      25px 18px;
+  }
+
+  .auth-card {
+    padding:
+      35px 25px;
+  }
+
+  .auth-card h1 {
+    font-size: 32px;
+  }
+
+  .verification-method-overlay {
+    padding:
+      20px 16px;
   }
 
   .verification-method-modal {
-    padding: 28px 18px;
+    max-width: 470px;
+
+    padding:
+      30px 24px;
+
+    border-radius: 22px;
+  }
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  .auth-page {
+    align-items: flex-start;
+  }
+
+  .auth-overlay {
+    min-height: 100vh;
+
+    padding:
+      25px 14px;
+  }
+
+  .auth-card {
+    width: 100%;
+
+    padding:
+      30px 20px;
+
+    border-radius: 18px;
+  }
+
+  .auth-card h1 {
+    font-size: 29px;
+  }
+
+  .auth-card p {
+    font-size: 14px;
+
+    margin-bottom: 28px;
+  }
+
+
+  /* =====================================
+     MOBILE VERIFICATION OVERLAY
+     ===================================== */
+
+  .verification-method-overlay {
+    padding:
+      14px;
+
+    align-items: center;
+
+    justify-content: center;
+  }
+
+  .verification-method-modal {
+    width: 100%;
+
+    max-width: 430px;
+
+    max-height:
+      calc(100vh - 28px);
+
+    padding:
+      26px 17px;
+
     border-radius: 20px;
   }
 
-  .verification-method-modal h2 {
-    font-size: 23px;
+
+  /* =====================================
+     MOBILE ICON
+     ===================================== */
+
+  .verification-method-icon {
+    width: 60px;
+    height: 60px;
+
+    font-size: 28px;
+
+    margin-bottom: 14px;
   }
 
+
+  /* =====================================
+     MOBILE TITLE
+     ===================================== */
+
+  .verification-method-modal h2 {
+    font-size: 23px;
+
+    margin-bottom: 10px;
+  }
+
+  .verification-method-modal > p {
+    font-size: 14px;
+
+    line-height: 1.5;
+  }
+
+
+  /* =====================================
+     MOBILE EMAIL
+     ===================================== */
+
+  .verification-email-display {
+    margin:
+      16px 0;
+
+    padding:
+      12px;
+
+    font-size: 13px;
+  }
+
+
+  /* =====================================
+     MOBILE METHOD BUTTON
+     ===================================== */
+
   .verification-method-btn {
-    padding: 14px;
+    min-height: 70px;
+
+    padding:
+      12px;
+
+    gap: 10px;
+
+    border-radius: 13px;
+  }
+
+  .verification-method-btn-icon {
+    width: 40px;
+    height: 40px;
+
+    font-size: 20px;
+
+    border-radius: 10px;
+  }
+
+  .verification-method-btn-content strong {
+    font-size: 15px;
   }
 
   .verification-method-btn-content small {
-    font-size: 12px;
+    font-size: 11px;
+
+    line-height: 1.35;
   }
 
+  .verification-method-arrow {
+    font-size: 19px;
+  }
+
+  .verification-method-note {
+    font-size: 12px;
+  }
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+  .verification-method-overlay {
+    padding:
+      10px;
+  }
+
+  .verification-method-modal {
+    padding:
+      22px 13px;
+
+    border-radius: 18px;
+  }
+
+  .verification-method-modal h2 {
+    font-size: 21px;
+  }
+
+  .verification-method-btn {
+    min-height: 66px;
+
+    padding:
+      10px;
+  }
+
+  .verification-method-btn-icon {
+    width: 36px;
+    height: 36px;
+
+    font-size: 18px;
+  }
+
+  .verification-method-btn-content small {
+    font-size: 10px;
+  }
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+.verification-method-btn:focus-visible,
+.auth-card button:focus-visible,
+.input-box input:focus-visible {
+  outline:
+    3px solid rgba(11, 125, 69, 0.35);
+
+  outline-offset: 2px;
 }

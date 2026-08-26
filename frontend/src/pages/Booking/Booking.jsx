@@ -1,7 +1,4 @@
-import React, {
-  useEffect,
-  useState,
-} from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 import {
   useLocation,
@@ -74,16 +71,6 @@ function Booking() {
 
 
   // =========================================
-  // LOADING BOOKED SEATS
-  // =========================================
-
-  const [
-    loadingSeats,
-    setLoadingSeats
-  ] = useState(false);
-
-
-  // =========================================
   // AVAILABILITY ERROR
   // =========================================
 
@@ -91,6 +78,16 @@ function Booking() {
     availabilityError,
     setAvailabilityError
   ] = useState("");
+
+
+  // =========================================
+  // BACKGROUND SEAT CHECKING
+  // =========================================
+
+  const [
+    checkingSeats,
+    setCheckingSeats
+  ] = useState(false);
 
 
   // =========================================
@@ -109,6 +106,15 @@ function Booking() {
 
   const selectedOffer =
     location.state?.offer || null;
+
+
+  // =========================================
+  // PREVENT OLD REQUESTS FROM OVERWRITING
+  // NEW DATA
+  // =========================================
+
+  const requestIdRef =
+    useRef(0);
 
 
   // =========================================
@@ -216,10 +222,14 @@ function Booking() {
 
   // =========================================
   // FETCH BOOKED SEATS
+  //
+  // IMPORTANT:
+  // This function DOES NOT hide SeatSelection.
   // =========================================
 
   const fetchBookedSeats = async (
-    showLoading = true
+    showChecking = false,
+    showAlert = false
   ) => {
 
     if (
@@ -236,13 +246,17 @@ function Booking() {
 
     }
 
+
+    const currentRequestId =
+      ++requestIdRef.current;
+
+
     try {
 
-      if (showLoading) {
-        setLoadingSeats(true);
+      if (showChecking) {
+        setCheckingSeats(true);
       }
 
-      setAvailabilityError("");
 
       const response =
         await axios.get(
@@ -269,18 +283,47 @@ function Booking() {
           }
         );
 
+
+      // =========================================
+      // IGNORE OLD REQUEST
+      // =========================================
+
+      if (
+        currentRequestId !==
+        requestIdRef.current
+      ) {
+
+        return null;
+
+      }
+
+
       const serverSeats =
         response.data?.bookedSeats ||
         [];
+
 
       const normalizedServerSeats =
         normalizeSeats(
           serverSeats
         );
 
+
+      // =========================================
+      // UPDATE BOOKED SEATS
+      //
+      // This does NOT affect loading state
+      // or remove SeatSelection.
+      // =========================================
+
       setBookedSeats(
         normalizedServerSeats
       );
+
+
+      // =========================================
+      // REMOVE SEATS THAT BECAME BOOKED
+      // =========================================
 
       setSelectedSeats(
         (currentSelected) => {
@@ -293,7 +336,11 @@ function Booking() {
                 )
             );
 
+
+          // Only show the alert during
+          // background refreshes.
           if (
+            showAlert &&
             lostSeats.length > 0
           ) {
 
@@ -309,6 +356,7 @@ function Booking() {
 
           }
 
+
           return currentSelected.filter(
             (seat) =>
               !normalizedServerSeats.includes(
@@ -319,6 +367,7 @@ function Booking() {
         }
       );
 
+
       return normalizedServerSeats;
 
     } catch (error) {
@@ -328,18 +377,28 @@ function Booking() {
         error
       );
 
+
+      // Do not destroy the seat layout.
+      // Just show the error message.
+
       setAvailabilityError(
         t(
           "unableCheckAvailability"
         )
       );
 
+
       return null;
 
     } finally {
 
-      if (showLoading) {
-        setLoadingSeats(false);
+      if (
+        currentRequestId ===
+        requestIdRef.current
+      ) {
+
+        setCheckingSeats(false);
+
       }
 
     }
@@ -348,12 +407,17 @@ function Booking() {
 
 
   // =========================================
-  // LOAD BOOKED SEATS WHEN TRIP CHANGES
+  // INITIAL SEAT AVAILABILITY
+  //
+  // IMPORTANT:
+  // SeatSelection remains mounted while
+  // availability is being checked.
   // =========================================
 
   useEffect(() => {
 
-    let mounted = true;
+    let cancelled = false;
+
 
     const loadSeats = async () => {
 
@@ -365,26 +429,30 @@ function Booking() {
         !booking.date
       ) {
 
-        if (mounted) {
-
-          setBookedSeats([]);
-          setSelectedSeats([]);
-          setAvailabilityError("");
-          setLoadingSeats(false);
-
-        }
+        setBookedSeats([]);
+        setSelectedSeats([]);
+        setAvailabilityError("");
+        setCheckingSeats(false);
 
         return;
 
       }
 
-      if (mounted) {
-        setLoadingSeats(true);
+
+      if (cancelled) {
+        return;
       }
 
-      try {
 
-        setAvailabilityError("");
+      setAvailabilityError("");
+      setCheckingSeats(true);
+
+
+      const currentRequestId =
+        ++requestIdRef.current;
+
+
+      try {
 
         const response =
           await axios.get(
@@ -411,22 +479,36 @@ function Booking() {
             }
           );
 
-        if (!mounted) {
+
+        if (
+          cancelled ||
+          currentRequestId !==
+            requestIdRef.current
+        ) {
+
           return;
+
         }
+
 
         const serverSeats =
           response.data?.bookedSeats ||
           [];
+
 
         const normalizedServerSeats =
           normalizeSeats(
             serverSeats
           );
 
+
         setBookedSeats(
           normalizedServerSeats
         );
+
+
+        // Remove any selected seat that
+        // is already booked.
 
         setSelectedSeats(
           (currentSelected) =>
@@ -438,18 +520,19 @@ function Booking() {
             )
         );
 
+
       } catch (error) {
 
-        if (!mounted) {
+        if (cancelled) {
           return;
         }
+
 
         console.error(
           "Initial seat availability error:",
           error
         );
 
-        setBookedSeats([]);
 
         setAvailabilityError(
           t(
@@ -457,21 +540,38 @@ function Booking() {
           )
         );
 
+
+        // IMPORTANT:
+        // Do NOT clear booked seats here.
+        // This prevents unnecessary visual flashing.
+        //
+        // We simply keep whatever data we already have.
+
+
       } finally {
 
-        if (mounted) {
-          setLoadingSeats(false);
+        if (!cancelled) {
+
+          setCheckingSeats(false);
+
         }
 
       }
 
     };
 
+
     loadSeats();
 
+
     return () => {
-      mounted = false;
+
+      cancelled = true;
+
+      requestIdRef.current++;
+
     };
+
 
   }, [
     selectedBus?.id,
@@ -484,7 +584,10 @@ function Booking() {
 
 
   // =========================================
-  // AUTOMATIC SEAT REFRESH
+  // AUTOMATIC BACKGROUND SEAT REFRESH
+  //
+  // Refreshes every 3 seconds WITHOUT
+  // unmounting SeatSelection.
   // =========================================
 
   useEffect(() => {
@@ -501,95 +604,16 @@ function Booking() {
 
     }
 
+
     const refreshSeats = async () => {
 
-      try {
-
-        const response =
-          await axios.get(
-            `${API_URL}/api/bookings/availability`,
-            {
-              params: {
-
-                busId:
-                  selectedBus.id,
-
-                routeId:
-                  selectedRoute.id,
-
-                from:
-                  booking.from,
-
-                to:
-                  booking.to,
-
-                date:
-                  booking.date
-
-              }
-            }
-          );
-
-        const serverSeats =
-          response.data?.bookedSeats ||
-          [];
-
-        const normalizedServerSeats =
-          normalizeSeats(
-            serverSeats
-          );
-
-        setBookedSeats(
-          normalizedServerSeats
-        );
-
-        setSelectedSeats(
-          (currentSelected) => {
-
-            const lostSeats =
-              currentSelected.filter(
-                (seat) =>
-                  normalizedServerSeats.includes(
-                    Number(seat)
-                  )
-              );
-
-            if (
-              lostSeats.length > 0
-            ) {
-
-              alert(
-                `${t("seat")} ${
-                  lostSeats.join(", ")
-                } ${
-                  lostSeats.length > 1
-                    ? t("wereJustBooked")
-                    : t("wasJustBooked")
-                }`
-              );
-
-            }
-
-            return currentSelected.filter(
-              (seat) =>
-                !normalizedServerSeats.includes(
-                  Number(seat)
-                )
-            );
-
-          }
-        );
-
-      } catch (error) {
-
-        console.error(
-          "Automatic seat refresh error:",
-          error
-        );
-
-      }
+      await fetchBookedSeats(
+        false,
+        true
+      );
 
     };
+
 
     const interval =
       setInterval(
@@ -597,17 +621,20 @@ function Booking() {
         3000
       );
 
+
     return () => {
+
       clearInterval(interval);
+
     };
+
 
   }, [
     selectedBus?.id,
     selectedRoute?.id,
     booking.from,
     booking.to,
-    booking.date,
-    t
+    booking.date
   ]);
 
 
@@ -622,12 +649,14 @@ function Booking() {
       value
     } = e.target;
 
+
     setBooking(
       (prev) => ({
         ...prev,
         [name]: value
       })
     );
+
 
     if (
       name === "busType" ||
@@ -660,6 +689,7 @@ function Booking() {
 
     }
 
+
     const pricePerPerson =
       Number(
         selectedRoute.price
@@ -667,6 +697,7 @@ function Booking() {
       Number(
         selectedBus.extraPrice || 0
       );
+
 
     return (
       pricePerPerson *
@@ -692,6 +723,7 @@ function Booking() {
 
     }
 
+
     return (
       parseFloat(
         String(
@@ -712,8 +744,10 @@ function Booking() {
     const totalPrice =
       calculatePrice();
 
+
     const discountPercentage =
       getDiscountPercentage();
+
 
     if (
       totalPrice <= 0 ||
@@ -723,6 +757,7 @@ function Booking() {
       return 0;
 
     }
+
 
     return (
       totalPrice *
@@ -743,8 +778,10 @@ function Booking() {
     const totalPrice =
       calculatePrice();
 
+
     const discount =
       calculateDiscount();
+
 
     return Math.max(
       0,
@@ -781,9 +818,15 @@ function Booking() {
       return;
     }
 
+
     setIsProcessing(true);
 
+
     try {
+
+      // =========================================
+      // LOGIN CHECK
+      // =========================================
 
       if (!currentUser) {
 
@@ -796,6 +839,11 @@ function Booking() {
         return;
 
       }
+
+
+      // =========================================
+      // ROUTE CHECK
+      // =========================================
 
       if (
         !booking.from ||
@@ -812,6 +860,7 @@ function Booking() {
 
       }
 
+
       if (!selectedRoute) {
 
         alert(
@@ -821,6 +870,11 @@ function Booking() {
         return;
 
       }
+
+
+      // =========================================
+      // BUS CHECK
+      // =========================================
 
       if (!booking.busType) {
 
@@ -832,6 +886,7 @@ function Booking() {
 
       }
 
+
       if (!selectedBus) {
 
         alert(
@@ -842,6 +897,11 @@ function Booking() {
 
       }
 
+
+      // =========================================
+      // DATE CHECK
+      // =========================================
+
       if (!booking.date) {
 
         alert(
@@ -851,6 +911,11 @@ function Booking() {
         return;
 
       }
+
+
+      // =========================================
+      // SEAT CHECK
+      // =========================================
 
       if (
         selectedSeats.length === 0
@@ -864,8 +929,17 @@ function Booking() {
 
       }
 
+
+      // =========================================
+      // VERIFY FRESH AVAILABILITY
+      // =========================================
+
       const freshBookedSeats =
-        await fetchBookedSeats(false);
+        await fetchBookedSeats(
+          false,
+          false
+        );
+
 
       if (
         freshBookedSeats === null
@@ -879,15 +953,22 @@ function Booking() {
 
       }
 
+
       const normalizedSelectedSeats =
         normalizeSeats(
           selectedSeats
         );
 
+
       const normalizedBookedSeats =
         normalizeSeats(
           freshBookedSeats
         );
+
+
+      // =========================================
+      // CHECK FOR TAKEN SEAT
+      // =========================================
 
       const tryingToBookTakenSeat =
         normalizedSelectedSeats.some(
@@ -897,6 +978,7 @@ function Booking() {
             )
         );
 
+
       if (
         tryingToBookTakenSeat
       ) {
@@ -904,6 +986,7 @@ function Booking() {
         alert(
           t("seatAlreadyBooked")
         );
+
 
         setSelectedSeats(
           normalizedSelectedSeats.filter(
@@ -914,9 +997,15 @@ function Booking() {
           )
         );
 
+
         return;
 
       }
+
+
+      // =========================================
+      // PASSENGER / SEAT MATCH
+      // =========================================
 
       if (
         Number(
@@ -943,6 +1032,11 @@ function Booking() {
 
       }
 
+
+      // =========================================
+      // NAME CHECK
+      // =========================================
+
       if (
         !booking.name.trim()
       ) {
@@ -954,6 +1048,11 @@ function Booking() {
         return;
 
       }
+
+
+      // =========================================
+      // PHONE CHECK
+      // =========================================
 
       if (
         !booking.phone.trim()
@@ -967,6 +1066,11 @@ function Booking() {
 
       }
 
+
+      // =========================================
+      // PRICE CHECK
+      // =========================================
+
       if (
         totalPrice <= 0
       ) {
@@ -978,6 +1082,11 @@ function Booking() {
         return;
 
       }
+
+
+      // =========================================
+      // GO TO PAYMENT
+      // =========================================
 
       navigate(
         "/payment",
@@ -1047,6 +1156,7 @@ function Booking() {
         }
       );
 
+
     } finally {
 
       setIsProcessing(false);
@@ -1096,6 +1206,10 @@ function Booking() {
               {t("tripDetails")}
             </h2>
 
+
+            {/* =================================
+                OFFER
+            ================================= */}
 
             {selectedOffer ? (
 
@@ -1148,6 +1262,10 @@ function Booking() {
             )}
 
 
+            {/* =================================
+                FROM
+            ================================= */}
+
             <div className="form-group">
 
               <label>
@@ -1181,6 +1299,10 @@ function Booking() {
 
             </div>
 
+
+            {/* =================================
+                TO
+            ================================= */}
 
             <div className="form-group">
 
@@ -1223,6 +1345,10 @@ function Booking() {
             </div>
 
 
+            {/* =================================
+                BUS TYPE
+            ================================= */}
+
             <div className="form-group">
 
               <label>
@@ -1254,6 +1380,10 @@ function Booking() {
               </select>
 
 
+              {/* =================================
+                  AVAILABILITY ERROR
+              ================================= */}
+
               {availabilityError && (
 
                 <div
@@ -1270,7 +1400,10 @@ function Booking() {
                   <button
                     type="button"
                     onClick={() =>
-                      fetchBookedSeats(true)
+                      fetchBookedSeats(
+                        true,
+                        false
+                      )
                     }
                   >
                     {t("retry")}
@@ -1280,6 +1413,10 @@ function Booking() {
 
               )}
 
+
+              {/* =================================
+                  SEAT SELECTION
+              ================================= */}
 
               {booking.busType && (
 
@@ -1299,39 +1436,68 @@ function Booking() {
 
                     </div>
 
-                  ) : loadingSeats ? (
+                  ) : !selectedBus ? (
 
                     <div className="seat-loading">
 
                       <p>
-                        🔄{" "}
-                        {t("checkingSeats")}
+                        {t("busNotFound")}
                       </p>
 
                     </div>
 
                   ) : (
 
-                    <SeatSelection
+                    <div className="seat-selection-wrapper">
 
-                      totalSeats={
-                        selectedBus?.seats ||
-                        0
-                      }
+                      {/* =================================
+                          SMALL BACKGROUND CHECK INDICATOR
+                          DOES NOT REPLACE SEATS
+                      ================================= */}
 
-                      selectedSeats={
-                        selectedSeats
-                      }
+                      {checkingSeats && (
 
-                      setSelectedSeats={
-                        setSelectedSeats
-                      }
+                        <div className="seat-background-check">
 
-                      bookedSeats={
-                        bookedSeats
-                      }
+                          <span className="seat-check-dot">
+                            ●
+                          </span>
 
-                    />
+                          <span>
+                            {t("checkingSeats")}
+                          </span>
+
+                        </div>
+
+                      )}
+
+
+                      {/* =================================
+                          SEAT MAP ALWAYS STAYS MOUNTED
+                      ================================= */}
+
+                      <SeatSelection
+
+                        totalSeats={
+                          selectedBus?.seats ||
+                          0
+                        }
+
+                        selectedSeats={
+                          selectedSeats
+                        }
+
+                        setSelectedSeats={
+                          setSelectedSeats
+                        }
+
+                        bookedSeats={
+                          bookedSeats
+                        }
+
+                      />
+
+                    </div>
 
                   )}
 
@@ -1341,6 +1507,10 @@ function Booking() {
 
             </div>
 
+
+            {/* =================================
+                ROUTE SUMMARY
+            ================================= */}
 
             <div className="summary-item">
 
@@ -1360,6 +1530,10 @@ function Booking() {
             </div>
 
 
+            {/* =================================
+                BUS SUMMARY
+            ================================= */}
+
             <div className="summary-item">
 
               <span>
@@ -1376,6 +1550,10 @@ function Booking() {
 
             </div>
 
+
+            {/* =================================
+                SEAT SUMMARY
+            ================================= */}
 
             <div className="summary-item">
 
@@ -1394,6 +1572,10 @@ function Booking() {
             </div>
 
 
+            {/* =================================
+                TOTAL PRICE
+            ================================= */}
+
             <div className="price-summary">
 
               <span>
@@ -1410,6 +1592,10 @@ function Booking() {
 
             </div>
 
+
+            {/* =================================
+                DISCOUNT
+            ================================= */}
 
             <div className="summary-item">
 
@@ -1428,6 +1614,10 @@ function Booking() {
             </div>
 
 
+            {/* =================================
+                TOTAL PAYMENT
+            ================================= */}
+
             <div className="summary-item">
 
               <span>
@@ -1444,6 +1634,7 @@ function Booking() {
 
             </div>
 
+
           </div>
 
 
@@ -1457,6 +1648,10 @@ function Booking() {
               {t("passengerInformation")}
             </h2>
 
+
+            {/* =================================
+                NAME
+            ================================= */}
 
             <div className="form-group">
 
@@ -1477,6 +1672,10 @@ function Booking() {
             </div>
 
 
+            {/* =================================
+                PHONE
+            ================================= */}
+
             <div className="form-group">
 
               <label>
@@ -1496,6 +1695,10 @@ function Booking() {
             </div>
 
 
+            {/* =================================
+                DATE
+            ================================= */}
+
             <div className="form-group">
 
               <label>
@@ -1511,6 +1714,10 @@ function Booking() {
 
             </div>
 
+
+            {/* =================================
+                PASSENGERS
+            ================================= */}
 
             <div className="form-group">
 
@@ -1544,6 +1751,10 @@ function Booking() {
 
             </div>
 
+
+            {/* =================================
+                PAYMENT PREVIEW
+            ================================= */}
 
             <div className="payment-preview">
 
@@ -1617,6 +1828,10 @@ function Booking() {
 
             </div>
 
+
+            {/* =================================
+                CONTINUE BUTTON
+            ================================= */}
 
             <button
               type="button"

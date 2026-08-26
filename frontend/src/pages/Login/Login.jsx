@@ -122,7 +122,7 @@ function Login() {
           ================================= */}
 
           <h1>
-            {t("welcomeBack")}
+            {t("Welcome Back")}
           </h1>
 
 
@@ -131,7 +131,7 @@ function Login() {
           ================================= */}
 
           <p>
-            {t("loginDescription")}
+            {t("Login Description")}
           </p>
 
 
@@ -157,7 +157,7 @@ function Login() {
                 name="email"
                 value={loginData.email}
                 onChange={handleChange}
-                placeholder={t("enterEmail")}
+                placeholder={t("Enter your email")}
                 required
               />
 
@@ -177,7 +177,7 @@ function Login() {
                 name="password"
                 value={loginData.password}
                 onChange={handleChange}
-                placeholder={t("enterPassword")}
+                placeholder={t("Enter your password")}
                 required
               />
 
@@ -199,7 +199,7 @@ function Login() {
 
           <div className="auth-link">
 
-            {t("dontHaveAccount")}
+            {t("Dont have account?")}
 
             <NavLink to="/register">
               {t("register")}

@@ -14,16 +14,41 @@ import "./Profile.css";
 
 import { API_URL } from "../../api";
 
+import packageJson from "../../../package.json";
+
+
+/* =========================================================
+   BUSGO APP VERSION
+   =========================================================
+   The version comes directly from package.json.
+
+   Example:
+   package.json
+   "version": "1.0.0"
+
+   If you change it to:
+   "version": "1.1.0"
+
+   the Profile page automatically displays:
+   BusGo v1.1.0
+   ========================================================= */
+
+const APP_VERSION =
+  packageJson.version || "0.1.0";
+
+
 function Profile() {
 
-  const navigate = useNavigate();
+  const navigate =
+    useNavigate();
 
-  const location = useLocation();
+  const location =
+    useLocation();
 
 
-  // =========================================
+  // =======================================================
   // USER
-  // =========================================
+  // =======================================================
 
   const [
     user,
@@ -31,9 +56,9 @@ function Profile() {
   ] = useState(null);
 
 
-  // =========================================
+  // =======================================================
   // LOADING
-  // =========================================
+  // =======================================================
 
   const [
     loading,
@@ -41,9 +66,9 @@ function Profile() {
   ] = useState(true);
 
 
-  // =========================================
+  // =======================================================
   // EDITING
-  // =========================================
+  // =======================================================
 
   const [
     editing,
@@ -51,9 +76,9 @@ function Profile() {
   ] = useState(false);
 
 
-  // =========================================
+  // =======================================================
   // SAVING PROFILE
-  // =========================================
+  // =======================================================
 
   const [
     saving,
@@ -61,9 +86,9 @@ function Profile() {
   ] = useState(false);
 
 
-  // =========================================
+  // =======================================================
   // PROFILE MESSAGE
-  // =========================================
+  // =======================================================
 
   const [
     message,
@@ -71,9 +96,9 @@ function Profile() {
   ] = useState("");
 
 
-  // =========================================
+  // =======================================================
   // PROFILE ERROR
-  // =========================================
+  // =======================================================
 
   const [
     error,
@@ -81,9 +106,9 @@ function Profile() {
   ] = useState("");
 
 
-  // =========================================
+  // =======================================================
   // REPORT MESSAGE
-  // =========================================
+  // =======================================================
 
   const [
     reportMessage,
@@ -91,9 +116,9 @@ function Profile() {
   ] = useState("");
 
 
-  // =========================================
+  // =======================================================
   // REPORT STATUS
-  // =========================================
+  // =======================================================
 
   const [
     reportStatus,
@@ -101,9 +126,9 @@ function Profile() {
   ] = useState("");
 
 
-  // =========================================
+  // =======================================================
   // REPORT ERROR
-  // =========================================
+  // =======================================================
 
   const [
     reportError,
@@ -111,9 +136,9 @@ function Profile() {
   ] = useState("");
 
 
-  // =========================================
+  // =======================================================
   // REPORT SENDING
-  // =========================================
+  // =======================================================
 
   const [
     sendingReport,
@@ -121,180 +146,290 @@ function Profile() {
   ] = useState(false);
 
 
-  // =========================================
-  // LOAD PROFILE
-  // =========================================
+  // =======================================================
+  // THEME
+  // =======================================================
+
+  const [
+    theme,
+    setTheme
+  ] = useState(
+    localStorage.getItem(
+      "busgo_theme"
+    ) || "light"
+  );
+
+
+  // =======================================================
+  // APPLY THEME
+  // =======================================================
 
   useEffect(() => {
 
-    const loadProfile = async () => {
-
-      try {
-
-        const loggedIn =
-          localStorage.getItem(
-            "loggedIn"
-          );
+    const savedTheme =
+      localStorage.getItem(
+        "busgo_theme"
+      ) || "light";
 
 
-        // =========================================
-        // BUSGO JWT
-        // =========================================
-
-        const token =
-          localStorage.getItem(
-            "authToken"
-          );
+    setTheme(savedTheme);
 
 
-        let currentUser = null;
+    document.documentElement.setAttribute(
+      "data-theme",
+      savedTheme
+    );
 
 
-        try {
+    if (savedTheme === "dark") {
 
-          currentUser =
-            JSON.parse(
-              localStorage.getItem(
-                "currentUser"
-              )
-            );
+      document.body.classList.add(
+        "dark-mode"
+      );
 
-        } catch {
+    } else {
 
-          currentUser = null;
+      document.body.classList.remove(
+        "dark-mode"
+      );
 
-        }
+    }
 
-
-        // =========================================
-        // CHECK LOGIN SESSION
-        // =========================================
-
-        if (
-          !loggedIn ||
-          !token ||
-          !currentUser?.id
-        ) {
-
-          navigate(
-            "/login"
-          );
-
-          return;
-
-        }
+  }, []);
 
 
-        // =========================================
-        // GET PROFILE
-        // =========================================
+  // =======================================================
+  // CHANGE THEME
+  // =======================================================
 
-        const response =
-          await axios.get(
-            `${API_URL}/api/auth/profile`,
-            {
-              headers: {
-                Authorization:
-                  `Bearer ${token}`
-              }
-            }
-          );
+  const handleThemeChange =
+    (newTheme) => {
+
+      setTheme(newTheme);
 
 
-        const profile =
-          response.data?.user;
+      localStorage.setItem(
+        "busgo_theme",
+        newTheme
+      );
 
 
-        if (!profile) {
-
-          throw new Error(
-            "Profile information was not returned."
-          );
-
-        }
+      document.documentElement.setAttribute(
+        "data-theme",
+        newTheme
+      );
 
 
-        // =========================================
-        // NORMALISE USER
-        // =========================================
+      if (newTheme === "dark") {
 
-        const updatedUser = {
-
-          ...profile,
-
-          profilePicture:
-            profile.profile_picture ||
-            profile.profilePicture ||
-            null
-
-        };
-
-
-        setUser(
-          updatedUser
+        document.body.classList.add(
+          "dark-mode"
         );
 
+      } else {
 
-        // =========================================
-        // KEEP LOCAL USER DATA IN SYNC
-        // =========================================
-
-        localStorage.setItem(
-          "currentUser",
-          JSON.stringify(
-            updatedUser
-          )
+        document.body.classList.remove(
+          "dark-mode"
         );
-
-      } catch (err) {
-
-        console.error(
-          "Unable to load profile:",
-          err
-        );
-
-
-        // =========================================
-        // TOKEN EXPIRED
-        // =========================================
-
-        if (
-          err.response?.status === 401
-        ) {
-
-          localStorage.removeItem(
-            "loggedIn"
-          );
-
-          localStorage.removeItem(
-            "currentUser"
-          );
-
-          localStorage.removeItem(
-            "authToken"
-          );
-
-          navigate(
-            "/login"
-          );
-
-          return;
-
-        }
-
-
-        setError(
-          err.response?.data?.message ||
-          "Unable to load your profile."
-        );
-
-      } finally {
-
-        setLoading(false);
 
       }
 
+
+      // Notify other BusGo components
+      // that the theme has changed.
+
+      window.dispatchEvent(
+        new CustomEvent(
+          "busgo-theme-change",
+          {
+            detail: {
+              theme: newTheme
+            }
+          }
+        )
+      );
+
     };
+
+
+  // =======================================================
+  // LOAD PROFILE
+  // =======================================================
+
+  useEffect(() => {
+
+    const loadProfile =
+      async () => {
+
+        try {
+
+          const loggedIn =
+            localStorage.getItem(
+              "loggedIn"
+            );
+
+
+          // =================================================
+          // BUSGO JWT
+          // =================================================
+
+          const token =
+            localStorage.getItem(
+              "authToken"
+            );
+
+
+          let currentUser =
+            null;
+
+
+          try {
+
+            currentUser =
+              JSON.parse(
+                localStorage.getItem(
+                  "currentUser"
+                )
+              );
+
+          } catch {
+
+            currentUser =
+              null;
+
+          }
+
+
+          // =================================================
+          // CHECK LOGIN SESSION
+          // =================================================
+
+          if (
+            !loggedIn ||
+            !token ||
+            !currentUser?.id
+          ) {
+
+            navigate(
+              "/login"
+            );
+
+            return;
+
+          }
+
+
+          // =================================================
+          // GET PROFILE
+          // =================================================
+
+          const response =
+            await axios.get(
+              `${API_URL}/api/auth/profile`,
+              {
+                headers: {
+                  Authorization:
+                    `Bearer ${token}`
+                }
+              }
+            );
+
+
+          const profile =
+            response.data?.user;
+
+
+          if (!profile) {
+
+            throw new Error(
+              "Profile information was not returned."
+            );
+
+          }
+
+
+          // =================================================
+          // NORMALISE USER
+          // =================================================
+
+          const updatedUser = {
+
+            ...profile,
+
+            profilePicture:
+              profile.profile_picture ||
+              profile.profilePicture ||
+              null
+
+          };
+
+
+          setUser(
+            updatedUser
+          );
+
+
+          // =================================================
+          // KEEP LOCAL USER DATA IN SYNC
+          // =================================================
+
+          localStorage.setItem(
+            "currentUser",
+            JSON.stringify(
+              updatedUser
+            )
+          );
+
+        } catch (err) {
+
+          console.error(
+            "Unable to load profile:",
+            err
+          );
+
+
+          // =================================================
+          // TOKEN EXPIRED
+          // =================================================
+
+          if (
+            err.response?.status === 401
+          ) {
+
+            localStorage.removeItem(
+              "loggedIn"
+            );
+
+            localStorage.removeItem(
+              "currentUser"
+            );
+
+            localStorage.removeItem(
+              "authToken"
+            );
+
+
+            navigate(
+              "/login"
+            );
+
+            return;
+
+          }
+
+
+          setError(
+            err.response?.data?.message ||
+            "Unable to load your profile."
+          );
+
+        } finally {
+
+          setLoading(false);
+
+        }
+
+      };
 
 
     loadProfile();
@@ -304,16 +439,20 @@ function Profile() {
   ]);
 
 
-  // =========================================
-  // SCROLL TO REPORT
+  // =======================================================
+  // HANDLE URL HASHES
   //
-  // Allows the mobile hamburger Report
-  // button to open this same report section.
-  // =========================================
+  // #settings
+  //     Opens the Settings section.
+  //
+  // #report
+  //     Opens the Report section.
+  // =======================================================
 
   useEffect(() => {
 
     if (
+      location.hash !== "#settings" &&
       location.hash !== "#report"
     ) {
 
@@ -325,15 +464,44 @@ function Profile() {
     const timer =
       setTimeout(() => {
 
-        const reportSection =
+        let targetId =
+          null;
+
+
+        if (
+          location.hash === "#settings"
+        ) {
+
+          targetId =
+            "busgo-settings-section";
+
+        }
+
+
+        if (
+          location.hash === "#report"
+        ) {
+
+          targetId =
+            "busgo-report-section";
+
+        }
+
+
+        if (!targetId) {
+          return;
+        }
+
+
+        const target =
           document.getElementById(
-            "busgo-report-section"
+            targetId
           );
 
 
-        if (reportSection) {
+        if (target) {
 
-          reportSection.scrollIntoView({
+          target.scrollIntoView({
             behavior: "smooth",
             block: "start"
           });
@@ -355,9 +523,9 @@ function Profile() {
   ]);
 
 
-  // =========================================
+  // =======================================================
   // LOADING
-  // =========================================
+  // =======================================================
 
   if (loading) {
 
@@ -374,9 +542,9 @@ function Profile() {
   }
 
 
-  // =========================================
+  // =======================================================
   // NO USER
-  // =========================================
+  // =======================================================
 
   if (!user) {
 
@@ -410,9 +578,9 @@ function Profile() {
   }
 
 
-  // =========================================
+  // =======================================================
   // INITIALS
-  // =========================================
+  // =======================================================
 
   const initials =
     (user.name || "Traveller")
@@ -427,9 +595,9 @@ function Profile() {
       .toUpperCase();
 
 
-  // =========================================
+  // =======================================================
   // LOGOUT
-  // =========================================
+  // =======================================================
 
   const handleLogout = () => {
 
@@ -445,6 +613,7 @@ function Profile() {
       "authToken"
     );
 
+
     navigate(
       "/login"
     );
@@ -452,9 +621,9 @@ function Profile() {
   };
 
 
-  // =========================================
+  // =======================================================
   // START EDITING
-  // =========================================
+  // =======================================================
 
   const handleStartEditing = () => {
 
@@ -467,9 +636,9 @@ function Profile() {
   };
 
 
-  // =========================================
+  // =======================================================
   // CANCEL EDITING
-  // =========================================
+  // =======================================================
 
   const handleCancelEditing = () => {
 
@@ -479,30 +648,349 @@ function Profile() {
 
     setError("");
 
+
+    // Reload the profile from the server
+    // so unsaved changes disappear.
+
+    const reloadProfile =
+      async () => {
+
+        try {
+
+          const token =
+            localStorage.getItem(
+              "authToken"
+            );
+
+
+          if (!token) {
+
+            navigate(
+              "/login"
+            );
+
+            return;
+
+          }
+
+
+          const response =
+            await axios.get(
+              `${API_URL}/api/auth/profile`,
+              {
+                headers: {
+                  Authorization:
+                    `Bearer ${token}`
+                }
+              }
+            );
+
+
+          const profile =
+            response.data?.user;
+
+
+          if (!profile) {
+            return;
+          }
+
+
+          const normalizedUser = {
+
+            ...profile,
+
+            profilePicture:
+              profile.profile_picture ||
+              profile.profilePicture ||
+              null
+
+          };
+
+
+          setUser(
+            normalizedUser
+          );
+
+
+          localStorage.setItem(
+            "currentUser",
+            JSON.stringify(
+              normalizedUser
+            )
+          );
+
+        } catch (err) {
+
+          console.error(
+            "Unable to restore profile:",
+            err
+          );
+
+        }
+
+      };
+
+
+    reloadProfile();
+
   };
 
 
-  // =========================================
+  // =======================================================
   // SAVE PROFILE
-  // =========================================
+  // =======================================================
 
-  const handleSaveProfile = async () => {
+  const handleSaveProfile =
+    async () => {
 
-    if (saving) {
+      if (saving) {
 
-      return;
+        return;
 
-    }
-
-
-    setSaving(true);
-
-    setMessage("");
-
-    setError("");
+      }
 
 
-    try {
+      // =================================================
+      // BASIC VALIDATION
+      // =================================================
+
+      const name =
+        String(
+          user.name || ""
+        ).trim();
+
+      const phone =
+        String(
+          user.phone || ""
+        ).trim();
+
+      const email =
+        String(
+          user.email || ""
+        ).trim();
+
+
+      if (!name) {
+
+        setError(
+          "Please enter your full name."
+        );
+
+        return;
+
+      }
+
+
+      if (!email) {
+
+        setError(
+          "Please enter your email address."
+        );
+
+        return;
+
+      }
+
+
+      setSaving(true);
+
+      setMessage("");
+
+      setError("");
+
+
+      try {
+
+        const token =
+          localStorage.getItem(
+            "authToken"
+          );
+
+
+        if (!token) {
+
+          localStorage.removeItem(
+            "loggedIn"
+          );
+
+          localStorage.removeItem(
+            "currentUser"
+          );
+
+          navigate(
+            "/login"
+          );
+
+          return;
+
+        }
+
+
+        // =================================================
+        // UPDATE PROFILE
+        // =================================================
+
+        const response =
+          await axios.put(
+            `${API_URL}/api/auth/profile`,
+            {
+              name,
+              phone,
+              email
+            },
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`
+              }
+            }
+          );
+
+
+        const updatedUser =
+          response.data?.user;
+
+
+        if (!updatedUser) {
+
+          throw new Error(
+            "Updated profile was not returned."
+          );
+
+        }
+
+
+        // =================================================
+        // NORMALISE USER
+        // =================================================
+
+        const normalizedUser = {
+
+          ...updatedUser,
+
+          profilePicture:
+            updatedUser.profile_picture ||
+            updatedUser.profilePicture ||
+            null
+
+        };
+
+
+        setUser(
+          normalizedUser
+        );
+
+
+        // =================================================
+        // UPDATE LOCAL STORAGE
+        // =================================================
+
+        localStorage.setItem(
+          "currentUser",
+          JSON.stringify(
+            normalizedUser
+          )
+        );
+
+
+        setEditing(false);
+
+
+        setMessage(
+          "Profile updated successfully."
+        );
+
+      } catch (err) {
+
+        console.error(
+          "Profile update error:",
+          err
+        );
+
+
+        // =================================================
+        // AUTH ERROR
+        // =================================================
+
+        if (
+          err.response?.status === 401
+        ) {
+
+          localStorage.removeItem(
+            "loggedIn"
+          );
+
+          localStorage.removeItem(
+            "currentUser"
+          );
+
+          localStorage.removeItem(
+            "authToken"
+          );
+
+
+          navigate(
+            "/login"
+          );
+
+          return;
+
+        }
+
+
+        setError(
+          err.response?.data?.message ||
+          err.message ||
+          "Unable to update your profile."
+        );
+
+      } finally {
+
+        setSaving(false);
+
+      }
+
+    };
+
+
+  // =======================================================
+  // SEND REPORT
+  // =======================================================
+
+  const handleSendReport =
+    async () => {
+
+      if (sendingReport) {
+
+        return;
+
+      }
+
+
+      // =================================================
+      // VALIDATE REPORT
+      // =================================================
+
+      const trimmedReport =
+        reportMessage.trim();
+
+
+      if (!trimmedReport) {
+
+        setReportError(
+          "Please write a message before sending your report."
+        );
+
+        setReportStatus("");
+
+        return;
+
+      }
+
+
+      // =================================================
+      // GET AUTH TOKEN
+      // =================================================
 
       const token =
         localStorage.getItem(
@@ -520,118 +1008,11 @@ function Profile() {
           "currentUser"
         );
 
-        navigate(
-          "/login"
-        );
-
-        return;
-
-      }
-
-
-      // =========================================
-      // UPDATE PROFILE
-      // =========================================
-
-      const response =
-        await axios.put(
-          `${API_URL}/api/auth/profile`,
-          {
-            name:
-              user.name,
-
-            phone:
-              user.phone,
-
-            email:
-              user.email
-          },
-          {
-            headers: {
-              Authorization:
-                `Bearer ${token}`
-            }
-          }
-        );
-
-
-      const updatedUser =
-        response.data?.user;
-
-
-      if (!updatedUser) {
-
-        throw new Error(
-          "Updated profile was not returned."
-        );
-
-      }
-
-
-      // =========================================
-      // NORMALISE USER
-      // =========================================
-
-      const normalizedUser = {
-
-        ...updatedUser,
-
-        profilePicture:
-          updatedUser.profile_picture ||
-          updatedUser.profilePicture ||
-          null
-
-      };
-
-
-      setUser(
-        normalizedUser
-      );
-
-
-      // =========================================
-      // UPDATE LOCAL STORAGE
-      // =========================================
-
-      localStorage.setItem(
-        "currentUser",
-        JSON.stringify(
-          normalizedUser
-        )
-      );
-
-
-      setEditing(false);
-
-
-      setMessage(
-        "Profile updated successfully."
-      );
-
-    } catch (err) {
-
-      console.error(
-        "Profile update error:",
-        err
-      );
-
-
-      if (
-        err.response?.status === 401
-      ) {
-
-        localStorage.removeItem(
-          "loggedIn"
-        );
-
-        localStorage.removeItem(
-          "currentUser"
-        );
-
         localStorage.removeItem(
           "authToken"
         );
 
+
         navigate(
           "/login"
         );
@@ -641,197 +1022,120 @@ function Profile() {
       }
 
 
-      setError(
-        err.response?.data?.message ||
-        err.message ||
-        "Unable to update your profile."
-      );
-
-    } finally {
-
-      setSaving(false);
-
-    }
-
-  };
-
-
-  // =========================================
-  // SEND REPORT
-  // =========================================
-
-  const handleSendReport = async () => {
-
-    if (sendingReport) {
-
-      return;
-
-    }
-
-
-    // =========================================
-    // VALIDATE REPORT
-    // =========================================
-
-    const trimmedReport =
-      reportMessage.trim();
-
-
-    if (!trimmedReport) {
-
-      setReportError(
-        "Please write a message before sending your report."
-      );
-
-      setReportStatus("");
-
-      return;
-
-    }
-
-
-    // =========================================
-    // GET AUTH TOKEN
-    // =========================================
-
-    const token =
-      localStorage.getItem(
-        "authToken"
-      );
-
-
-    if (!token) {
-
-      localStorage.removeItem(
-        "loggedIn"
-      );
-
-      localStorage.removeItem(
-        "currentUser"
-      );
-
-      localStorage.removeItem(
-        "authToken"
-      );
-
-      navigate(
-        "/login"
-      );
-
-      return;
-
-    }
-
-
-    setSendingReport(true);
-
-    setReportError("");
-
-    setReportStatus("");
-
-
-    try {
-
-      // =========================================
-      // SEND REPORT TO BUSGO SERVER
-      // =========================================
-
-      const response =
-        await axios.post(
-          `${API_URL}/api/reports`,
-          {
-            subject:
-              "User Report",
-
-            message:
-              trimmedReport
-          },
-          {
-            headers: {
-              Authorization:
-                `Bearer ${token}`
-            }
-          }
-        );
-
-
-      console.log(
-        "REPORT SUBMITTED:",
-        response.data
-      );
-
-
-      // =========================================
-      // SUCCESS
-      // =========================================
-
-      setReportMessage("");
-
-
-      setReportStatus(
-        "Report delivered successfully. The BusGo admin will get back to you as soon as possible."
-      );
-
+      setSendingReport(true);
 
       setReportError("");
 
-    } catch (err) {
-
-      console.error(
-        "REPORT SUBMISSION ERROR:",
-        err
-      );
+      setReportStatus("");
 
 
-      // =========================================
-      // AUTH ERROR
-      // =========================================
+      try {
 
-      if (
-        err.response?.status === 401
-      ) {
+        // =================================================
+        // SEND REPORT TO BUSGO SERVER
+        // =================================================
 
-        localStorage.removeItem(
-          "loggedIn"
+        const response =
+          await axios.post(
+            `${API_URL}/api/reports`,
+            {
+              subject:
+                "User Report",
+
+              message:
+                trimmedReport
+            },
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`
+              }
+            }
+          );
+
+
+        console.log(
+          "REPORT SUBMITTED:",
+          response.data
         );
 
-        localStorage.removeItem(
-          "currentUser"
+
+        // =================================================
+        // SUCCESS
+        // =================================================
+
+        setReportMessage("");
+
+
+        setReportStatus(
+          "Report delivered successfully. The BusGo admin will get back to you as soon as possible."
         );
 
-        localStorage.removeItem(
-          "authToken"
+
+        setReportError("");
+
+      } catch (err) {
+
+        console.error(
+          "REPORT SUBMISSION ERROR:",
+          err
         );
 
-        navigate(
-          "/login"
+
+        // =================================================
+        // AUTH ERROR
+        // =================================================
+
+        if (
+          err.response?.status === 401
+        ) {
+
+          localStorage.removeItem(
+            "loggedIn"
+          );
+
+          localStorage.removeItem(
+            "currentUser"
+          );
+
+          localStorage.removeItem(
+            "authToken"
+          );
+
+
+          navigate(
+            "/login"
+          );
+
+          return;
+
+        }
+
+
+        // =================================================
+        // SERVER ERROR
+        // =================================================
+
+        setReportError(
+          err.response?.data?.message ||
+          "Unable to deliver your report. Please try again."
         );
 
-        return;
+
+        setReportStatus("");
+
+      } finally {
+
+        setSendingReport(false);
 
       }
 
-
-      // =========================================
-      // SERVER ERROR
-      // =========================================
-
-      setReportError(
-        err.response?.data?.message ||
-        "Unable to deliver your report. Please try again."
-      );
+    };
 
 
-      setReportStatus("");
-
-    } finally {
-
-      setSendingReport(false);
-
-    }
-
-  };
-
+  // =======================================================
+  // RENDER
+  // =======================================================
 
   return (
 
@@ -840,9 +1144,9 @@ function Profile() {
       <div className="profile-container">
 
 
-        {/* =====================================
+        {/* =================================================
             HEADER
-        ===================================== */}
+        ================================================= */}
 
         <div className="profile-header">
 
@@ -872,7 +1176,9 @@ function Profile() {
           </div>
 
 
-          {/* DESKTOP ONLY VIA CSS */}
+          {/* ===============================================
+              DESKTOP ONLY VIA CSS
+          =============================================== */}
 
           <button
             className="profile-back-btn"
@@ -889,9 +1195,9 @@ function Profile() {
         </div>
 
 
-        {/* =====================================
+        {/* =================================================
             ERROR MESSAGE
-        ===================================== */}
+        ================================================= */}
 
         {error && (
 
@@ -904,9 +1210,9 @@ function Profile() {
         )}
 
 
-        {/* =====================================
+        {/* =================================================
             SUCCESS MESSAGE
-        ===================================== */}
+        ================================================= */}
 
         {message && (
 
@@ -919,31 +1225,29 @@ function Profile() {
         )}
 
 
-        {/* =====================================
-            PROFILE CARD
-        ===================================== */}
+        {/* =================================================
+            PERSONAL INFORMATION
+        ================================================= */}
 
         <div className="profile-card">
 
           <div className="profile-card-title">
 
             <span>
-
               ACCOUNT
-
             </span>
 
 
             <h2>
-
               Personal Information
-
             </h2>
 
           </div>
 
 
-          {/* USER PREVIEW */}
+          {/* ===============================================
+              USER PREVIEW
+          =============================================== */}
 
           <div className="profile-user-preview">
 
@@ -989,18 +1293,21 @@ function Profile() {
           </div>
 
 
-          {/* PROFILE FIELDS */}
+          {/* ===============================================
+              PROFILE FIELDS
+          =============================================== */}
 
           <div className="profile-form-grid">
 
-            {/* FULL NAME */}
+
+            {/* =============================================
+                FULL NAME
+            ============================================= */}
 
             <div className="profile-field">
 
               <label>
-
                 Full Name
-
               </label>
 
 
@@ -1022,14 +1329,14 @@ function Profile() {
             </div>
 
 
-            {/* PHONE */}
+            {/* =============================================
+                PHONE
+            ============================================= */}
 
             <div className="profile-field">
 
               <label>
-
                 Phone Number
-
               </label>
 
 
@@ -1051,14 +1358,14 @@ function Profile() {
             </div>
 
 
-            {/* EMAIL */}
+            {/* =============================================
+                EMAIL
+            ============================================= */}
 
             <div className="profile-field profile-field-full">
 
               <label>
-
                 Email Address
-
               </label>
 
 
@@ -1082,7 +1389,9 @@ function Profile() {
           </div>
 
 
-          {/* EDIT BUTTON */}
+          {/* ===============================================
+              EDIT BUTTON
+          =============================================== */}
 
           {!editing && (
 
@@ -1101,7 +1410,9 @@ function Profile() {
           )}
 
 
-          {/* EDIT ACTIONS */}
+          {/* ===============================================
+              EDIT ACTIONS
+          =============================================== */}
 
           {editing && (
 
@@ -1143,32 +1454,29 @@ function Profile() {
         </div>
 
 
-        {/* =====================================
-            APPEARANCE
-        ===================================== */}
+        {/* =================================================
+            SETTINGS / APPEARANCE
+        ================================================= */}
 
-        <div className="profile-card">
+        <div
+          id="busgo-settings-section"
+          className="profile-card"
+        >
 
           <div className="profile-card-title">
 
             <span>
-
-              APPEARANCE
-
+              SETTINGS
             </span>
 
 
             <h2>
-
               Light & Dark Mode
-
             </h2>
 
 
             <p>
-
               Choose how BusGo looks on your device.
-
             </p>
 
           </div>
@@ -1176,31 +1484,42 @@ function Profile() {
 
           <div className="theme-options">
 
+
+            {/* =============================================
+                LIGHT MODE
+            ============================================= */}
+
             <button
-              className="theme-option active"
+              className={`theme-option ${
+                theme === "light"
+                  ? "active"
+                  : ""
+              }`}
               type="button"
+              onClick={() =>
+                handleThemeChange(
+                  "light"
+                )
+              }
+              aria-pressed={
+                theme === "light"
+              }
             >
 
               <span className="theme-icon">
-
                 ☀️
-
               </span>
 
 
               <div>
 
                 <strong>
-
                   Light Mode
-
                 </strong>
 
 
                 <small>
-
                   Bright BusGo appearance
-
                 </small>
 
               </div>
@@ -1208,31 +1527,41 @@ function Profile() {
             </button>
 
 
+            {/* =============================================
+                DARK MODE
+            ============================================= */}
+
             <button
-              className="theme-option"
+              className={`theme-option ${
+                theme === "dark"
+                  ? "active"
+                  : ""
+              }`}
               type="button"
+              onClick={() =>
+                handleThemeChange(
+                  "dark"
+                )
+              }
+              aria-pressed={
+                theme === "dark"
+              }
             >
 
               <span className="theme-icon">
-
                 🌙
-
               </span>
 
 
               <div>
 
                 <strong>
-
                   Dark Mode
-
                 </strong>
 
 
                 <small>
-
                   Easier on the eyes at night
-
                 </small>
 
               </div>
@@ -1244,9 +1573,9 @@ function Profile() {
         </div>
 
 
-        {/* =====================================
-            REPORT
-        ===================================== */}
+        {/* =================================================
+            REPORT TO ADMIN
+        ================================================= */}
 
         <div
           id="busgo-report-section"
@@ -1256,32 +1585,26 @@ function Profile() {
           <div className="profile-card-title">
 
             <span>
-
               SUPPORT
-
             </span>
 
 
             <h2>
-
               Report to Admin
-
             </h2>
 
 
             <p>
-
               Have a problem or something you want
               the BusGo team to know about?
-
             </p>
 
           </div>
 
 
-          {/* =====================================
+          {/* ===============================================
               REPORT SUCCESS
-          ===================================== */}
+          =============================================== */}
 
           {reportStatus && (
 
@@ -1294,9 +1617,9 @@ function Profile() {
           )}
 
 
-          {/* =====================================
+          {/* ===============================================
               REPORT ERROR
-          ===================================== */}
+          =============================================== */}
 
           {reportError && (
 
@@ -1309,26 +1632,30 @@ function Profile() {
           )}
 
 
+          {/* ===============================================
+              REPORT MESSAGE
+          =============================================== */}
+
           <textarea
             className="report-textarea"
-            value={reportMessage}
+            value={
+              reportMessage
+            }
             onChange={(e) => {
 
               setReportMessage(
                 e.target.value
               );
 
-              if (
-                reportError
-              ) {
+
+              if (reportError) {
 
                 setReportError("");
 
               }
 
-              if (
-                reportStatus
-              ) {
+
+              if (reportStatus) {
 
                 setReportStatus("");
 
@@ -1337,9 +1664,15 @@ function Profile() {
             }}
             placeholder="Write your message to the BusGo administrator..."
             rows="6"
-            disabled={sendingReport}
+            disabled={
+              sendingReport
+            }
           />
 
+
+          {/* ===============================================
+              SEND REPORT
+          =============================================== */}
 
           <button
             className="report-btn"
@@ -1372,25 +1705,21 @@ function Profile() {
         </div>
 
 
-        {/* =====================================
+        {/* =================================================
             APP INFORMATION
-        ===================================== */}
+        ================================================= */}
 
         <div className="profile-card">
 
           <div className="profile-card-title">
 
             <span>
-
               APPLICATION
-
             </span>
 
 
             <h2>
-
               App Information
-
             </h2>
 
           </div>
@@ -1401,16 +1730,12 @@ function Profile() {
             <div>
 
               <span>
-
                 Current Version
-
               </span>
 
 
               <strong>
-
-                BusGo v1.0.0
-
+                BusGo v{APP_VERSION}
               </strong>
 
             </div>
@@ -1419,6 +1744,13 @@ function Profile() {
             <button
               className="update-btn"
               type="button"
+              onClick={() => {
+
+                setMessage(
+                  `You are using the latest displayed BusGo version, v${APP_VERSION}.`
+                );
+
+              }}
             >
 
               Check for Updates
@@ -1430,33 +1762,27 @@ function Profile() {
         </div>
 
 
-        {/* =====================================
+        {/* =================================================
             LOGOUT
-        ===================================== */}
+        ================================================= */}
 
         <div className="profile-logout-card">
 
           <div>
 
             <span>
-
               ACCOUNT
-
             </span>
 
 
             <h2>
-
               Sign out of BusGo
-
             </h2>
 
 
             <p>
-
               You can sign back in anytime using
               your BusGo account.
-
             </p>
 
           </div>
@@ -1484,5 +1810,6 @@ function Profile() {
   );
 
 }
+
 
 export default Profile;

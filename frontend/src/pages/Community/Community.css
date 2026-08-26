@@ -1,0 +1,1377 @@
+/* =========================================================
+   COMMUNITY PAGE
+   ========================================================= */
+
+.community-page,
+.community-page * {
+  box-sizing: border-box;
+}
+
+
+.community-page {
+  width: 100%;
+  min-height: 100dvh;
+
+  display: flex;
+  flex-direction: column;
+
+  background: #f7faf8;
+
+  color: #17211b;
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.community-header {
+  width: 100%;
+  height: 70px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 8px 18px;
+
+  background: #ffffff;
+
+  border-bottom: 1px solid #e2ebe5;
+
+  box-shadow:
+    0 2px 12px
+    rgba(0, 0, 0, 0.05);
+
+  z-index: 5;
+}
+
+
+/* =========================================================
+   BACK BUTTON
+   ========================================================= */
+
+.community-back-button {
+  width: 42px;
+  height: 42px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 12px;
+
+  background: #f1f7f3;
+
+  color: #046c34;
+
+  font-size: 21px;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+
+.community-back-button:hover {
+  background: #e4f1e9;
+}
+
+
+.community-back-button:active {
+  transform: scale(0.94);
+}
+
+
+/* =========================================================
+   HEADER INFO
+   ========================================================= */
+
+.community-header-info {
+  min-width: 0;
+  flex: 1;
+}
+
+
+.community-title-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+
+.community-title-row h1 {
+  margin: 0;
+
+  font-size: 19px;
+  line-height: 1.2;
+
+  font-weight: 800;
+
+  color: #17211b;
+}
+
+
+.community-status-dot {
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+
+  flex-shrink: 0;
+}
+
+
+.community-status-dot.online {
+  background: #16a34a;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(22, 163, 74, 0.12);
+}
+
+
+.community-status-dot.offline {
+  background: #dc2626;
+}
+
+
+.community-subtitle {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  margin-top: 3px;
+
+  color: #718078;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+
+.community-subtitle svg {
+  font-size: 13px;
+}
+
+
+/* =========================================================
+   CONNECTION ICON
+   ========================================================= */
+
+.community-connection {
+  width: 38px;
+  height: 38px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  font-size: 18px;
+}
+
+
+.community-connection.connected {
+  background: #eaf7ef;
+  color: #07803f;
+}
+
+
+.community-connection.disconnected {
+  background: #fff1f1;
+  color: #d62828;
+}
+
+
+/* =========================================================
+   OFFLINE BANNER
+   ========================================================= */
+
+.community-offline-banner {
+  width: 100%;
+
+  min-height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding: 7px 12px;
+
+  background: #fff4e5;
+
+  border-bottom: 1px solid #f1d5a8;
+
+  color: #9a5a00;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  flex-shrink: 0;
+}
+
+
+.community-offline-banner svg {
+  font-size: 15px;
+}
+
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+.community-error {
+  width: calc(100% - 24px);
+
+  margin: 10px auto 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 10px 12px;
+
+  border-radius: 10px;
+
+  background: #fff1f1;
+
+  border: 1px solid #efcaca;
+
+  color: #b42318;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+
+.community-error span {
+  flex: 1;
+}
+
+
+.community-error button {
+  width: 24px;
+  height: 24px;
+
+  border: none;
+  background: transparent;
+
+  color: #b42318;
+
+  font-size: 20px;
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   MESSAGE AREA
+   ========================================================= */
+
+.community-messages {
+  flex: 1;
+
+  min-height: 0;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  padding: 16px 14px 18px;
+
+  overscroll-behavior-y: contain;
+
+  scrollbar-width: thin;
+  scrollbar-color: #c8d8ce transparent;
+}
+
+
+.community-messages::-webkit-scrollbar {
+  width: 5px;
+}
+
+
+.community-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+
+.community-messages::-webkit-scrollbar-thumb {
+  background: #c8d8ce;
+  border-radius: 20px;
+}
+
+
+/* =========================================================
+   LOADING
+   ========================================================= */
+
+.community-loading {
+  min-height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 12px;
+
+  color: #728078;
+
+  font-size: 13px;
+}
+
+
+.community-loading p {
+  margin: 0;
+}
+
+
+.community-spinner,
+.community-send-spinner {
+  border-radius: 50%;
+
+  border-style: solid;
+
+  animation:
+    community-spin
+    0.8s linear infinite;
+}
+
+
+.community-spinner {
+  width: 34px;
+  height: 34px;
+
+  border-width: 3px;
+
+  border-color:
+    #cfe0d5
+    #046c34
+    #cfe0d5
+    #cfe0d5;
+}
+
+
+@keyframes community-spin {
+
+  to {
+    transform: rotate(360deg);
+  }
+
+}
+
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.community-empty {
+  min-height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 35px 25px;
+
+  text-align: center;
+}
+
+
+.community-empty-icon {
+  width: 76px;
+  height: 76px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 18px;
+
+  border-radius: 24px;
+
+  background: #e9f5ee;
+
+  font-size: 35px;
+}
+
+
+.community-empty h2 {
+  margin: 0 0 8px;
+
+  font-size: 20px;
+
+  color: #17211b;
+}
+
+
+.community-empty p {
+  max-width: 380px;
+
+  margin: 0;
+
+  color: #718078;
+
+  font-size: 13px;
+
+  line-height: 1.6;
+}
+
+
+/* =========================================================
+   MESSAGE LIST
+   ========================================================= */
+
+.community-message-list {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+
+/* =========================================================
+   DATE DIVIDER
+   ========================================================= */
+
+.community-date-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 10px 0 8px;
+}
+
+
+.community-date-divider span {
+  padding: 5px 11px;
+
+  border-radius: 20px;
+
+  background: #e8efeb;
+
+  color: #69776f;
+
+  font-size: 10px;
+
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   MESSAGE ROW
+   ========================================================= */
+
+.community-message-row {
+  width: 100%;
+
+  display: flex;
+  align-items: flex-end;
+
+  gap: 7px;
+
+  padding: 1px 0;
+}
+
+
+.community-message-row.own {
+  justify-content: flex-end;
+}
+
+
+/* =========================================================
+   AVATAR
+   ========================================================= */
+
+.community-avatar {
+  width: 31px;
+  height: 31px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #dcece2;
+
+  color: #046c34;
+
+  font-size: 12px;
+
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   MESSAGE BUBBLE
+   ========================================================= */
+
+.community-message-bubble {
+  max-width: min(78%, 580px);
+
+  padding: 9px 11px 6px;
+
+  border-radius: 15px 15px 15px 4px;
+
+  background: #ffffff;
+
+  border: 1px solid #e0e9e3;
+
+  box-shadow:
+    0 2px 7px
+    rgba(0, 0, 0, 0.04);
+}
+
+
+.community-message-bubble.own {
+  border-radius: 15px 15px 4px 15px;
+
+  background: #046c34;
+
+  border-color: #046c34;
+
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   SENDER
+   ========================================================= */
+
+.community-sender-name {
+  margin-bottom: 3px;
+
+  color: #046c34;
+
+  font-size: 11px;
+
+  font-weight: 800;
+}
+
+
+.community-message-bubble.own
+.community-sender-name {
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   MESSAGE TEXT
+   ========================================================= */
+
+.community-message-text {
+  white-space: pre-wrap;
+
+  overflow-wrap: anywhere;
+
+  font-size: 13px;
+
+  line-height: 1.45;
+
+  color: #26342c;
+}
+
+
+.community-message-bubble.own
+.community-message-text {
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   MESSAGE TIME
+   ========================================================= */
+
+.community-message-time {
+  margin-top: 3px;
+
+  text-align: right;
+
+  font-size: 9px;
+
+  font-weight: 600;
+
+  color: #89958e;
+}
+
+
+.community-message-bubble.own
+.community-message-time {
+  color: rgba(
+    255,
+    255,
+    255,
+    0.72
+  );
+}
+
+
+/* =========================================================
+   COMPOSER
+   ========================================================= */
+
+.community-composer-wrapper {
+  width: 100%;
+
+  flex-shrink: 0;
+
+  padding:
+    8px 12px
+    calc(8px + env(safe-area-inset-bottom));
+
+  background: #ffffff;
+
+  border-top: 1px solid #e2ebe5;
+
+  box-shadow:
+    0 -4px 15px
+    rgba(0, 0, 0, 0.05);
+
+  z-index: 5;
+}
+
+
+.community-composer {
+  width: 100%;
+
+  min-height: 48px;
+
+  display: flex;
+  align-items: flex-end;
+
+  gap: 8px;
+
+  padding: 5px 5px 5px 13px;
+
+  border:
+    1px solid #d8e4dc;
+
+  border-radius: 16px;
+
+  background: #f8fbf9;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+.community-composer:focus-within {
+  border-color: #72b48d;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(4, 108, 52, 0.08);
+}
+
+
+.community-composer textarea {
+  flex: 1;
+
+  min-width: 0;
+
+  min-height: 36px;
+  max-height: 130px;
+
+  resize: none;
+
+  overflow-y: auto;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+
+  color: #1d2b23;
+
+  font-family: inherit;
+
+  font-size: 13px;
+
+  line-height: 1.45;
+
+  padding:
+    8px 0;
+}
+
+
+.community-composer textarea::placeholder {
+  color: #91a098;
+}
+
+
+.community-composer textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+
+/* =========================================================
+   SEND BUTTON
+   ========================================================= */
+
+.community-send-button {
+  width: 38px;
+  height: 38px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+
+  border-radius: 12px;
+
+  background: #046c34;
+
+  color: #ffffff;
+
+  font-size: 17px;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    opacity 0.2s ease;
+}
+
+
+.community-send-button:hover:not(:disabled) {
+  background: #03562b;
+
+  transform: translateY(-1px);
+}
+
+
+.community-send-button:active:not(:disabled) {
+  transform: scale(0.93);
+}
+
+
+.community-send-button:disabled {
+  opacity: 0.45;
+
+  cursor: not-allowed;
+}
+
+
+.community-send-spinner {
+  width: 17px;
+  height: 17px;
+
+  border-width: 2px;
+
+  border-color:
+    rgba(255,255,255,0.35)
+    #ffffff
+    rgba(255,255,255,0.35)
+    rgba(255,255,255,0.35);
+}
+
+
+/* =========================================================
+   COMPOSER HINT
+   ========================================================= */
+
+.community-composer-hint {
+  display: flex;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  padding:
+    5px 3px 0;
+
+  color: #8a968f;
+
+  font-size: 9px;
+
+  font-weight: 600;
+}
+
+
+.community-composer-hint span:last-child {
+  flex-shrink: 0;
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (min-width: 601px) {
+
+  .community-page {
+    min-height: calc(100dvh - 76px);
+  }
+
+
+  .community-header {
+    height: 72px;
+
+    padding:
+      8px 24px;
+  }
+
+
+  .community-messages {
+    padding:
+      20px
+      max(20px, 5vw);
+  }
+
+
+  .community-composer-wrapper {
+    padding:
+      10px
+      max(20px, 5vw)
+      12px;
+  }
+
+
+  .community-composer {
+    max-width: 900px;
+
+    margin: 0 auto;
+  }
+
+
+  .community-composer-hint {
+    max-width: 900px;
+
+    margin: 0 auto;
+  }
+
+
+  .community-message-list {
+    max-width: 900px;
+
+    margin: 0 auto;
+  }
+
+
+  .community-error {
+    max-width: 900px;
+
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+}
+
+
+/* =========================================================
+   DESKTOP
+   ========================================================= */
+
+@media (min-width: 1001px) {
+
+  .community-page {
+    min-height: calc(100dvh - 76px);
+
+    max-width: 1100px;
+
+    margin: 0 auto;
+  }
+
+
+  .community-header {
+    border-radius: 0;
+  }
+
+
+  .community-message-bubble {
+    max-width: 65%;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+  .community-header {
+    height: 62px;
+
+    padding:
+      7px 11px;
+  }
+
+
+  .community-back-button {
+    width: 38px;
+    height: 38px;
+
+    border-radius: 10px;
+
+    font-size: 19px;
+  }
+
+
+  .community-title-row h1 {
+    font-size: 17px;
+  }
+
+
+  .community-subtitle {
+    font-size: 10px;
+  }
+
+
+  .community-connection {
+    width: 34px;
+    height: 34px;
+
+    border-radius: 10px;
+
+    font-size: 16px;
+  }
+
+
+  .community-messages {
+    padding:
+      12px 9px 14px;
+  }
+
+
+  .community-message-bubble {
+    max-width: 82%;
+
+    padding:
+      8px 10px 5px;
+  }
+
+
+  .community-message-text {
+    font-size: 12.5px;
+  }
+
+
+  .community-avatar {
+    width: 28px;
+    height: 28px;
+
+    font-size: 11px;
+  }
+
+
+  .community-composer-wrapper {
+    padding:
+      7px 8px
+      calc(
+        7px +
+        env(safe-area-inset-bottom)
+      );
+  }
+
+
+  .community-composer {
+    min-height: 46px;
+
+    border-radius: 14px;
+  }
+
+
+  .community-send-button {
+    width: 36px;
+    height: 36px;
+
+    border-radius: 11px;
+  }
+
+
+  .community-composer-hint {
+    font-size: 8px;
+  }
+
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 360px) {
+
+  .community-header {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+
+  .community-messages {
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+
+
+  .community-message-bubble {
+    max-width: 85%;
+  }
+
+
+  .community-message-text {
+    font-size: 12px;
+  }
+
+
+  .community-composer-hint
+  span:first-child {
+    max-width: 220px;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+  }
+
+}
+
+
+/* =========================================================
+   DARK MODE
+   ========================================================= */
+
+html[data-theme="dark"]
+.community-page,
+
+body.dark-mode
+.community-page {
+
+  background: #0e1712;
+
+  color: #edf5ef;
+}
+
+
+html[data-theme="dark"]
+.community-header,
+
+body.dark-mode
+.community-header {
+
+  background: #121d17;
+
+  border-bottom-color: #29382f;
+
+  box-shadow:
+    0 2px 12px
+    rgba(0, 0, 0, 0.3);
+}
+
+
+html[data-theme="dark"]
+.community-title-row h1,
+
+body.dark-mode
+.community-title-row h1 {
+
+  color: #edf5ef;
+}
+
+
+html[data-theme="dark"]
+.community-subtitle,
+
+body.dark-mode
+.community-subtitle {
+
+  color: #9aa99f;
+}
+
+
+html[data-theme="dark"]
+.community-back-button,
+
+body.dark-mode
+.community-back-button {
+
+  background: #1b2b22;
+
+  color: #5ed18e;
+}
+
+
+html[data-theme="dark"]
+.community-back-button:hover,
+
+body.dark-mode
+.community-back-button:hover {
+
+  background: #243a2d;
+}
+
+
+html[data-theme="dark"]
+.community-connection.connected,
+
+body.dark-mode
+.community-connection.connected {
+
+  background: #1c3827;
+
+  color: #5ed18e;
+}
+
+
+html[data-theme="dark"]
+.community-connection.disconnected,
+
+body.dark-mode
+.community-connection.disconnected {
+
+  background: #351d1d;
+
+  color: #ff9b9b;
+}
+
+
+html[data-theme="dark"]
+.community-messages::-webkit-scrollbar-thumb,
+
+body.dark-mode
+.community-messages::-webkit-scrollbar-thumb {
+
+  background: #405247;
+}
+
+
+html[data-theme="dark"]
+.community-date-divider span,
+
+body.dark-mode
+.community-date-divider span {
+
+  background: #1c2b23;
+
+  color: #9baa9f;
+}
+
+
+html[data-theme="dark"]
+.community-empty-icon,
+
+body.dark-mode
+.community-empty-icon {
+
+  background: #1b3325;
+}
+
+
+html[data-theme="dark"]
+.community-empty h2,
+
+body.dark-mode
+.community-empty h2 {
+
+  color: #edf5ef;
+}
+
+
+html[data-theme="dark"]
+.community-empty p,
+
+body.dark-mode
+.community-empty p {
+
+  color: #9baa9f;
+}
+
+
+html[data-theme="dark"]
+.community-avatar,
+
+body.dark-mode
+.community-avatar {
+
+  background: #20392a;
+
+  color: #61d491;
+}
+
+
+html[data-theme="dark"]
+.community-message-bubble,
+
+body.dark-mode
+.community-message-bubble {
+
+  background: #18241d;
+
+  border-color: #2e4035;
+
+  box-shadow:
+    0 2px 7px
+    rgba(0, 0, 0, 0.2);
+}
+
+
+html[data-theme="dark"]
+.community-message-text,
+
+body.dark-mode
+.community-message-text {
+
+  color: #e4eee7;
+}
+
+
+html[data-theme="dark"]
+.community-sender-name,
+
+body.dark-mode
+.community-sender-name {
+
+  color: #5ed18e;
+}
+
+
+html[data-theme="dark"]
+.community-message-time,
+
+body.dark-mode
+.community-message-time {
+
+  color: #899990;
+}
+
+
+html[data-theme="dark"]
+.community-composer-wrapper,
+
+body.dark-mode
+.community-composer-wrapper {
+
+  background: #121d17;
+
+  border-top-color: #29382f;
+
+  box-shadow:
+    0 -4px 15px
+    rgba(0, 0, 0, 0.3);
+}
+
+
+html[data-theme="dark"]
+.community-composer,
+
+body.dark-mode
+.community-composer {
+
+  background: #18251e;
+
+  border-color: #34483b;
+}
+
+
+html[data-theme="dark"]
+.community-composer textarea,
+
+body.dark-mode
+.community-composer textarea {
+
+  color: #edf5ef;
+}
+
+
+html[data-theme="dark"]
+.community-composer textarea::placeholder,
+
+body.dark-mode
+.community-composer textarea::placeholder {
+
+  color: #78887e;
+}
+
+
+html[data-theme="dark"]
+.community-composer-hint,
+
+body.dark-mode
+.community-composer-hint {
+
+  color: #748279;
+}
+
+
+html[data-theme="dark"]
+.community-error,
+
+body.dark-mode
+.community-error {
+
+  background: #321b1b;
+
+  border-color: #583333;
+
+  color: #ffaaaa;
+}
+
+
+html[data-theme="dark"]
+.community-offline-banner,
+
+body.dark-mode
+.community-offline-banner {
+
+  background: #302719;
+
+  border-bottom-color: #554528;
+
+  color: #e9bd72;
+}
+
+
+/* =========================================================
+   REDUCE MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .community-page *,
+  .community-page *::before,
+  .community-page *::after {
+
+    animation-duration: 0.01ms !important;
+
+    animation-iteration-count: 1 !important;
+
+    scroll-behavior: auto !important;
+
+    transition-duration: 0.01ms !important;
+  }
+
+}

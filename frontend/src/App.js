@@ -22,6 +22,7 @@ import VerifyOTP from "./pages/VerifyOTP/VerifyOTP";
 import Notifications from "./pages/Notifications/Notifications";
 import Profile from "./pages/Profile/Profile";
 import Report from "./pages/Report/Report";
+import Community from "./pages/Community/Community";
 
 import BackButton from "./components/BackButton/BackButton";
 import AdminRoute from "./components/AdminRoute/AdminRoute";
@@ -33,11 +34,41 @@ import {
 
 
 // =========================================
+// PAGE NOT FOUND
+// =========================================
+
+function PageNotFound() {
+  const { t } = useLanguage();
+
+  return (
+    <div
+      style={{
+        minHeight: "60vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "40px 20px",
+        textAlign: "center"
+      }}
+    >
+      <h1>
+        {t("pageNotFound")}
+      </h1>
+
+      <p>
+        The page you are looking for does not exist.
+      </p>
+    </div>
+  );
+}
+
+
+// =========================================
 // CLIENT ROUTE
 // =========================================
 
 function ClientRoute() {
-
   const currentUser = JSON.parse(
     localStorage.getItem("currentUser") || "null"
   );
@@ -63,7 +94,6 @@ function ClientRoute() {
 // =========================================
 
 function MobileBackButton() {
-
   const location = useLocation();
 
   const hiddenPages = [
@@ -111,12 +141,10 @@ function MobileBackButton() {
 // =========================================
 
 function AppContent() {
-
   const { language } = useLanguage();
 
   return (
     <BrowserRouter>
-
       <div
         key={language}
         className="app-root"
@@ -195,24 +223,27 @@ function AppContent() {
               />
 
               <Route
+                path="/community"
+                element={<Community />}
+              />
+
+              <Route
                 path="/profile"
                 element={<Profile />}
               />
-
-              {/* =================================
-                  REPORT
-              ================================= */}
 
               <Route
                 path="/report"
                 element={<Report />}
               />
 
+              {/* =================================
+                  CLIENT CATCH-ALL
+              ================================= */}
+
               <Route
                 path="*"
-                element={
-                  <PageNotFound />
-                }
+                element={<PageNotFound />}
               />
 
             </Route>
@@ -236,24 +267,7 @@ function AppContent() {
         </div>
 
       </div>
-
     </BrowserRouter>
-  );
-}
-
-
-// =========================================
-// PAGE NOT FOUND
-// =========================================
-
-function PageNotFound() {
-
-  const { t } = useLanguage();
-
-  return (
-    <h1>
-      {t("pageNotFound")}
-    </h1>
   );
 }
 
@@ -263,7 +277,6 @@ function PageNotFound() {
 // =========================================
 
 function App() {
-
   return (
     <LanguageProvider>
       <AppContent />

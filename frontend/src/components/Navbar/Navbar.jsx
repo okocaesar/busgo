@@ -17,28 +17,121 @@ import { API_URL } from "../../api";
 
 import "./Navbar.css";
 
+// =========================================================
+// BUSGO APP VERSION
+// =========================================================
+// Connected directly to package.json.
+//
+// When package.json version changes and the app is rebuilt,
+// the version displayed in the hamburger menu changes
+// automatically.
+// =========================================================
+
+import packageJson from "../../../package.json";
+
+const APP_VERSION =
+  packageJson.version || "0.1.0";
+
+// =========================================================
+// REMOTE UPDATE CHECK
+// =========================================================
+// Backend endpoint expected:
+//
+// GET /api/app/version
+//
+// Example response:
+//
+// {
+//   "version": "1.1.0"
+// }
+//
+// The remote version is compared with the currently
+// installed package.json version.
+// =========================================================
+
+const APP_UPDATE_URL =
+  `${API_URL}/api/app/version`;
+
+
+// =========================================================
+// VERSION COMPARISON
+// =========================================================
+
+const compareVersions = (
+  currentVersion,
+  latestVersion
+) => {
+
+  const current = String(
+    currentVersion || "0.0.0"
+  )
+    .replace(/^v/i, "")
+    .split(".")
+    .map(Number);
+
+  const latest = String(
+    latestVersion || "0.0.0"
+  )
+    .replace(/^v/i, "")
+    .split(".")
+    .map(Number);
+
+  const length = Math.max(
+    current.length,
+    latest.length
+  );
+
+  for (let i = 0; i < length; i++) {
+
+    const currentPart =
+      Number.isFinite(current[i])
+        ? current[i]
+        : 0;
+
+    const latestPart =
+      Number.isFinite(latest[i])
+        ? latest[i]
+        : 0;
+
+    if (latestPart > currentPart) {
+      return 1;
+    }
+
+    if (latestPart < currentPart) {
+      return -1;
+    }
+  }
+
+  return 0;
+};
+
+
+// =========================================================
+// NAVBAR
+// =========================================================
+
 function Navbar() {
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  // =========================================
+  // =======================================================
   // LOGIN STATE
-  // =========================================
+  // =======================================================
 
   const [loggedIn, setLoggedIn] = useState(
     localStorage.getItem("loggedIn") === "true"
   );
 
-  // =========================================
-  // MENU
-  // =========================================
+  // =======================================================
+  // MOBILE HAMBURGER MENU
+  // =======================================================
 
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // =========================================
+  // =======================================================
   // LANGUAGE
-  // =========================================
+  // =======================================================
 
   const [language, setLanguage] = useState(
     localStorage.getItem("appLanguage") || "en"
@@ -47,36 +140,72 @@ function Navbar() {
   const [showLanguageOptions, setShowLanguageOptions] =
     useState(false);
 
-  // =========================================
+  // =======================================================
+  // UPDATE STATE
+  // =======================================================
+
+  const [checkingUpdate, setCheckingUpdate] =
+    useState(false);
+
+  // =======================================================
   // TRANSLATIONS
-  // =========================================
+  // =======================================================
 
   const translations = {
 
     en: {
 
       dashboard: "Dashboard",
+
       routes: "Routes",
+
       offers: "Offers",
+
       about: "About Us",
+
       profile: "Profile",
 
+      myProfile: "Profile",
+
       notifications: "Notifications",
+
       notification: "Notification",
 
+      community: "Community",
+
       login: "Login",
+
       register: "Register",
+
       logout: "Logout",
 
       report: "Report",
 
       language: "Language",
+
       english: "English",
+
       french: "Français",
 
       appVersion: "App Version",
 
+      requestUpdate: "Request Update",
+
       mobileNavigation: "Mobile navigation",
+
+      checkingUpdate: "Checking for updates...",
+
+      updateAvailable:
+        "A new version of BusGo is available. Update now?",
+
+      updateStarted:
+        "Updating BusGo...",
+
+      updateError:
+        "Unable to check for updates. Please try again.",
+
+      upToDate:
+        "Your BusGo app is up to date.",
 
       unreadNotification:
         "unread notification",
@@ -89,29 +218,60 @@ function Navbar() {
     fr: {
 
       dashboard: "Tableau de bord",
+
       routes: "Itinéraires",
+
       offers: "Offres",
+
       about: "À propos",
+
       profile: "Profil",
 
+      myProfile: "Profil",
+
       notifications: "Notifications",
+
       notification: "Notification",
 
+      community: "Communauté",
+
       login: "Connexion",
+
       register: "Inscription",
+
       logout: "Déconnexion",
 
       report: "Signaler",
 
       language: "Langue",
+
       english: "Anglais",
+
       french: "Français",
 
       appVersion:
         "Version de l'application",
 
+      requestUpdate:
+        "Rechercher une mise à jour",
+
       mobileNavigation:
         "Navigation mobile",
+
+      checkingUpdate:
+        "Recherche de mises à jour...",
+
+      updateAvailable:
+        "Une nouvelle version de BusGo est disponible. Mettre à jour maintenant ?",
+
+      updateStarted:
+        "Mise à jour de BusGo...",
+
+      updateError:
+        "Impossible de vérifier les mises à jour. Veuillez réessayer.",
+
+      upToDate:
+        "Votre application BusGo est à jour.",
 
       unreadNotification:
         "notification non lue",
@@ -123,38 +283,36 @@ function Navbar() {
 
   };
 
-  // =========================================
-  // CURRENT TRANSLATION
-  // =========================================
-
   const t =
     translations[language] ||
     translations.en;
 
-  // =========================================
-  // NAVBAR VISIBILITY
-  // =========================================
+  // =======================================================
+  // DESKTOP NAVBAR SCROLL STATE
+  // =======================================================
 
   const [navbarHidden, setNavbarHidden] =
     useState(false);
 
-  // =========================================
+  // =======================================================
   // NOTIFICATIONS
-  // =========================================
+  // =======================================================
 
   const [notifications, setNotifications] =
     useState([]);
 
-  // =========================================
-  // CURRENT USER
-  // =========================================
+  // =======================================================
+  // GET CURRENT USER
+  // =======================================================
 
   const getCurrentUser = () => {
 
     try {
 
       return JSON.parse(
-        localStorage.getItem("currentUser") || "null"
+        localStorage.getItem(
+          "currentUser"
+        ) || "null"
       );
 
     } catch (error) {
@@ -165,30 +323,33 @@ function Navbar() {
       );
 
       return null;
-
     }
 
   };
 
-  // =========================================
+  // =======================================================
   // LOAD NOTIFICATIONS
-  // =========================================
+  // =======================================================
 
   const loadNotifications = useCallback(
     async () => {
 
       const isUserLoggedIn =
-        localStorage.getItem("loggedIn") === "true";
+        localStorage.getItem(
+          "loggedIn"
+        ) === "true";
 
       const currentUser =
         getCurrentUser();
 
       const token =
-        localStorage.getItem("authToken");
+        localStorage.getItem(
+          "authToken"
+        );
 
-      // =====================================
+      // -----------------------------------------------------
       // USER NOT LOGGED IN
-      // =====================================
+      // -----------------------------------------------------
 
       if (
         !isUserLoggedIn ||
@@ -201,7 +362,6 @@ function Navbar() {
         setLoggedIn(false);
 
         return;
-
       }
 
       setLoggedIn(true);
@@ -220,7 +380,7 @@ function Navbar() {
           );
 
         setNotifications(
-          response.data.notifications || []
+          response.data?.notifications || []
         );
 
       } catch (error) {
@@ -230,9 +390,9 @@ function Navbar() {
           error
         );
 
-        // =================================
+        // ---------------------------------------------------
         // SESSION EXPIRED
-        // =================================
+        // ---------------------------------------------------
 
         if (
           error.response?.status === 401
@@ -253,7 +413,6 @@ function Navbar() {
           setNotifications([]);
 
           setLoggedIn(false);
-
         }
 
       }
@@ -262,19 +421,21 @@ function Navbar() {
     []
   );
 
-  // =========================================
-  // INITIAL LOAD
-  // =========================================
+  // =======================================================
+  // INITIAL NOTIFICATION LOAD
+  // =======================================================
 
   useEffect(() => {
 
     loadNotifications();
 
-  }, [loadNotifications]);
+  }, [
+    loadNotifications
+  ]);
 
-  // =========================================
+  // =======================================================
   // REFRESH WHEN ROUTE CHANGES
-  // =========================================
+  // =======================================================
 
   useEffect(() => {
 
@@ -285,9 +446,9 @@ function Navbar() {
     loadNotifications
   ]);
 
-  // =========================================
-  // REFRESH EVERY 10 SECONDS
-  // =========================================
+  // =======================================================
+  // REFRESH NOTIFICATIONS EVERY 10 SECONDS
+  // =======================================================
 
   useEffect(() => {
 
@@ -313,9 +474,9 @@ function Navbar() {
     loadNotifications
   ]);
 
-  // =========================================
+  // =======================================================
   // REFRESH WHEN WINDOW GETS FOCUS
-  // =========================================
+  // =======================================================
 
   useEffect(() => {
 
@@ -339,20 +500,26 @@ function Navbar() {
 
     };
 
-  }, [loadNotifications]);
+  }, [
+    loadNotifications
+  ]);
 
-  // =========================================
-  // CHECK LOGIN STATE
-  // =========================================
+  // =======================================================
+  // LOGIN STATE LISTENER
+  // =======================================================
 
   useEffect(() => {
 
     const handleStorage = () => {
 
       const isLoggedIn =
-        localStorage.getItem("loggedIn") === "true";
+        localStorage.getItem(
+          "loggedIn"
+        ) === "true";
 
-      setLoggedIn(isLoggedIn);
+      setLoggedIn(
+        isLoggedIn
+      );
 
       if (!isLoggedIn) {
 
@@ -378,23 +545,23 @@ function Navbar() {
 
   }, []);
 
-  // =========================================
-  // LANGUAGE CHANGE LISTENER
-  // =========================================
+  // =======================================================
+  // LANGUAGE LISTENER
+  // =======================================================
 
   useEffect(() => {
 
     const savedLanguage =
-      localStorage.getItem("appLanguage") || "en";
+      localStorage.getItem(
+        "appLanguage"
+      ) || "en";
 
-    setLanguage(savedLanguage);
+    setLanguage(
+      savedLanguage
+    );
 
     document.documentElement.lang =
       savedLanguage;
-
-    // =======================================
-    // LISTEN FOR GLOBAL LANGUAGE CHANGES
-    // =======================================
 
     const handleLanguageChange =
       (event) => {
@@ -406,7 +573,9 @@ function Navbar() {
           ) ||
           "en";
 
-        setLanguage(newLanguage);
+        setLanguage(
+          newLanguage
+        );
 
         document.documentElement.lang =
           newLanguage;
@@ -429,14 +598,16 @@ function Navbar() {
 
   }, []);
 
-  // =========================================
+  // =======================================================
   // CHANGE LANGUAGE
-  // =========================================
+  // =======================================================
 
   const changeLanguage =
     (newLanguage) => {
 
-      setLanguage(newLanguage);
+      setLanguage(
+        newLanguage
+      );
 
       localStorage.setItem(
         "appLanguage",
@@ -446,18 +617,17 @@ function Navbar() {
       document.documentElement.lang =
         newLanguage;
 
-      setShowLanguageOptions(false);
-
-      // =====================================
-      // TELL ENTIRE APPLICATION
-      // =====================================
+      setShowLanguageOptions(
+        false
+      );
 
       window.dispatchEvent(
         new CustomEvent(
           "busgo-language-change",
           {
             detail: {
-              language: newLanguage
+              language:
+                newLanguage
             }
           }
         )
@@ -465,9 +635,9 @@ function Navbar() {
 
     };
 
-  // =========================================
-  // NAVBAR SCROLL DIRECTION
-  // =========================================
+  // =======================================================
+  // DESKTOP NAVBAR SCROLL
+  // =======================================================
 
   useEffect(() => {
 
@@ -488,45 +658,39 @@ function Navbar() {
           const currentScrollY =
             window.scrollY;
 
-          // ===============================
-          // TOP
-          // ===============================
-
           if (
             currentScrollY <= 10
           ) {
 
-            setNavbarHidden(false);
+            setNavbarHidden(
+              false
+            );
 
-          }
-
-          // ===============================
-          // SCROLL DOWN
-          // ===============================
-
-          else if (
+          } else if (
             currentScrollY >
             lastScrollY + 5
           ) {
 
-            setNavbarHidden(true);
+            setNavbarHidden(
+              true
+            );
 
-            setMenuOpen(false);
+            setMenuOpen(
+              false
+            );
 
-            setShowLanguageOptions(false);
+            setShowLanguageOptions(
+              false
+            );
 
-          }
-
-          // ===============================
-          // SCROLL UP
-          // ===============================
-
-          else if (
+          } else if (
             currentScrollY <
             lastScrollY - 5
           ) {
 
-            setNavbarHidden(false);
+            setNavbarHidden(
+              false
+            );
 
           }
 
@@ -561,9 +725,9 @@ function Navbar() {
 
   }, []);
 
-  // =========================================
-  // UNREAD COUNT
-  // =========================================
+  // =======================================================
+  // UNREAD NOTIFICATION COUNT
+  // =======================================================
 
   const unreadCount =
     notifications.filter(
@@ -573,9 +737,9 @@ function Navbar() {
         ) === 0
     ).length;
 
-  // =========================================
+  // =======================================================
   // LOGOUT
-  // =========================================
+  // =======================================================
 
   const logout = () => {
 
@@ -597,7 +761,9 @@ function Navbar() {
 
     setMenuOpen(false);
 
-    setShowLanguageOptions(false);
+    setShowLanguageOptions(
+      false
+    );
 
     setNavbarHidden(false);
 
@@ -605,70 +771,280 @@ function Navbar() {
 
   };
 
-  // =========================================
+  // =======================================================
   // CLOSE MENU
-  // =========================================
+  // =======================================================
 
   const closeMenu = () => {
 
     setMenuOpen(false);
 
-    setShowLanguageOptions(false);
+    setShowLanguageOptions(
+      false
+    );
 
   };
 
-  // =========================================
+  // =======================================================
   // OPEN NOTIFICATIONS
-  // =========================================
+  // =======================================================
 
   const openNotifications = () => {
 
     closeMenu();
 
-    navigate("/notifications");
+    navigate(
+      "/notifications"
+    );
 
   };
 
-  // =========================================
+  // =======================================================
+  // OPEN OFFERS
+  // =======================================================
+
+  const openOffers = () => {
+
+    closeMenu();
+
+    navigate(
+      "/offers"
+    );
+
+  };
+
+  // =======================================================
+  // OPEN ABOUT
+  // =======================================================
+
+  const openAbout = () => {
+
+    closeMenu();
+
+    navigate(
+      "/about"
+    );
+
+  };
+
+  // =======================================================
   // OPEN REPORT
-  // =========================================
+  // =======================================================
 
   const openReport = () => {
 
     closeMenu();
 
-    navigate("/report");
+    navigate(
+      "/profile#report"
+    );
 
   };
 
-  // =========================================
+  // =======================================================
+  // REQUEST APP UPDATE
+  // =======================================================
+
+  const requestUpdate = async () => {
+
+    if (checkingUpdate) {
+      return;
+    }
+
+    setCheckingUpdate(true);
+
+    try {
+
+      const response =
+        await axios.get(
+          APP_UPDATE_URL,
+          {
+            params: {
+              currentVersion:
+                APP_VERSION,
+              _: Date.now()
+            },
+
+            headers: {
+              "Cache-Control":
+                "no-cache"
+            }
+          }
+        );
+
+      const latestVersion =
+        response.data?.version ||
+        response.data?.latestVersion ||
+        response.data?.appVersion;
+
+      if (!latestVersion) {
+
+        alert(
+          t.updateError
+        );
+
+        return;
+      }
+
+      const comparison =
+        compareVersions(
+          APP_VERSION,
+          latestVersion
+        );
+
+      // ---------------------------------------------------
+      // NEW VERSION AVAILABLE
+      // ---------------------------------------------------
+
+      if (comparison < 0) {
+
+        const confirmed =
+          window.confirm(
+            `${t.updateAvailable}\n\n` +
+            `Current version: v${APP_VERSION}\n` +
+            `New version: v${latestVersion}`
+          );
+
+        if (!confirmed) {
+          return;
+        }
+
+        alert(
+          t.updateStarted
+        );
+
+        // Close hamburger
+        closeMenu();
+
+        // -------------------------------------------------
+        // Clear browser cache where supported
+        // -------------------------------------------------
+
+        if (
+          "caches" in window
+        ) {
+
+          try {
+
+            const cacheNames =
+              await caches.keys();
+
+            await Promise.all(
+              cacheNames.map(
+                (cacheName) =>
+                  caches.delete(
+                    cacheName
+                  )
+              )
+            );
+
+          } catch (cacheError) {
+
+            console.warn(
+              "Unable to clear cache:",
+              cacheError
+            );
+
+          }
+
+        }
+
+        // -------------------------------------------------
+        // If a service worker exists, ask it to update
+        // -------------------------------------------------
+
+        if (
+          "serviceWorker" in navigator
+        ) {
+
+          try {
+
+            const registration =
+              await navigator.serviceWorker.getRegistration();
+
+            if (registration) {
+
+              await registration.update();
+
+            }
+
+          } catch (swError) {
+
+            console.warn(
+              "Service worker update failed:",
+              swError
+            );
+
+          }
+
+        }
+
+        // -------------------------------------------------
+        // Reload application
+        // -------------------------------------------------
+
+        window.location.reload();
+
+        return;
+      }
+
+      // ---------------------------------------------------
+      // ALREADY UP TO DATE
+      // ---------------------------------------------------
+
+      alert(
+        t.upToDate
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Unable to check app update:",
+        error
+      );
+
+      alert(
+        t.updateError
+      );
+
+    } finally {
+
+      setCheckingUpdate(false);
+
+    }
+
+  };
+
+  // =======================================================
   // AUTH PAGES
-  // =========================================
+  // =======================================================
 
   const isAuthPage =
     location.pathname === "/login" ||
     location.pathname === "/register" ||
     location.pathname === "/verify-otp";
 
-  // =========================================
+  // =======================================================
   // ADMIN PAGES
-  // =========================================
+  // =======================================================
 
   const isAdminPage =
-    location.pathname.startsWith("/admin");
+    location.pathname.startsWith(
+      "/admin"
+    );
 
-  // =========================================
-  // MOBILE BOTTOM NAV
-  // =========================================
+  // =======================================================
+  // MOBILE BOTTOM NAV VISIBILITY
+  // =======================================================
 
   const showMobileBottomNav =
     loggedIn &&
     !isAuthPage &&
     !isAdminPage;
 
-  // =========================================
+  // =======================================================
   // NOTIFICATION TITLE
-  // =========================================
+  // =======================================================
 
   const notificationTitle =
     unreadCount > 0
@@ -679,17 +1055,16 @@ function Navbar() {
         }`
       : t.notifications;
 
-  // =========================================
+  // =======================================================
   // RENDER
-  // =========================================
+  // =======================================================
 
   return (
-
     <>
 
-      {/* =====================================
+      {/* =================================================
           TOP NAVBAR
-      ===================================== */}
+          ================================================= */}
 
       <nav
         className={`navbar ${
@@ -699,9 +1074,9 @@ function Navbar() {
         }`}
       >
 
-        {/* ===================================
+        {/* ===============================================
             LOGO
-        =================================== */}
+            =============================================== */}
 
         <NavLink
           to="/"
@@ -718,9 +1093,9 @@ function Navbar() {
         </NavLink>
 
 
-        {/* ===================================
-            HAMBURGER
-        =================================== */}
+        {/* ===============================================
+            MOBILE HAMBURGER
+            =============================================== */}
 
         <button
           type="button"
@@ -735,7 +1110,9 @@ function Navbar() {
               !menuOpen
             );
 
-            setShowLanguageOptions(false);
+            setShowLanguageOptions(
+              false
+            );
 
           }}
           aria-label={
@@ -747,15 +1124,17 @@ function Navbar() {
         >
 
           <span></span>
+
           <span></span>
+
           <span></span>
 
         </button>
 
 
-        {/* ===================================
+        {/* ===============================================
             NAVBAR MENU
-        =================================== */}
+            =============================================== */}
 
         <div
           className={`navbar-menu ${
@@ -765,9 +1144,9 @@ function Navbar() {
           }`}
         >
 
-          {/* =================================
-              NAV LINKS
-          ================================= */}
+          {/* =============================================
+              DESKTOP NAV LINKS
+              ============================================= */}
 
           <div className="nav-links">
 
@@ -813,9 +1192,9 @@ function Navbar() {
           </div>
 
 
-          {/* =================================
-              AUTH / NOTIFICATIONS
-          ================================= */}
+          {/* =============================================
+              DESKTOP AUTH / NOTIFICATION
+              ============================================= */}
 
           <div className="auth-buttons">
 
@@ -824,7 +1203,9 @@ function Navbar() {
               <button
                 type="button"
                 className="notification-button"
-                onClick={openNotifications}
+                onClick={
+                  openNotifications
+                }
                 aria-label={
                   t.notifications
                 }
@@ -867,7 +1248,6 @@ function Navbar() {
             ) : (
 
               <>
-
                 <NavLink
                   to="/login"
                   onClick={closeMenu}
@@ -904,247 +1284,190 @@ function Navbar() {
           </div>
 
 
-          {/* =================================
+          {/* =============================================
               MOBILE HAMBURGER MENU
-          ================================= */}
+              ============================================= */}
 
           {loggedIn &&
             !isAuthPage &&
             !isAdminPage && (
 
-            <div className="mobile-menu-content">
+              <div className="mobile-menu-content">
 
-              {/* ===============================
-                  NOTIFICATIONS
-              =============================== */}
-
-              <button
-                type="button"
-                className="mobile-menu-item"
-                onClick={
-                  openNotifications
-                }
-              >
-
-                <span className="mobile-menu-icon">
-                  🔔
-                </span>
-
-                <span className="mobile-menu-label">
-                  {t.notifications}
-                </span>
-
-                {unreadCount > 0 && (
-
-                  <span className="mobile-menu-badge">
-
-                    {unreadCount > 99
-                      ? "99+"
-                      : unreadCount}
-
-                  </span>
-
-                )}
-
-              </button>
-
-
-              {/* ===============================
-                  REPORT
-              =============================== */}
-
-              <button
-                type="button"
-                className="mobile-menu-item"
-                onClick={
-                  openReport
-                }
-              >
-
-                <span className="mobile-menu-icon">
-                  📝
-                </span>
-
-                <span className="mobile-menu-label">
-                  {t.report}
-                </span>
-
-              </button>
-
-
-              {/* ===============================
-                  LANGUAGE
-              =============================== */}
-
-              <div className="mobile-language-section">
+                {/* =====================================
+                    OFFERS
+                    ===================================== */}
 
                 <button
                   type="button"
                   className="mobile-menu-item"
-                  onClick={() =>
-                    setShowLanguageOptions(
-                      !showLanguageOptions
-                    )
+                  onClick={
+                    openOffers
                   }
                 >
 
                   <span className="mobile-menu-icon">
-                    🌐
+                    🎁
                   </span>
 
                   <span className="mobile-menu-label">
-                    {t.language}
+                    {t.offers}
                   </span>
 
-                  <span className="mobile-language-current">
-
-                    {language === "fr"
-                      ? t.french
-                      : t.english}
-
-                  </span>
-
-                  <span
-                    className={`mobile-language-arrow ${
-                      showLanguageOptions
-                        ? "language-open"
-                        : ""
-                    }`}
-                  >
+                  <span className="mobile-menu-value">
                     ›
                   </span>
 
                 </button>
 
 
-                {showLanguageOptions && (
+                {/* =====================================
+                    ABOUT US
+                    ===================================== */}
 
-                  <div className="mobile-language-options">
+                <button
+                  type="button"
+                  className="mobile-menu-item"
+                  onClick={
+                    openAbout
+                  }
+                >
 
-                    <button
-                      type="button"
-                      className={`language-option ${
-                        language === "en"
-                          ? "selected"
-                          : ""
-                      }`}
-                      onClick={() =>
-                        changeLanguage("en")
-                      }
-                    >
+                  <span className="mobile-menu-icon">
+                    ℹ️
+                  </span>
 
-                      <span>
-                        🇬🇧
-                      </span>
+                  <span className="mobile-menu-label">
+                    {t.about}
+                  </span>
 
-                      <span>
-                        {t.english}
-                      </span>
+                  <span className="mobile-menu-value">
+                    ›
+                  </span>
 
-                      {language === "en" && (
-
-                        <span>
-                          ✓
-                        </span>
-
-                      )}
-
-                    </button>
+                </button>
 
 
-                    <button
-                      type="button"
-                      className={`language-option ${
-                        language === "fr"
-                          ? "selected"
-                          : ""
-                      }`}
-                      onClick={() =>
-                        changeLanguage("fr")
-                      }
-                    >
+                {/* =====================================
+                    REPORT
+                    ===================================== */}
 
-                      <span>
-                        🇫🇷
-                      </span>
+                <button
+                  type="button"
+                  className="mobile-menu-item"
+                  onClick={
+                    openReport
+                  }
+                >
 
-                      <span>
-                        {t.french}
-                      </span>
+                  <span className="mobile-menu-icon">
+                    📝
+                  </span>
 
-                      {language === "fr" && (
+                  <span className="mobile-menu-label">
+                    {t.report}
+                  </span>
 
-                        <span>
-                          ✓
-                        </span>
+                  <span className="mobile-menu-value">
+                    ›
+                  </span>
 
-                      )}
+                </button>
 
-                    </button>
 
-                  </div>
+                {/* =====================================
+                    APP VERSION
+                    ===================================== */}
 
-                )}
+                <div
+                  className="mobile-menu-item mobile-version-item"
+                >
+
+                  <span className="mobile-menu-icon">
+                    📱
+                  </span>
+
+                  <span className="mobile-menu-label">
+                    {t.appVersion}
+                  </span>
+
+                  <span className="mobile-menu-version">
+                    v{APP_VERSION}
+                  </span>
+
+                </div>
+
+
+                {/* =====================================
+                    REQUEST UPDATE
+                    ===================================== */}
+
+                <button
+                  type="button"
+                  className="mobile-menu-item"
+                  onClick={
+                    requestUpdate
+                  }
+                  disabled={
+                    checkingUpdate
+                  }
+                >
+
+                  <span className="mobile-menu-icon">
+                    {checkingUpdate
+                      ? "⏳"
+                      : "🔄"}
+                  </span>
+
+                  <span className="mobile-menu-label">
+
+                    {checkingUpdate
+                      ? t.checkingUpdate
+                      : t.requestUpdate}
+
+                  </span>
+
+                  <span className="mobile-menu-value">
+                    ›
+                  </span>
+
+                </button>
+
+
+                {/* =====================================
+                    LOGOUT
+                    ===================================== */}
+
+                <button
+                  type="button"
+                  className="mobile-menu-item mobile-logout-item"
+                  onClick={
+                    logout
+                  }
+                >
+
+                  <span className="mobile-menu-icon">
+                    🚪
+                  </span>
+
+                  <span className="mobile-menu-label">
+                    {t.logout}
+                  </span>
+
+                </button>
 
               </div>
 
-
-              {/* ===============================
-                  APP VERSION
-              =============================== */}
-
-              <button
-                type="button"
-                className="mobile-menu-item"
-              >
-
-                <span className="mobile-menu-icon">
-                  ℹ️
-                </span>
-
-                <span className="mobile-menu-label">
-                  {t.appVersion}
-                </span>
-
-                <span className="mobile-menu-value">
-                  v1.0.0
-                </span>
-
-              </button>
-
-
-              {/* ===============================
-                  LOGOUT
-              =============================== */}
-
-              <button
-                type="button"
-                className="mobile-menu-item mobile-logout-item"
-                onClick={logout}
-              >
-
-                <span className="mobile-menu-icon">
-                  🚪
-                </span>
-
-                <span className="mobile-menu-label">
-                  {t.logout}
-                </span>
-
-              </button>
-
-            </div>
-
-          )}
+            )}
 
         </div>
 
       </nav>
 
 
-      {/* =====================================
+      {/* =================================================
           MOBILE BOTTOM NAVIGATION
-      ===================================== */}
+          ================================================= */}
 
       {showMobileBottomNav && (
 
@@ -1155,7 +1478,9 @@ function Navbar() {
           }
         >
 
-          {/* DASHBOARD */}
+          {/* =============================================
+              DASHBOARD
+              ============================================= */}
 
           <NavLink
             to="/"
@@ -1179,7 +1504,9 @@ function Navbar() {
           </NavLink>
 
 
-          {/* ROUTES */}
+          {/* =============================================
+              ROUTES
+              ============================================= */}
 
           <NavLink
             to="/routes"
@@ -1196,6 +1523,25 @@ function Navbar() {
               🚌
             </span>
 
+             <span className="mobile-bottom-nav-label">
+        {t.routes}
+      </span>
+    </NavLink>
+
+
+    {/* TICKET */}
+    <NavLink
+      to="/dashboard"
+      className={({ isActive }) =>
+        `mobile-bottom-nav-item ${
+          isActive ? "active" : ""
+        }`
+      }
+    >
+      <span className="mobile-bottom-nav-icon">
+        🎫
+      </span>
+
             <span className="mobile-bottom-nav-label">
               {t.routes}
             </span>
@@ -1203,10 +1549,51 @@ function Navbar() {
           </NavLink>
 
 
-          {/* OFFERS */}
+          {/* =============================================
+              NOTIFICATIONS
+              ============================================= */}
 
           <NavLink
-            to="/offers"
+            to="/notifications"
+            className={({ isActive }) =>
+              `mobile-bottom-nav-item ${
+                isActive
+                  ? "active"
+                  : ""
+              }`
+            }
+          >
+
+            <span className="mobile-bottom-nav-icon notification-nav-icon">
+              🔔
+
+              {unreadCount > 0 && (
+
+                <span className="mobile-bottom-nav-badge">
+
+                  {unreadCount > 99
+                    ? "99+"
+                    : unreadCount}
+
+                </span>
+
+              )}
+
+            </span>
+
+            <span className="mobile-bottom-nav-label">
+              {t.notifications}
+            </span>
+
+          </NavLink>
+
+
+          {/* =============================================
+              COMMUNITY
+              ============================================= */}
+
+          <NavLink
+            to="/community"
             className={({ isActive }) =>
               `mobile-bottom-nav-item ${
                 isActive
@@ -1217,41 +1604,19 @@ function Navbar() {
           >
 
             <span className="mobile-bottom-nav-icon">
-              🎁
+              💬
             </span>
 
             <span className="mobile-bottom-nav-label">
-              {t.offers}
+              {t.community}
             </span>
 
           </NavLink>
 
 
-          {/* ABOUT */}
-
-          <NavLink
-            to="/about"
-            className={({ isActive }) =>
-              `mobile-bottom-nav-item ${
-                isActive
-                  ? "active"
-                  : ""
-              }`
-            }
-          >
-
-            <span className="mobile-bottom-nav-icon">
-              ℹ️
-            </span>
-
-            <span className="mobile-bottom-nav-label">
-              {t.about}
-            </span>
-
-          </NavLink>
-
-
-          {/* PROFILE */}
+          {/* =============================================
+              PROFILE
+              ============================================= */}
 
           <NavLink
             to="/profile"
@@ -1279,9 +1644,8 @@ function Navbar() {
       )}
 
     </>
-
   );
-
 }
+
 
 export default Navbar;
