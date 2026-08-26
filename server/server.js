@@ -109,14 +109,6 @@ app.use(
   cors(corsOptions)
 );
 
-// =========================================
-// EXPLICIT PREFLIGHT HANDLER
-// =========================================
-
-app.options(
-  "*",
-  cors(corsOptions)
-);
 
 // =========================================
 // JSON PARSER
