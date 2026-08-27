@@ -23,6 +23,7 @@ body {
   position: relative;
 }
 
+
 /* =========================================================
    BUSGO NAVBAR
    RESPONSIVE + MOBILE BOTTOM NAV
@@ -34,6 +35,7 @@ body {
 .mobile-bottom-nav * {
   box-sizing: border-box;
 }
+
 
 /* =========================================================
    REMOVE DEFAULT PAGE WHITESPACE
@@ -52,11 +54,13 @@ body {
   overflow-x: hidden;
 }
 
+
 /*
   The fixed navbar does NOT take up layout space.
   This prevents the large white area that can appear
   above the app content.
 */
+
 body {
   padding-top: 0 !important;
 }
@@ -493,7 +497,6 @@ body {
 @media (max-width: 800px) {
 
   /* =======================================================
-     IMPORTANT:
      REMOVE TOP WHITESPACE
      ======================================================= */
 
@@ -578,18 +581,27 @@ body {
 
 
   /* =======================================================
-     MOBILE MENU CONTAINER
+     MOBILE HALF-SCREEN MENU CONTAINER
      ======================================================= */
 
   .navbar > .navbar-menu {
     position: fixed;
 
     top: 64px;
-    left: 0;
 
-    width: 100%;
+    right: 0;
+    left: auto;
 
-    max-height: 0;
+    /*
+      Menu occupies approximately half the screen.
+      max/min widths prevent it from becoming too small
+      or excessively wide on different phones.
+    */
+    width: 50%;
+    min-width: 240px;
+    max-width: 320px;
+
+    max-height: calc(100vh - 64px);
 
     display: none;
 
@@ -602,22 +614,19 @@ body {
     box-shadow: none;
 
     opacity: 0;
-
     visibility: hidden;
-
     pointer-events: none;
 
-    transform: translateY(-5px);
+    transform: translateX(20px);
 
     transition:
       opacity 0.22s ease,
-      transform 0.22s ease,
-      max-height 0.25s ease;
+      transform 0.22s ease;
   }
 
 
   /* =======================================================
-     OPEN MENU
+     OPEN HALF-SCREEN MENU
      ======================================================= */
 
   .navbar > .navbar-menu.menu-open {
@@ -632,7 +641,7 @@ body {
     background: #ffffff;
 
     box-shadow:
-      0 10px 30px rgba(0, 0, 0, 0.15);
+      -8px 10px 30px rgba(0, 0, 0, 0.15);
 
     opacity: 1;
 
@@ -640,7 +649,7 @@ body {
 
     pointer-events: auto;
 
-    transform: translateY(0);
+    transform: translateX(0);
   }
 
 
@@ -834,209 +843,181 @@ body {
   }
 
 
-  /* =========================================================
-   MOBILE BOTTOM NAVIGATION
-   ========================================================= */
+  /* =======================================================
+     MOBILE BOTTOM NAVIGATION
+     ======================================================= */
 
-.mobile-bottom-nav {
-  position: fixed;
+  .mobile-bottom-nav {
+    position: fixed;
 
-  left: 0;
-  right: 0;
-  bottom: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 
-  width: 100%;
-  height: 72px;
+    width: 100%;
+    height: 72px;
 
-  display: flex;
-  align-items: stretch;
+    display: flex;
+    align-items: stretch;
 
-  padding:
-    5px 3px
-    env(safe-area-inset-bottom, 0px);
+    padding:
+      5px 3px
+      env(safe-area-inset-bottom, 0px);
 
-  background: #ffffff;
+    background: #ffffff;
 
-  border-top: 1px solid #e2e8e4;
+    border-top: 1px solid #e2e8e4;
 
-  box-shadow:
-    0 -5px 20px
-    rgba(0, 0, 0, 0.10);
+    box-shadow:
+      0 -5px 20px
+      rgba(0, 0, 0, 0.10);
 
-  z-index: 9998;
+    z-index: 9998;
 
-  transform: none !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
+    transform: none !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
 
 
-/* =========================================================
-   EACH BOTTOM NAV BUTTON
-   ========================================================= */
+  /* =======================================================
+     EACH BOTTOM NAV BUTTON
+     ======================================================= */
 
-.mobile-bottom-nav-item {
-  position: relative;
+  .mobile-bottom-nav-item {
+    position: relative;
 
-  flex: 1 1 0;
+    flex: 1 1 0;
 
-  min-width: 0;
+    min-width: 0;
 
-  height: 62px;
+    height: 62px;
 
-  display: flex;
+    display: flex;
 
-  flex-direction: column;
+    flex-direction: column;
 
-  align-items: center;
+    align-items: center;
 
-  justify-content: center;
+    justify-content: center;
 
-  gap: 2px;
+    gap: 2px;
 
-  padding: 4px 2px;
+    padding: 4px 2px;
 
-  border-radius: 11px;
+    border-radius: 11px;
 
-  text-decoration: none;
+    text-decoration: none;
 
-  color: #7b8580;
+    color: #7b8580;
 
-  font-size: 9px;
+    font-size: 9px;
 
-  font-weight: 600;
+    font-weight: 600;
 
-  overflow: hidden;
+    overflow: hidden;
 
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s ease;
-}
+    transition:
+      background 0.2s ease,
+      color 0.2s ease,
+      transform 0.2s ease;
+  }
 
 
-/* =========================================================
-   ICON
-   ========================================================= */
+  /* =======================================================
+     ICON
+     ======================================================= */
 
-.mobile-bottom-nav-icon {
-  position: relative;
+  .mobile-bottom-nav-icon {
+    position: relative;
 
-  width: 100%;
+    width: 100%;
 
-  height: 30px;
+    height: 30px;
 
-  display: flex;
+    display: flex;
 
-  align-items: center;
+    align-items: center;
 
-  justify-content: center;
+    justify-content: center;
 
-  font-size: 20px;
+    font-size: 20px;
 
-  line-height: 1;
-}
+    line-height: 1;
+  }
 
 
-/* =========================================================
-   LABEL
-   ========================================================= */
+  /* =======================================================
+     LABEL
+     ======================================================= */
 
-.mobile-bottom-nav-label {
-  display: block;
+  .mobile-bottom-nav-label {
+    display: block;
 
-  line-height: 1;
+    line-height: 1;
 
-  white-space: nowrap;
+    white-space: nowrap;
 
-  font-size: 9px;
-}
+    font-size: 9px;
+  }
 
 
-/* =========================================================
-   ACTIVE BUTTON
-   ========================================================= */
+  /* =======================================================
+     ACTIVE BUTTON
+     ======================================================= */
 
-.mobile-bottom-nav-item.active {
-  color: #046c34;
+  .mobile-bottom-nav-item.active {
+    color: #046c34;
 
-  background: #eaf6ef;
-}
+    background: #eaf6ef;
+  }
 
 
-/* =========================================================
-   ACTIVE ICON
-   ========================================================= */
+  /* =======================================================
+     ACTIVE ICON
+     ======================================================= */
 
-.mobile-bottom-nav-item.active
-.mobile-bottom-nav-icon {
-  font-size: 19px;
-}
+  .mobile-bottom-nav-item.active
+  .mobile-bottom-nav-icon {
+    font-size: 19px;
+  }
 
 
-/* =========================================================
-   NOTIFICATION BADGE
-   ========================================================= */
+  /* =======================================================
+     NOTIFICATION BADGE
+     ======================================================= */
 
-.mobile-bottom-nav-notification-badge {
-  position: absolute;
+  .mobile-bottom-nav-notification-badge {
+    position: absolute;
 
-  top: -5px;
-  right: calc(50% - 18px);
+    top: -5px;
+    right: calc(50% - 18px);
 
-  min-width: 16px;
-  height: 16px;
+    min-width: 16px;
+    height: 16px;
 
-  padding: 0 4px;
+    padding: 0 4px;
 
-  display: flex;
+    display: flex;
 
-  align-items: center;
-  justify-content: center;
+    align-items: center;
+    justify-content: center;
 
-  border-radius: 20px;
+    border-radius: 20px;
 
-  background: #d62828;
+    background: #d62828;
 
-  color: #ffffff;
+    color: #ffffff;
 
-  border: 2px solid #ffffff;
+    border: 2px solid #ffffff;
 
-  font-size: 8px;
+    font-size: 8px;
 
-  font-weight: 800;
+    font-weight: 800;
 
-  line-height: 1;
-}
+    line-height: 1;
+  }
 
-
-/* =========================================================
-   HOVER
-   ========================================================= */
-
-.mobile-bottom-nav-item:hover {
-  color: #046c34;
-
-  background: #f2f8f4;
-}
-
-
-/* =========================================================
-   PRESS
-   ========================================================= */
-
-.mobile-bottom-nav-item:active {
-  transform: scale(0.94);
-}
-
-
-/* =========================================================
-   CONTENT CLEARANCE
-   ========================================================= */
-
-body {
-  padding-bottom: 78px;
-}
 
   /* =======================================================
      HOVER
@@ -1048,8 +1029,22 @@ body {
     background: #f2f8f4;
   }
 
+
+  /* =======================================================
+     PRESS
+     ======================================================= */
+
   .mobile-bottom-nav-item:active {
     transform: scale(0.96);
+  }
+
+
+  /* =======================================================
+     CONTENT CLEARANCE
+     ======================================================= */
+
+  body {
+    padding-bottom: 78px;
   }
 
 
@@ -1087,8 +1082,22 @@ body {
     height: 40px;
   }
 
+
+  /* =======================================================
+     SMALL PHONE HALF-SCREEN MENU
+     ======================================================= */
+
   .navbar > .navbar-menu {
     top: 60px;
+
+    right: 0;
+    left: auto;
+
+    width: 50%;
+    min-width: 220px;
+    max-width: 300px;
+
+    max-height: calc(100vh - 60px);
   }
 
   .navbar > .navbar-menu.menu-open {
@@ -1143,8 +1152,22 @@ body {
     height: 38px;
   }
 
+
+  /* =======================================================
+     VERY SMALL PHONE HALF-SCREEN MENU
+     ======================================================= */
+
   .navbar > .navbar-menu {
     top: 58px;
+
+    right: 0;
+    left: auto;
+
+    width: 50%;
+    min-width: 210px;
+    max-width: 280px;
+
+    max-height: calc(100vh - 58px);
   }
 
   .navbar > .navbar-menu.menu-open {
@@ -1164,6 +1187,7 @@ body {
 
   .mobile-menu-icon {
     width: 26px;
+
     font-size: 17px;
   }
 
@@ -1219,8 +1243,20 @@ and
     height: 38px;
   }
 
+
+  /* =======================================================
+     LANDSCAPE HALF-SCREEN MENU
+     ======================================================= */
+
   .navbar > .navbar-menu {
     top: 56px;
+
+    right: 0;
+    left: auto;
+
+    width: 50%;
+    min-width: 240px;
+    max-width: 340px;
 
     max-height:
       calc(100vh - 56px);
@@ -1352,7 +1388,7 @@ body.dark-mode .menu-toggle span {
     background: #121b16;
 
     box-shadow:
-      0 10px 30px rgba(0, 0, 0, 0.35);
+      -8px 10px 30px rgba(0, 0, 0, 0.35);
   }
 
   html[data-theme="dark"] .mobile-menu-item,
