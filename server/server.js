@@ -8,7 +8,7 @@ const jwt = require("jsonwebtoken");
 dotenv.config();
 
 // =========================================
-// ENVIRONMENT CHECK
+// BUSGO SERVER STARTING
 // =========================================
 
 console.log("=========================================");
@@ -48,33 +48,48 @@ const server = http.createServer(app);
 // CORS
 // =========================================
 //
-// IMPORTANT:
-// This configuration is compatible with
-// Express 5.
+// FRONTEND_URL should be added to Render
+// environment variables.
 //
-// DO NOT use:
-// app.options("*", cors(...))
+// Example:
 //
-// Express 5 / path-to-regexp can crash
-// when "*" is used as a route path.
-// =========================================
+// FRONTEND_URL=https://your-vercel-app.vercel.app
+//
+// Localhost URLs are always allowed.
+//
 
 const allowedOrigins = [
-  // Local development
   "http://localhost:3000",
   "http://localhost:10000",
   "http://localhost:10001",
 
   "http://127.0.0.1:3000",
   "http://127.0.0.1:10000",
-  "http://127.0.0.1:10001",
-
-  // Main Vercel deployment
-  "https://okocaesar-group2internship.vercel.app",
-
-  // Current Vercel deployment URL
-  "https://okocaesar-group2internship-f21au0ck3-okocaesars-projects.vercel.app"
+  "http://127.0.0.1:10001"
 ];
+
+// Add production frontend URL from Render ENV
+if (process.env.FRONTEND_URL) {
+  const productionOrigins =
+    process.env.FRONTEND_URL
+      .split(",")
+      .map((url) => url.trim())
+      .filter(Boolean);
+
+  allowedOrigins.push(
+    ...productionOrigins
+  );
+}
+
+// Remove duplicates
+const uniqueOrigins = [
+  ...new Set(allowedOrigins)
+];
+
+console.log(
+  "Allowed frontend origins:",
+  uniqueOrigins
+);
 
 // =========================================
 // CORS OPTIONS
@@ -82,27 +97,72 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests without an Origin header.
+
+    // Requests without Origin
+    // are allowed.
     //
-    // This is useful for:
+    // Useful for:
     // - Render health checks
     // - Postman
     // - server-to-server requests
-    // - direct browser navigation
+    // - direct API testing
+
     if (!origin) {
       return callback(null, true);
     }
 
-    if (allowedOrigins.includes(origin)) {
-      console.log("CORS ALLOWED:", origin);
+    if (
+      uniqueOrigins.includes(origin)
+    ) {
 
-      return callback(null, true);
+      console.log(
+        "CORS ALLOWED:",
+        origin
+      );
+
+      return callback(
+        null,
+        true
+      );
     }
 
-    console.log("CORS BLOCKED:", origin);
+    // =====================================
+    // OPTIONAL VERCEL PREVIEW SUPPORT
+    // =====================================
+    //
+    // Allows Vercel preview deployments
+    // belonging to the BusGo project.
+    //
+    // This prevents CORS problems when
+    // Vercel generates a new deployment URL.
+    //
 
-    // Return false instead of throwing an error.
-    return callback(null, false);
+    if (
+      origin.endsWith(
+        ".vercel.app"
+      )
+    ) {
+
+      console.log(
+        "CORS ALLOWED VERCEL:",
+        origin
+      );
+
+      return callback(
+        null,
+        true
+      );
+    }
+
+    console.log(
+      "CORS BLOCKED:",
+      origin
+    );
+
+    return callback(
+      null,
+      false
+    );
   },
 
   credentials: true,
@@ -139,17 +199,18 @@ const corsOptions = {
 // =========================================
 //
 // IMPORTANT:
-// We use the middleware globally.
 //
-// DO NOT add:
+// Do NOT use:
 //
-// app.options("*", cors(corsOptions));
+// app.options("*", cors(corsOptions))
 //
-// That causes the Express 5 path-to-regexp
-// crash seen in your Render logs.
-// =========================================
+// Express 5 + path-to-regexp can crash
+// with wildcard route paths.
+//
 
-app.use(cors(corsOptions));
+app.use(
+  cors(corsOptions)
+);
 
 // =========================================
 // BODY PARSER
@@ -172,33 +233,78 @@ app.use(
 // SOCKET.IO
 // =========================================
 
-const io = new Server(server, {
-  cors: {
-    origin: allowedOrigins,
+const io = new Server(
+  server,
+  {
+    cors: {
+      origin: function (
+        origin,
+        callback
+      ) {
 
-    methods: [
-      "GET",
-      "POST"
-    ],
+        if (!origin) {
+          return callback(
+            null,
+            true
+          );
+        }
 
-    credentials: true
-  },
+        if (
+          uniqueOrigins.includes(
+            origin
+          )
+        ) {
+          return callback(
+            null,
+            true
+          );
+        }
 
-  transports: [
-    "websocket",
-    "polling"
-  ]
-});
+        // Allow Vercel preview URLs
+        if (
+          origin.endsWith(
+            ".vercel.app"
+          )
+        ) {
+          return callback(
+            null,
+            true
+          );
+        }
+
+        return callback(
+          null,
+          false
+        );
+      },
+
+      methods: [
+        "GET",
+        "POST"
+      ],
+
+      credentials: true
+    },
+
+    transports: [
+      "websocket",
+      "polling"
+    ]
+  }
+);
 
 // =========================================
 // COMMUNITY DATA
 // =========================================
 
-const communityUsers = new Map();
+const communityUsers =
+  new Map();
 
-const communityMessages = [];
+const communityMessages =
+  [];
 
-const MAX_COMMUNITY_MESSAGES = 200;
+const MAX_COMMUNITY_MESSAGES =
+  200;
 
 // =========================================
 // SOCKET AUTHENTICATION
@@ -206,11 +312,14 @@ const MAX_COMMUNITY_MESSAGES = 200;
 
 io.use(
   (socket, next) => {
+
     try {
+
       const token =
         socket.handshake.auth?.token;
 
       if (!token) {
+
         return next(
           new Error(
             "Authentication token is missing."
@@ -218,7 +327,10 @@ io.use(
         );
       }
 
-      if (!process.env.JWT_SECRET) {
+      if (
+        !process.env.JWT_SECRET
+      ) {
+
         console.error(
           "JWT_SECRET is missing."
         );
@@ -236,11 +348,13 @@ io.use(
           process.env.JWT_SECRET
         );
 
-      socket.user = decoded;
+      socket.user =
+        decoded;
 
       next();
 
     } catch (error) {
+
       console.error(
         "SOCKET AUTH ERROR:",
         error.message
@@ -309,6 +423,7 @@ io.on(
     // =======================================
 
     const user = {
+
       id:
         userId ||
         socket.id,
@@ -335,7 +450,6 @@ io.on(
 
     // =======================================
     // SEND MESSAGE HISTORY
-    // ONLY TO NEW USER
     // =======================================
 
     socket.emit(
@@ -344,7 +458,7 @@ io.on(
     );
 
     // =======================================
-    // SEND ONLINE COUNT
+    // ONLINE COUNT
     // =======================================
 
     io.emit(
@@ -353,7 +467,7 @@ io.on(
     );
 
     // =======================================
-    // SEND ONLINE USERS
+    // ONLINE USERS
     // =======================================
 
     io.emit(
@@ -383,7 +497,8 @@ io.on(
 
           const message =
             String(
-              messageData.message || ""
+              messageData.message ||
+              ""
             ).trim();
 
           // ===================================
@@ -396,6 +511,7 @@ io.on(
               typeof acknowledgement ===
               "function"
             ) {
+
               acknowledgement({
                 success: false,
                 message:
@@ -418,6 +534,7 @@ io.on(
               typeof acknowledgement ===
               "function"
             ) {
+
               acknowledgement({
                 success: false,
                 message:
@@ -452,8 +569,7 @@ io.on(
               currentUser.name ||
               "BusGo User",
 
-            message:
-              message,
+            message,
 
             created_at:
               new Date().toISOString()
@@ -475,6 +591,7 @@ io.on(
             communityMessages.length >
             MAX_COMMUNITY_MESSAGES
           ) {
+
             communityMessages.shift();
           }
 
@@ -502,7 +619,6 @@ io.on(
 
           // ===================================
           // SEND TO EVERYONE
-          // INCLUDING SENDER
           // ===================================
 
           io.emit(
@@ -647,7 +763,8 @@ app.get(
         "Community chat is enabled.",
 
       environment:
-        process.env.NODE_ENV || "production",
+        process.env.NODE_ENV ||
+        "production",
 
       time:
         new Date().toISOString()
@@ -808,14 +925,18 @@ app.use(
       err
     );
 
-    // CORS errors
     if (
       err &&
       err.message &&
-      err.message.toLowerCase().includes("cors")
+      err.message
+        .toLowerCase()
+        .includes("cors")
     ) {
+
       return res.status(403).json({
+
         success: false,
+
         message:
           "Request blocked by CORS policy."
       });
@@ -858,7 +979,7 @@ server.listen(
     );
 
     console.log(
-      `Community socket: http://localhost:${PORT}`
+      "Community socket: Socket.IO enabled"
     );
 
     console.log(
@@ -870,7 +991,7 @@ server.listen(
     );
 
     console.log(
-      `POST http://localhost:${PORT}/api/auth/send-whatsapp-otp`
+      `/api/auth/send-whatsapp-otp`
     );
 
     console.log(
