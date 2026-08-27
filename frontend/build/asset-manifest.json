@@ -1,0 +1,33 @@
+{
+  "files": {
+    "main.css": "/static/css/main.2195e118.css",
+    "main.js": "/static/js/main.6d274cb7.js",
+    "static/js/977.56aaf1cc.chunk.js": "/static/js/977.56aaf1cc.chunk.js",
+    "static/js/455.f4da0a09.chunk.js": "/static/js/455.f4da0a09.chunk.js",
+    "static/media/bamenda.jpg": "/static/media/bamenda.61fd5a817db0fe510549.jpg",
+    "static/media/douala.jpg": "/static/media/douala.8b2351eee7f049029966.jpg",
+    "static/media/buea.jpg": "/static/media/buea.ac1356dc317a0655e69a.jpg",
+    "static/media/yaounde.jpg": "/static/media/yaounde.e5916614537a0d8078f2.jpg",
+    "static/media/hero5.jpg": "/static/media/hero5.c66b7f8de6782ccb0741.jpg",
+    "static/media/jardine.jpeg": "/static/media/jardine.d4eee060d83c66a65fd5.jpeg",
+    "static/media/hero4.jpg": "/static/media/hero4.a12a593435dc51caf06c.jpg",
+    "static/media/hero3.jpg": "/static/media/hero3.b07d04dbc58ebdf09308.jpg",
+    "static/media/1010.jpg": "/static/media/1010.69bc7e708d490da8afbb.jpg",
+    "static/media/logo.png": "/static/media/logo.a7ca1d32764c717f60d4.png",
+    "static/media/brenda.jpeg": "/static/media/brenda.0284cf28d0d3752958dc.jpeg",
+    "static/media/felsy.jpeg": "/static/media/felsy.64b540b19dc80c8d6d94.jpeg",
+    "static/media/julius.jpeg": "/static/media/julius.8c6d900ef43c90d6bf44.jpeg",
+    "static/media/fabiola.jpeg": "/static/media/fabiola.e174dc869ef0de379016.jpeg",
+    "static/media/hero2.jpg": "/static/media/hero2.0fda2f0f11990b60315c.jpg",
+    "static/media/hero.jpg": "/static/media/hero.d8d1c2be67b869f3930c.jpg",
+    "index.html": "/index.html",
+    "main.2195e118.css.map": "/static/css/main.2195e118.css.map",
+    "main.6d274cb7.js.map": "/static/js/main.6d274cb7.js.map",
+    "977.56aaf1cc.chunk.js.map": "/static/js/977.56aaf1cc.chunk.js.map",
+    "455.f4da0a09.chunk.js.map": "/static/js/455.f4da0a09.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.2195e118.css",
+    "static/js/main.6d274cb7.js"
+  ]
+}
