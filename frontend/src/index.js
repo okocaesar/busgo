@@ -5,17 +5,15 @@ import "./index.css";
 
 import App from "./App";
 
-import AppUpdate
-  from "./components/AppUpdate/AppUpdate";
+import AppUpdate from "./components/AppUpdate/AppUpdate";
 
 // =========================================
 // RENDER BUSGO
 // =========================================
 
-const root =
-  ReactDOM.createRoot(
-    document.getElementById("root")
-  );
+const root = ReactDOM.createRoot(
+  document.getElementById("root")
+);
 
 root.render(
   <React.StrictMode>
@@ -30,148 +28,101 @@ root.render(
 // =========================================
 
 const hideSplashScreen = () => {
-
-  const splash =
-    document.getElementById(
-      "app-splash"
-    );
+  const splash = document.getElementById("app-splash");
 
   if (!splash) {
     return;
   }
 
   setTimeout(() => {
-
-    splash.classList.add(
-      "hidden"
-    );
+    splash.classList.add("hidden");
 
     setTimeout(() => {
-
       if (splash) {
         splash.remove();
       }
-
     }, 450);
-
   }, 500);
 };
 
 // =========================================
-// REGISTER SERVICE WORKER
+// SERVICE WORKER
 // =========================================
 //
-// Service workers are optional for BusGo.
-// A service-worker failure must NEVER
-// interfere with the application itself.
+// IMPORTANT:
 //
-// During local development, we skip
-// registration completely.
+// Service workers can cache an old React build.
+// This can make a new Vercel deployment appear
+// not to have updated.
+//
+// For now BusGo does NOT register a service
+// worker.
+//
+// This gives us a clean deployment environment
+// while the frontend/backend deployment is being
+// fixed.
+//
+// We also unregister any OLD BusGo service
+// workers that may already be installed in the
+// user's browser.
 //
 // =========================================
 
-const registerServiceWorker = async () => {
-
+const disableOldServiceWorkers = async () => {
   if (!("serviceWorker" in navigator)) {
     return;
   }
 
-  // =======================================
-  // DO NOT REGISTER SERVICE WORKER LOCALLY
-  // =======================================
-
-  if (
-    window.location.hostname ===
-    "localhost" ||
-    window.location.hostname ===
-    "127.0.0.1"
-  ) {
-
-    console.log(
-      "BusGo service worker skipped during local development."
-    );
-
-    return;
-  }
-
   try {
+    const registrations =
+      await navigator.serviceWorker.getRegistrations();
 
-    const registration =
-      await navigator.serviceWorker.register(
-        "/service-worker.js"
-      );
+    if (!registrations.length) {
+      return;
+    }
 
-    console.log(
-      "BusGo service worker registered:",
-      registration.scope
-    );
+    for (const registration of registrations) {
+      const success =
+        await registration.unregister();
 
-    // =====================================
-    // CHECK FOR UPDATED SERVICE WORKER
-    // =====================================
-
-    registration.addEventListener(
-      "updatefound",
-      () => {
-
-        const newWorker =
-          registration.installing;
-
-        if (!newWorker) {
-          return;
-        }
-
-        newWorker.addEventListener(
-          "statechange",
-          () => {
-
-            if (
-              newWorker.state ===
-              "installed"
-            ) {
-
-              if (
-                navigator
-                  .serviceWorker
-                  .controller
-              ) {
-
-                console.log(
-                  "A new BusGo version is available."
-                );
-
-              } else {
-
-                console.log(
-                  "BusGo is ready for offline use."
-                );
-
-              }
-            }
-
-          }
+      if (success) {
+        console.log(
+          "BusGo old service worker removed."
         );
-
       }
-    );
+    }
+
+    // =======================================
+    // CLEAR OLD BUSGO CACHE
+    // =======================================
+
+    if ("caches" in window) {
+      const cacheNames =
+        await caches.keys();
+
+      for (const cacheName of cacheNames) {
+        try {
+          await caches.delete(cacheName);
+
+          console.log(
+            "BusGo old cache removed:",
+            cacheName
+          );
+        } catch (cacheError) {
+          console.warn(
+            "Unable to remove cache:",
+            cacheName,
+            cacheError
+          );
+        }
+      }
+    }
 
   } catch (error) {
-
-    // =====================================
-    // IMPORTANT
-    // =====================================
-    //
-    // Do NOT use console.error here.
-    //
-    // A service worker is optional and
-    // failure must not make the browser
-    // console look like BusGo has crashed.
-    //
     console.warn(
-      "BusGo service worker is unavailable. The app will continue normally.",
+      "BusGo could not remove old service worker/cache.",
       error
     );
-
   }
 };
 
@@ -181,11 +132,14 @@ const registerServiceWorker = async () => {
 
 window.addEventListener(
   "load",
-  () => {
+  async () => {
 
     hideSplashScreen();
 
-    registerServiceWorker();
+    await disableOldServiceWorkers();
 
+    console.log(
+      "BusGo started without service worker caching."
+    );
   }
 );
