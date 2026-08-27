@@ -1,2 +1,2 @@
 export const API_URL =
-  "https://group2internship.onrender.com";
+  "https://busgo-j8zf.onrender.com";
