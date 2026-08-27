@@ -37,6 +37,10 @@ function AppUpdate({ children }) {
   const [updateData, setUpdateData] =
     useState(null);
 
+    console.log(
+  "🔥 BUSGO FRONTEND BUILD: UPDATE-FIX-2026-08-27"
+);
+
   // =========================================
   // CHECK BUSGO VERSION
   // =========================================
