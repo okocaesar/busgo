@@ -13,7 +13,7 @@ import {
   FiBell,
   FiUser,
   FiGrid,
-  FiTicket,
+  FiClipboard,
   FiUsers,
   FiMenu,
   FiX,
@@ -30,29 +30,6 @@ import {
 } from "react-icons/fi";
 
 import "./Navbar.css";
-
-/*
-|--------------------------------------------------------------------------
-| PACKAGE VERSION
-|--------------------------------------------------------------------------
-| This imports the version directly from your frontend package.json.
-|
-| If Navbar.jsx is located inside:
-|
-| src/components/Navbar/
-|
-| then ../../package.json normally points to:
-|
-| project-root/package.json
-|
-| If your Navbar.jsx is located somewhere else, adjust the path.
-|--------------------------------------------------------------------------
-*/
-
-import packageJson from "../../package.json";
-
-const CURRENT_APP_VERSION = packageJson.version;
-
 
 /*
 |--------------------------------------------------------------------------
@@ -87,9 +64,7 @@ const Navbar = () => {
   |--------------------------------------------------------------------------
   */
 
-  const [appVersion, setAppVersion] = useState(
-    CURRENT_APP_VERSION || "Unknown"
-  );
+  const [appVersion, setAppVersion] = useState("Loading...");
 
   /*
   |--------------------------------------------------------------------------
@@ -109,12 +84,6 @@ const Navbar = () => {
 
   useEffect(() => {
     const checkAuth = () => {
-      /*
-       * This supports several common localStorage keys.
-       *
-       * If your project uses a different key, add it here.
-       */
-
       const token =
         localStorage.getItem("token") ||
         localStorage.getItem("authToken") ||
@@ -131,18 +100,7 @@ const Navbar = () => {
 
     checkAuth();
 
-    /*
-     * Listen for login/logout changes from other components.
-     */
-
     window.addEventListener("storage", checkAuth);
-
-    /*
-     * Custom event can be dispatched after login/logout:
-     *
-     * window.dispatchEvent(new Event("authChanged"));
-     */
-
     window.addEventListener("authChanged", checkAuth);
 
     return () => {
@@ -150,7 +108,6 @@ const Navbar = () => {
       window.removeEventListener("authChanged", checkAuth);
     };
   }, []);
-
 
   /*
   |--------------------------------------------------------------------------
@@ -163,7 +120,6 @@ const Navbar = () => {
     setSettingsOpen(false);
   }, [location.pathname]);
 
-
   /*
   |--------------------------------------------------------------------------
   | CLOSE MENUS WHEN CLICKING OUTSIDE
@@ -174,6 +130,7 @@ const Navbar = () => {
     const handleOutsideClick = (event) => {
       if (
         !event.target.closest(".navbar-settings-wrapper") &&
+        !event.target.closest(".navbar-started-wrapper") &&
         !event.target.closest(".mobile-menu-wrapper")
       ) {
         setSettingsOpen(false);
@@ -186,7 +143,6 @@ const Navbar = () => {
       document.removeEventListener("click", handleOutsideClick);
     };
   }, []);
-
 
   /*
   |--------------------------------------------------------------------------
@@ -206,17 +162,62 @@ const Navbar = () => {
     };
   }, [mobileMenuOpen]);
 
+  /*
+  |--------------------------------------------------------------------------
+  | GET CURRENT APP VERSION
+  |--------------------------------------------------------------------------
+  |
+  | Version comes from:
+  |
+  | /public/version.json
+  |
+  */
+
+  const getAppVersion = async () => {
+    try {
+      const response = await fetch(
+        `/version.json?t=${Date.now()}`,
+        {
+          cache: "no-store"
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Version file unavailable");
+      }
+
+      const data = await response.json();
+
+      const version =
+        data?.version ||
+        data?.appVersion ||
+        data?.latestVersion;
+
+      if (!version) {
+        throw new Error("Version not found");
+      }
+
+      setAppVersion(String(version));
+
+      return String(version);
+    } catch (error) {
+      console.error("Unable to get app version:", error);
+
+      setAppVersion("Unknown");
+
+      return "Unknown";
+    }
+  };
 
   /*
   |--------------------------------------------------------------------------
-  | GET CURRENT VERSION
+  | LOAD CURRENT VERSION
   |--------------------------------------------------------------------------
   */
 
   useEffect(() => {
-    setAppVersion(CURRENT_APP_VERSION || "Unknown");
+    getAppVersion();
   }, []);
-
 
   /*
   |--------------------------------------------------------------------------
@@ -225,10 +226,6 @@ const Navbar = () => {
   */
 
   const handleLogout = () => {
-    /*
-     * Remove common authentication values.
-     */
-
     localStorage.removeItem("token");
     localStorage.removeItem("authToken");
     localStorage.removeItem("accessToken");
@@ -238,48 +235,52 @@ const Navbar = () => {
     localStorage.removeItem("currentUser");
     localStorage.removeItem("busgo_user");
 
-    /*
-     * Close menus.
-     */
-
     setSettingsOpen(false);
     setMobileMenuOpen(false);
 
-    /*
-     * Update authentication state.
-     */
-
     setIsLoggedIn(false);
 
-    /*
-     * Tell other components that authentication changed.
-     */
-
     window.dispatchEvent(new Event("authChanged"));
-
-    /*
-     * Return user to home.
-     */
 
     navigate("/");
   };
 
+  /*
+  |--------------------------------------------------------------------------
+  | COMPARE VERSION NUMBERS
+  |--------------------------------------------------------------------------
+  */
+
+  const compareVersions = (version1, version2) => {
+    const cleanVersion1 = String(version1)
+      .replace(/^v/i, "")
+      .split(".")
+      .map(Number);
+
+    const cleanVersion2 = String(version2)
+      .replace(/^v/i, "")
+      .split(".")
+      .map(Number);
+
+    const length = Math.max(
+      cleanVersion1.length,
+      cleanVersion2.length
+    );
+
+    for (let i = 0; i < length; i++) {
+      const first = cleanVersion1[i] || 0;
+      const second = cleanVersion2[i] || 0;
+
+      if (first > second) return 1;
+      if (first < second) return -1;
+    }
+
+    return 0;
+  };
 
   /*
   |--------------------------------------------------------------------------
   | CHECK APPLICATION UPDATE
-  |--------------------------------------------------------------------------
-  |
-  | The production application should expose:
-  |
-  | /version.json
-  |
-  | Example:
-  |
-  | {
-  |   "version": "1.1.0"
-  | }
-  |
   |--------------------------------------------------------------------------
   */
 
@@ -292,9 +293,10 @@ const Navbar = () => {
 
     try {
       /*
-       * Add timestamp to prevent browser cache from returning
-       * an old version.json.
-       */
+      |--------------------------------------------------------------------------
+      | Get latest deployed version
+      |--------------------------------------------------------------------------
+      */
 
       const response = await fetch(
         `/version.json?t=${Date.now()}`,
@@ -304,7 +306,9 @@ const Navbar = () => {
       );
 
       if (!response.ok) {
-        throw new Error("Unable to check application version.");
+        throw new Error(
+          "Unable to check application version."
+        );
       }
 
       const data = await response.json();
@@ -315,22 +319,31 @@ const Navbar = () => {
         data?.latestVersion;
 
       if (!latestVersion) {
-        throw new Error("Latest application version was not found.");
+        throw new Error(
+          "Latest application version was not found."
+        );
       }
 
+      /*
+      |--------------------------------------------------------------------------
+      | Current version
+      |--------------------------------------------------------------------------
+      */
+
+      const currentVersion = await getAppVersion();
 
       /*
-       * Current version.
-       */
+      |--------------------------------------------------------------------------
+      | Compare versions
+      |--------------------------------------------------------------------------
+      */
 
-      const currentVersion = String(appVersion);
+      const comparison = compareVersions(
+        latestVersion,
+        currentVersion
+      );
 
-
-      /*
-       * Compare versions.
-       */
-
-      if (latestVersion !== currentVersion) {
+      if (comparison > 0) {
         setUpdateAvailable(true);
 
         setUpdateMessage(
@@ -338,27 +351,24 @@ const Navbar = () => {
         );
 
         /*
-         * Give the user a short moment to see the message.
-         */
+        |--------------------------------------------------------------------------
+        | Refresh application
+        |--------------------------------------------------------------------------
+        */
 
         setTimeout(() => {
-          /*
-           * Reload the application.
-           *
-           * The browser will request the newest deployed bundle.
-           */
-
           window.location.reload();
         }, 1500);
-
       } else {
         setUpdateMessage(
-          `Your app is up to date (${currentVersion}).`
+          `Your app is up to date (v${currentVersion}).`
         );
       }
-
     } catch (error) {
-      console.error("Update check failed:", error);
+      console.error(
+        "Update check failed:",
+        error
+      );
 
       setUpdateMessage(
         "Unable to check for updates. Please try again."
@@ -370,34 +380,35 @@ const Navbar = () => {
     }
   };
 
-
   /*
   |--------------------------------------------------------------------------
-  | APP VERSION DISPLAY
+  | SHOW APP VERSION
   |--------------------------------------------------------------------------
   */
 
-  const showAppVersion = () => {
+  const showAppVersion = async () => {
     setMobileMenuOpen(false);
+    setSettingsOpen(false);
+
+    const currentVersion = await getAppVersion();
 
     alert(
-      `BusGo App Version\n\nCurrent version: ${appVersion}`
+      `BusGo App Version\n\nCurrent version: v${currentVersion}`
     );
   };
 
-
   /*
   |--------------------------------------------------------------------------
-  | SETTINGS MENU NAVIGATION
+  | SETTINGS NAVIGATION
   |--------------------------------------------------------------------------
   */
 
   const goToSettingsPage = (path) => {
     setSettingsOpen(false);
     setMobileMenuOpen(false);
+
     navigate(path);
   };
-
 
   /*
   |--------------------------------------------------------------------------
@@ -410,13 +421,11 @@ const Navbar = () => {
     navigate(path);
   };
 
-
   /*
   |--------------------------------------------------------------------------
-  | ACTIVE ROUTE HELPER
+  | RENDER
   |--------------------------------------------------------------------------
   */
-
 
   return (
     <>
@@ -441,9 +450,6 @@ const Navbar = () => {
             className="navbar-logo-image"
           />
 
-          <span className="navbar-brand">
-            BusGo
-          </span>
         </NavLink>
 
 
@@ -524,21 +530,22 @@ const Navbar = () => {
             }
           >
             <span className="desktop-notification-icon">
-              <FiBell />
 
-              {/* Optional notification badge */}
+              <FiBell />
 
               <span className="desktop-notification-badge">
                 0
               </span>
+
             </span>
 
             <span>Notification</span>
+
           </NavLink>
 
 
           {/* =================================================
-              GET STARTED / SETTINGS
+              GET STARTED
               ================================================= */}
 
           {!isLoggedIn ? (
@@ -550,12 +557,18 @@ const Navbar = () => {
                 className="get-started-button"
                 onClick={(event) => {
                   event.stopPropagation();
-                  setSettingsOpen((previous) => !previous);
+
+                  setSettingsOpen(
+                    (previous) => !previous
+                  );
                 }}
               >
+
                 <FiUserPlus />
 
-                <span>Get Started</span>
+                <span>
+                  Get Started
+                </span>
 
                 <FiChevronDown
                   className={
@@ -564,11 +577,15 @@ const Navbar = () => {
                       : "chevron"
                   }
                 />
+
               </button>
 
 
               {settingsOpen && (
+
                 <div className="desktop-dropdown">
+
+                  {/* LOGIN */}
 
                   <button
                     type="button"
@@ -579,6 +596,9 @@ const Navbar = () => {
                     <FiLogIn />
                     <span>Login</span>
                   </button>
+
+
+                  {/* REGISTER */}
 
                   <button
                     type="button"
@@ -591,6 +611,7 @@ const Navbar = () => {
                   </button>
 
                 </div>
+
               )}
 
             </div>
@@ -604,12 +625,18 @@ const Navbar = () => {
                 className="settings-button"
                 onClick={(event) => {
                   event.stopPropagation();
-                  setSettingsOpen((previous) => !previous);
+
+                  setSettingsOpen(
+                    (previous) => !previous
+                  );
                 }}
               >
+
                 <FiSettings />
 
-                <span>Settings</span>
+                <span>
+                  Settings
+                </span>
 
                 <FiChevronDown
                   className={
@@ -618,10 +645,12 @@ const Navbar = () => {
                       : "chevron"
                   }
                 />
+
               </button>
 
 
               {settingsOpen && (
+
                 <div className="desktop-dropdown settings-dropdown">
 
                   {/* PROFILE */}
@@ -706,6 +735,7 @@ const Navbar = () => {
                   </button>
 
                 </div>
+
               )}
 
             </div>
@@ -735,11 +765,13 @@ const Navbar = () => {
               )
             }
           >
+
             {mobileMenuOpen ? (
               <FiX />
             ) : (
               <FiMenu />
             )}
+
           </button>
 
         </div>
@@ -752,11 +784,14 @@ const Navbar = () => {
           ========================================================= */}
 
       {mobileMenuOpen && (
+
         <>
 
           <div
             className="mobile-menu-overlay"
-            onClick={() => setMobileMenuOpen(false)}
+            onClick={() =>
+              setMobileMenuOpen(false)
+            }
           />
 
 
@@ -767,6 +802,7 @@ const Navbar = () => {
             <div className="mobile-menu-header">
 
               <div>
+
                 <span className="mobile-menu-title">
                   BusGo
                 </span>
@@ -774,6 +810,7 @@ const Navbar = () => {
                 <span className="mobile-menu-subtitle">
                   Menu
                 </span>
+
               </div>
 
               <button
@@ -788,9 +825,7 @@ const Navbar = () => {
             </div>
 
 
-            {/* =================================================
-                ROUTE
-                ================================================= */}
+            {/* ROUTE */}
 
             <button
               type="button"
@@ -801,17 +836,16 @@ const Navbar = () => {
             >
               <FiMap />
 
-              <span>Route</span>
+              <span>
+                Route
+              </span>
 
-              <FiChevronDown
-                className="menu-arrow"
-              />
+              <FiChevronDown className="menu-arrow" />
+
             </button>
 
 
-            {/* =================================================
-                ABOUT
-                ================================================= */}
+            {/* ABOUT */}
 
             <button
               type="button"
@@ -822,17 +856,16 @@ const Navbar = () => {
             >
               <FiInfo />
 
-              <span>About</span>
+              <span>
+                About
+              </span>
 
-              <FiChevronDown
-                className="menu-arrow"
-              />
+              <FiChevronDown className="menu-arrow" />
+
             </button>
 
 
-            {/* =================================================
-                REPORT
-                ================================================= */}
+            {/* REPORT */}
 
             <button
               type="button"
@@ -843,23 +876,23 @@ const Navbar = () => {
             >
               <FiFileText />
 
-              <span>Report</span>
+              <span>
+                Report
+              </span>
 
-              <FiChevronDown
-                className="menu-arrow"
-              />
+              <FiChevronDown className="menu-arrow" />
+
             </button>
 
 
-            {/* =================================================
-                APP VERSION
-                ================================================= */}
+            {/* APP VERSION */}
 
             <button
               type="button"
               className="mobile-menu-item version-menu-item"
               onClick={showAppVersion}
             >
+
               <FiPackage />
 
               <span>
@@ -869,12 +902,11 @@ const Navbar = () => {
               <span className="version-badge">
                 v{appVersion}
               </span>
+
             </button>
 
 
-            {/* =================================================
-                CHECK UPDATE
-                ================================================= */}
+            {/* CHECK UPDATE */}
 
             <button
               type="button"
@@ -904,11 +936,10 @@ const Navbar = () => {
             </button>
 
 
-            {/* =================================================
-                UPDATE RESULT
-                ================================================= */}
+            {/* UPDATE RESULT */}
 
             {updateMessage && (
+
               <div
                 className={
                   updateAvailable
@@ -928,19 +959,20 @@ const Navbar = () => {
                 </span>
 
               </div>
+
             )}
 
 
-            {/* =================================================
-                LOGOUT
-                ================================================= */}
+            {/* LOGOUT */}
 
             {isLoggedIn && (
+
               <button
                 type="button"
                 className="mobile-menu-item mobile-logout"
                 onClick={handleLogout}
               >
+
                 <FiLogOut />
 
                 <span>
@@ -950,12 +982,15 @@ const Navbar = () => {
                 <FiChevronDown
                   className="menu-arrow"
                 />
+
               </button>
+
             )}
 
           </aside>
 
         </>
+
       )}
 
 
@@ -980,6 +1015,7 @@ const Navbar = () => {
           <span>
             Dashboard
           </span>
+
         </NavLink>
 
 
@@ -998,6 +1034,7 @@ const Navbar = () => {
           <span>
             Route
           </span>
+
         </NavLink>
 
 
@@ -1011,11 +1048,12 @@ const Navbar = () => {
             }`
           }
         >
-          <FiTicket />
+          <FiClipboard />
 
           <span>
             Ticket
           </span>
+
         </NavLink>
 
 
@@ -1034,6 +1072,7 @@ const Navbar = () => {
           <span>
             Community
           </span>
+
         </NavLink>
 
 
@@ -1052,6 +1091,7 @@ const Navbar = () => {
           <span>
             Profile
           </span>
+
         </NavLink>
 
 
