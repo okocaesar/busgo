@@ -1,11 +1,14 @@
 {
   "name": "busgo-server",
-  "version": "1.0.1",
-  "description": "BusGo Backend API",
+  "version": "1.0.2",
+  "description": "BusGo Backend API with Socket.IO",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "dependencies": {
     "axios": "^1.19.0",

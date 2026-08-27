@@ -15,7 +15,10 @@ console.log("=========================================");
 console.log("BUSGO SERVER STARTING");
 console.log("=========================================");
 
-console.log("PORT:", process.env.PORT || 5000);
+console.log(
+  "PORT:",
+  process.env.PORT || 5000
+);
 
 console.log(
   "JWT_SECRET loaded:",
@@ -44,54 +47,34 @@ const server = http.createServer(app);
 // =========================================
 // CORS
 // =========================================
+//
+// IMPORTANT:
+// This configuration is compatible with
+// Express 5.
+//
+// DO NOT use:
+// app.options("*", cors(...))
+//
+// Express 5 / path-to-regexp can crash
+// when "*" is used as a route path.
+// =========================================
 
 const allowedOrigins = [
   // Local development
   "http://localhost:3000",
-  "http://localhost:10001",
   "http://localhost:10000",
+  "http://localhost:10001",
 
   "http://127.0.0.1:3000",
-  "http://127.0.0.1:10001",
   "http://127.0.0.1:10000",
+  "http://127.0.0.1:10001",
 
   // Main Vercel deployment
   "https://okocaesar-group2internship.vercel.app",
 
-  // Optional environment variable
-  process.env.FRONTEND_URL
-].filter(Boolean);
-
-// =========================================
-// CHECK WHETHER ORIGIN IS ALLOWED
-// =========================================
-
-function isAllowedOrigin(origin) {
-  if (!origin) {
-    return true;
-  }
-
-  // Exact allowed origins
-  if (allowedOrigins.includes(origin)) {
-    return true;
-  }
-
-  // Allow Vercel preview deployments
-  try {
-    const url = new URL(origin);
-
-    if (
-      url.protocol === "https:" &&
-      url.hostname.endsWith(".vercel.app")
-    ) {
-      return true;
-    }
-  } catch (error) {
-    return false;
-  }
-
-  return false;
-}
+  // Current Vercel deployment URL
+  "https://okocaesar-group2internship-f21au0ck3-okocaesars-projects.vercel.app"
+];
 
 // =========================================
 // CORS OPTIONS
@@ -99,25 +82,27 @@ function isAllowedOrigin(origin) {
 
 const corsOptions = {
   origin: function (origin, callback) {
-    if (isAllowedOrigin(origin)) {
-      console.log(
-        "CORS ALLOWED:",
-        origin || "NO ORIGIN"
-      );
+    // Allow requests without an Origin header.
+    //
+    // This is useful for:
+    // - Render health checks
+    // - Postman
+    // - server-to-server requests
+    // - direct browser navigation
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      console.log("CORS ALLOWED:", origin);
 
       return callback(null, true);
     }
 
-    console.log(
-      "CORS BLOCKED:",
-      origin
-    );
+    console.log("CORS BLOCKED:", origin);
 
-    return callback(
-      new Error(
-        `CORS blocked origin: ${origin}`
-      )
-    );
+    // Return false instead of throwing an error.
+    return callback(null, false);
   },
 
   credentials: true,
@@ -138,8 +123,7 @@ const corsOptions = {
     "Origin",
     "X-Requested-With",
     "Cache-Control",
-    "Pragma",
-    "Expires"
+    "Pragma"
   ],
 
   exposedHeaders: [
@@ -153,11 +137,19 @@ const corsOptions = {
 // =========================================
 // APPLY CORS
 // =========================================
+//
+// IMPORTANT:
+// We use the middleware globally.
+//
+// DO NOT add:
+//
+// app.options("*", cors(corsOptions));
+//
+// That causes the Express 5 path-to-regexp
+// crash seen in your Render logs.
+// =========================================
 
 app.use(cors(corsOptions));
-
-// Explicit OPTIONS handler
-app.options(cors(corsOptions));
 
 // =========================================
 // BODY PARSER
@@ -169,17 +161,12 @@ app.use(
   })
 );
 
-// =========================================
-// REQUEST LOGGER
-// =========================================
-
-app.use((req, res, next) => {
-  console.log(
-    `${new Date().toISOString()} ${req.method} ${req.originalUrl}`
-  );
-
-  next();
-});
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: "10mb"
+  })
+);
 
 // =========================================
 // SOCKET.IO
@@ -187,17 +174,7 @@ app.use((req, res, next) => {
 
 const io = new Server(server, {
   cors: {
-    origin: function (origin, callback) {
-      if (isAllowedOrigin(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(
-        new Error(
-          `Socket.IO CORS blocked origin: ${origin}`
-        )
-      );
-    },
+    origin: allowedOrigins,
 
     methods: [
       "GET",
@@ -358,6 +335,7 @@ io.on(
 
     // =======================================
     // SEND MESSAGE HISTORY
+    // ONLY TO NEW USER
     // =======================================
 
     socket.emit(
@@ -366,7 +344,7 @@ io.on(
     );
 
     // =======================================
-    // ONLINE COUNT
+    // SEND ONLINE COUNT
     // =======================================
 
     io.emit(
@@ -375,7 +353,7 @@ io.on(
     );
 
     // =======================================
-    // ONLINE USERS
+    // SEND ONLINE USERS
     // =======================================
 
     io.emit(
@@ -462,6 +440,7 @@ io.on(
           // ===================================
 
           const communityMessage = {
+
             id:
               `${Date.now()}-${socket.id}`,
 
@@ -474,7 +453,6 @@ io.on(
               "BusGo User",
 
             message:
-
               message,
 
             created_at:
@@ -524,6 +502,7 @@ io.on(
 
           // ===================================
           // SEND TO EVERYONE
+          // INCLUDING SENDER
           // ===================================
 
           io.emit(
@@ -532,13 +511,14 @@ io.on(
           );
 
           // ===================================
-          // ACKNOWLEDGE
+          // ACKNOWLEDGE SENDER
           // ===================================
 
           if (
             typeof acknowledgement ===
             "function"
           ) {
+
             acknowledgement({
               success: true,
               message:
@@ -557,6 +537,7 @@ io.on(
             typeof acknowledgement ===
             "function"
           ) {
+
             acknowledgement({
               success: false,
               message:
@@ -654,6 +635,8 @@ app.get(
 
     res.status(200).json({
 
+      success: true,
+
       message:
         "BusGo server is working correctly.",
 
@@ -662,6 +645,9 @@ app.get(
 
       community:
         "Community chat is enabled.",
+
+      environment:
+        process.env.NODE_ENV || "production",
 
       time:
         new Date().toISOString()
@@ -743,6 +729,8 @@ app.post(
 
     res.status(200).json({
 
+      success: true,
+
       message:
         "Authentication route system is working.",
 
@@ -760,7 +748,7 @@ app.get(
   "/",
   (req, res) => {
 
-    res.send(
+    res.status(200).send(
       "BusGo API Server Running - Socket.IO Enabled"
     );
   }
@@ -797,6 +785,8 @@ app.use(
 
     res.status(404).json({
 
+      success: false,
+
       message:
         "API route not found",
 
@@ -818,17 +808,22 @@ app.use(
       err
     );
 
+    // CORS errors
     if (
+      err &&
       err.message &&
-      err.message.startsWith("CORS blocked")
+      err.message.toLowerCase().includes("cors")
     ) {
       return res.status(403).json({
+        success: false,
         message:
-          "CORS policy blocked this request."
+          "Request blocked by CORS policy."
       });
     }
 
     res.status(500).json({
+
+      success: false,
 
       message:
         "Internal server error."
@@ -838,6 +833,8 @@ app.use(
 
 // =========================================
 // START SERVER
+// IMPORTANT:
+// DO NOT USE app.listen()
 // =========================================
 
 const PORT =
