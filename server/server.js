@@ -157,7 +157,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Explicit OPTIONS handler
-app.options("*", cors(corsOptions));
+app.options(cors(corsOptions));
 
 // =========================================
 // BODY PARSER
