@@ -1,107 +1,51 @@
 /* =========================================================
-   GLOBAL RESET
+   BUSGO NAVBAR
+   HOME ONLY
+   DESKTOP + MOBILE
    ========================================================= */
-
-html,
-body,
-#root {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  min-height: 100%;
-}
-
-html {
-  overflow-x: hidden;
-}
-
-body {
-  overflow-x: hidden;
-}
-
-#root {
-  position: relative;
-}
 
 
 /* =========================================================
-   BUSGO NAVBAR
-   RESPONSIVE + MOBILE BOTTOM NAV
+   GLOBAL BOX SIZING
    ========================================================= */
 
 .navbar,
-.navbar *,
-.mobile-bottom-nav,
-.mobile-bottom-nav * {
+.navbar * {
   box-sizing: border-box;
 }
 
 
 /* =========================================================
-   REMOVE DEFAULT PAGE WHITESPACE
-   ========================================================= */
-
-html,
-body,
-#root {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  min-width: 0;
-}
-
-body {
-  overflow-x: hidden;
-}
-
-
-/*
-  The fixed navbar does NOT take up layout space.
-  This prevents the large white area that can appear
-  above the app content.
-*/
-
-body {
-  padding-top: 0 !important;
-}
-
-
-/* =========================================================
-   DESKTOP NAVBAR
+   NAVBAR
    ========================================================= */
 
 .navbar {
+  position: fixed;
+
+  top: 0;
+  left: 0;
+
   width: 100%;
   height: 76px;
 
-  position: fixed;
-  top: 0;
-  left: 0;
+  padding: 0 clamp(18px, 5vw, 70px);
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  padding: 0 clamp(16px, 5vw, 70px);
-
   background: rgba(255, 255, 255, 0.97);
+
+  border-bottom: 1px solid rgba(4, 108, 52, 0.08);
 
   box-shadow:
     0 3px 18px rgba(0, 0, 0, 0.08);
 
   z-index: 9999;
 
-  transform: translateY(0);
-
   transition:
-    transform 0.28s ease,
-    box-shadow 0.28s ease;
-
-  will-change: transform;
-}
-
-.navbar.navbar-hidden {
-  transform: translateY(-110%);
+    background 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
 
@@ -109,66 +53,66 @@ body {
    LOGO
    ========================================================= */
 
-.logo {
+.navbar-logo {
   display: flex;
+
   align-items: center;
   justify-content: center;
 
   flex-shrink: 0;
 
   text-decoration: none;
+
+  height: 100%;
 }
 
-.logo-img {
-  width: clamp(130px, 17vw, 220px);
-  height: 68px;
 
+.navbar-logo-img {
   display: block;
+
+  width: clamp(130px, 17vw, 220px);
+
+  height: 68px;
 
   object-fit: contain;
 }
 
 
 /* =========================================================
-   DESKTOP MENU
+   HOME CONTAINER
    ========================================================= */
 
-.navbar-menu {
+.navbar-home {
   display: flex;
+
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
 
-  gap: clamp(12px, 2.2vw, 35px);
-
-  min-width: 0;
+  flex-shrink: 0;
 }
 
 
 /* =========================================================
-   DESKTOP LINKS
+   HOME LINK
    ========================================================= */
 
-.nav-links {
-  display: flex;
-  align-items: center;
-
-  gap: clamp(12px, 1.8vw, 30px);
-}
-
-.nav-links a {
+.navbar-home-link {
   position: relative;
 
   display: inline-flex;
+
   align-items: center;
+  justify-content: center;
 
   padding: 8px 2px;
 
   text-decoration: none;
 
-  color: #222;
+  color: #222222;
 
-  font-size: clamp(13px, 1.1vw, 15px);
-  font-weight: 600;
+  font-size: clamp(14px, 1.1vw, 16px);
+
+  font-weight: 700;
 
   white-space: nowrap;
 
@@ -177,22 +121,38 @@ body {
     transform 0.25s ease;
 }
 
-.nav-links a:hover {
+
+/* =========================================================
+   HOME HOVER
+   ========================================================= */
+
+.navbar-home-link:hover {
   color: #046c34;
+
   transform: translateY(-1px);
 }
 
-.nav-links a.active {
+
+/* =========================================================
+   HOME ACTIVE
+   ========================================================= */
+
+.navbar-home-link.active {
   color: #046c34;
 }
 
-.nav-links a.active::after {
+
+/* =========================================================
+   ACTIVE UNDERLINE
+   ========================================================= */
+
+.navbar-home-link.active::after {
   content: "";
 
   position: absolute;
 
   left: 0;
-  bottom: -5px;
+  bottom: -6px;
 
   width: 100%;
   height: 3px;
@@ -200,256 +160,6 @@ body {
   background: #046c34;
 
   border-radius: 10px;
-}
-
-
-/* =========================================================
-   DESKTOP AUTH BUTTONS
-   ========================================================= */
-
-.auth-buttons {
-  display: flex;
-  align-items: center;
-
-  gap: 8px;
-
-  flex-shrink: 0;
-}
-
-.auth-buttons a {
-  text-decoration: none;
-}
-
-
-/* =========================================================
-   LOGIN
-   ========================================================= */
-
-.login-btn {
-  min-width: 90px;
-  height: 42px;
-
-  padding: 0 17px;
-
-  border: 2px solid #046c34;
-  border-radius: 11px;
-
-  background: #ffffff;
-  color: #046c34;
-
-  font-size: 14px;
-  font-weight: 700;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  cursor: pointer;
-
-  transition:
-    background 0.25s ease,
-    color 0.25s ease,
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
-}
-
-.login-btn:hover {
-  background: #046c34;
-  color: #ffffff;
-
-  transform: translateY(-2px);
-
-  box-shadow:
-    0 6px 15px rgba(4, 108, 52, 0.22);
-}
-
-
-/* =========================================================
-   SIGNUP / LOGOUT
-   ========================================================= */
-
-.signup-btn {
-  min-width: 100px;
-  height: 42px;
-
-  padding: 0 17px;
-
-  border: 2px solid #046c34;
-  border-radius: 11px;
-
-  background: #046c34;
-  color: #ffffff;
-
-  font-size: 14px;
-  font-weight: 700;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  cursor: pointer;
-
-  box-shadow:
-    0 5px 12px rgba(4, 108, 52, 0.18);
-
-  transition:
-    background 0.25s ease,
-    border-color 0.25s ease,
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
-}
-
-.signup-btn:hover {
-  background: #03562b;
-  border-color: #03562b;
-
-  transform: translateY(-2px);
-
-  box-shadow:
-    0 8px 18px rgba(4, 108, 52, 0.28);
-}
-
-
-/* =========================================================
-   NOTIFICATION BUTTON
-   ========================================================= */
-
-.notification-button {
-  position: relative;
-
-  width: 42px;
-  height: 42px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border: 1px solid #d9eadf;
-  border-radius: 11px;
-
-  background: #f2f8f4;
-
-  cursor: pointer;
-
-  transition:
-    background 0.25s ease,
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
-}
-
-.notification-button:hover {
-  background: #e1f0e7;
-
-  transform: translateY(-2px);
-
-  box-shadow:
-    0 5px 12px rgba(4, 108, 52, 0.12);
-}
-
-.notification-icon {
-  font-size: 19px;
-  line-height: 1;
-}
-
-.notification-badge {
-  position: absolute;
-
-  top: -5px;
-  right: -5px;
-
-  min-width: 19px;
-  height: 19px;
-
-  padding: 0 5px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 20px;
-
-  background: #d62828;
-  color: #ffffff;
-
-  font-size: 10px;
-  font-weight: 700;
-
-  border: 2px solid #ffffff;
-}
-
-
-/* =========================================================
-   HAMBURGER
-   ========================================================= */
-
-.menu-toggle {
-  display: none;
-
-  width: 44px;
-  height: 44px;
-
-  padding: 8px;
-
-  border: none;
-  border-radius: 10px;
-
-  background: #f2f8f4;
-
-  cursor: pointer;
-
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  gap: 5px;
-
-  flex-shrink: 0;
-}
-
-.menu-toggle span {
-  display: block;
-
-  width: 25px;
-  height: 3px;
-
-  background: #046c34;
-
-  border-radius: 5px;
-
-  transition:
-    transform 0.3s ease,
-    opacity 0.3s ease;
-}
-
-.menu-toggle:hover {
-  background: #e1f0e7;
-}
-
-.menu-toggle.open span:nth-child(1) {
-  transform:
-    translateY(8px)
-    rotate(45deg);
-}
-
-.menu-toggle.open span:nth-child(2) {
-  opacity: 0;
-}
-
-.menu-toggle.open span:nth-child(3) {
-  transform:
-    translateY(-8px)
-    rotate(-45deg);
-}
-
-
-/* =========================================================
-   MOBILE ELEMENTS HIDDEN BY DEFAULT
-   ========================================================= */
-
-.mobile-bottom-nav,
-.mobile-menu-content,
-.mobile-top-header {
-  display: none;
 }
 
 
@@ -461,32 +171,21 @@ body {
 
   .navbar {
     height: 72px;
-    padding: 0 22px;
+
+    padding: 0 24px;
   }
 
-  .logo-img {
+
+  .navbar-logo-img {
     width: 175px;
+
     height: 64px;
   }
 
-  .navbar-menu {
-    gap: 12px;
-  }
 
-  .nav-links {
-    gap: 14px;
+  .navbar-home-link {
+    font-size: 14px;
   }
-
-  .nav-links a {
-    font-size: 13px;
-  }
-
-  .login-btn,
-  .signup-btn {
-    min-width: 82px;
-    padding: 0 12px;
-  }
-
 }
 
 
@@ -496,29 +195,6 @@ body {
 
 @media (max-width: 800px) {
 
-  /* =======================================================
-     REMOVE TOP WHITESPACE
-     ======================================================= */
-
-  html,
-  body,
-  #root {
-    margin: 0 !important;
-    padding: 0 !important;
-    width: 100%;
-    min-height: 100%;
-  }
-
-  body {
-    padding-top: 0 !important;
-    padding-bottom: 76px !important;
-  }
-
-
-  /* =======================================================
-     TOP MOBILE HEADER
-     ======================================================= */
-
   .navbar {
     position: fixed;
 
@@ -526,36 +202,30 @@ body {
     left: 0;
 
     width: 100%;
+
     height: 64px;
 
-    padding: 0 12px;
+    padding: 0 14px;
 
     background: #ffffff;
 
     box-shadow:
       0 3px 15px rgba(0, 0, 0, 0.10);
 
-    transform: translateY(0) !important;
-
-    transition: none !important;
-
     z-index: 10000;
   }
 
 
   /* =======================================================
-     LOGO
+     MOBILE LOGO
      ======================================================= */
 
-  .navbar > .logo {
-    display: flex;
-
-    align-items: center;
-
-    max-width: calc(100% - 58px);
+  .navbar-logo {
+    height: 64px;
   }
 
-  .logo-img {
+
+  .navbar-logo-img {
     width: clamp(125px, 38vw, 155px);
 
     height: 56px;
@@ -565,496 +235,25 @@ body {
 
 
   /* =======================================================
-     HAMBURGER
+     MOBILE HOME
      ======================================================= */
 
-  .navbar > .menu-toggle {
-    display: flex;
-
-    width: 42px;
-    height: 42px;
-
-    position: relative;
-
-    z-index: 10002;
+  .navbar-home {
+    height: 64px;
   }
 
 
-  /* =======================================================
-     MOBILE HALF-SCREEN MENU CONTAINER
-     ======================================================= */
-
-  .navbar > .navbar-menu {
-    position: fixed;
-
-    top: 64px;
-
-    right: 0;
-    left: auto;
-
-    /*
-      Menu occupies approximately half the screen.
-      max/min widths prevent it from becoming too small
-      or excessively wide on different phones.
-    */
-    width: 50%;
-    min-width: 240px;
-    max-width: 320px;
-
-    max-height: calc(100vh - 64px);
-
-    display: none;
-
-    padding: 0;
-
-    overflow: hidden;
-
-    background: transparent;
-
-    box-shadow: none;
-
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-
-    transform: translateX(20px);
-
-    transition:
-      opacity 0.22s ease,
-      transform 0.22s ease;
-  }
-
-
-  /* =======================================================
-     OPEN HALF-SCREEN MENU
-     ======================================================= */
-
-  .navbar > .navbar-menu.menu-open {
-    display: block;
-
-    max-height: calc(100vh - 64px);
-
-    padding: 12px;
-
-    overflow-y: auto;
-
-    background: #ffffff;
-
-    box-shadow:
-      -8px 10px 30px rgba(0, 0, 0, 0.15);
-
-    opacity: 1;
-
-    visibility: visible;
-
-    pointer-events: auto;
-
-    transform: translateX(0);
-  }
-
-
-  /* =======================================================
-     HIDE DESKTOP CONTENT
-     ======================================================= */
-
-  .navbar-menu > .nav-links,
-  .navbar-menu > .auth-buttons {
-    display: none;
-  }
-
-
-  /* =======================================================
-     MOBILE MENU CONTENT
-     ======================================================= */
-
-  .navbar-menu.menu-open .mobile-menu-content {
-    display: flex;
-
-    width: 100%;
-
-    flex-direction: column;
-
-    gap: 8px;
-  }
-
-
-  /* =======================================================
-     MOBILE MENU ITEMS
-     ======================================================= */
-
-  .mobile-menu-item {
-    width: 100%;
-
-    min-height: 52px;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-
-    padding: 11px 13px;
-
-    border: 1px solid #e2eee6;
-
-    border-radius: 12px;
-
-    background: #f7fbf8;
-
-    color: #222222;
-
+  .navbar-home-link {
     font-size: 14px;
 
-    font-weight: 600;
-
-    cursor: pointer;
-
-    text-align: left;
-
-    transition:
-      background 0.2s ease,
-      transform 0.2s ease,
-      border-color 0.2s ease;
-  }
-
-  .mobile-menu-item:hover {
-    background: #eaf6ef;
-
-    border-color: #c9e2d2;
-
-    transform: translateX(2px);
+    padding: 7px 2px;
   }
 
 
-  /* =======================================================
-     MENU ICON
-     ======================================================= */
+  .navbar-home-link.active::after {
+    bottom: -5px;
 
-  .mobile-menu-icon {
-    width: 28px;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    font-size: 19px;
-
-    flex-shrink: 0;
-  }
-
-
-  /* =======================================================
-     MENU LABEL
-     ======================================================= */
-
-  .mobile-menu-label {
-    flex: 1;
-
-    min-width: 0;
-  }
-
-
-  /* =======================================================
-     MENU ARROW
-     ======================================================= */
-
-  .mobile-menu-value {
-    color: #046c34;
-
-    font-size: 20px;
-
-    font-weight: 700;
-  }
-
-
-  /* =======================================================
-     MENU BADGE
-     ======================================================= */
-
-  .mobile-menu-badge {
-    min-width: 21px;
-    height: 21px;
-
-    padding: 0 6px;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 20px;
-
-    background: #d62828;
-    color: #ffffff;
-
-    font-size: 10px;
-    font-weight: 700;
-  }
-
-
-  /* =======================================================
-     APP VERSION
-     ======================================================= */
-
-  .mobile-version-item {
-    cursor: default;
-  }
-
-  .mobile-version-item:hover {
-    transform: none;
-  }
-
-  .mobile-menu-version {
-    color: #046c34;
-
-    font-size: 11px;
-
-    font-weight: 800;
-
-    padding: 5px 8px;
-
-    border-radius: 7px;
-
-    background: #e8f5ed;
-
-    white-space: nowrap;
-  }
-
-
-  /* =======================================================
-     LOGOUT
-     ======================================================= */
-
-  .mobile-logout-item {
-    margin-top: 4px;
-
-    background: #fff4f4;
-
-    border-color: #f0cccc;
-
-    color: #c62828;
-  }
-
-  .mobile-logout-item:hover {
-    background: #ffe7e7;
-
-    border-color: #e8bcbc;
-  }
-
-
-  /* =======================================================
-     MOBILE BOTTOM NAVIGATION
-     ======================================================= */
-
-  .mobile-bottom-nav {
-    position: fixed;
-
-    left: 0;
-    right: 0;
-    bottom: 0;
-
-    width: 100%;
-    height: 72px;
-
-    display: flex;
-    align-items: stretch;
-
-    padding:
-      5px 3px
-      env(safe-area-inset-bottom, 0px);
-
-    background: #ffffff;
-
-    border-top: 1px solid #e2e8e4;
-
-    box-shadow:
-      0 -5px 20px
-      rgba(0, 0, 0, 0.10);
-
-    z-index: 9998;
-
-    transform: none !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-
-
-  /* =======================================================
-     EACH BOTTOM NAV BUTTON
-     ======================================================= */
-
-  .mobile-bottom-nav-item {
-    position: relative;
-
-    flex: 1 1 0;
-
-    min-width: 0;
-
-    height: 62px;
-
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 2px;
-
-    padding: 4px 2px;
-
-    border-radius: 11px;
-
-    text-decoration: none;
-
-    color: #7b8580;
-
-    font-size: 9px;
-
-    font-weight: 600;
-
-    overflow: hidden;
-
-    transition:
-      background 0.2s ease,
-      color 0.2s ease,
-      transform 0.2s ease;
-  }
-
-
-  /* =======================================================
-     ICON
-     ======================================================= */
-
-  .mobile-bottom-nav-icon {
-    position: relative;
-
-    width: 100%;
-
-    height: 30px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    font-size: 20px;
-
-    line-height: 1;
-  }
-
-
-  /* =======================================================
-     LABEL
-     ======================================================= */
-
-  .mobile-bottom-nav-label {
-    display: block;
-
-    line-height: 1;
-
-    white-space: nowrap;
-
-    font-size: 9px;
-  }
-
-
-  /* =======================================================
-     ACTIVE BUTTON
-     ======================================================= */
-
-  .mobile-bottom-nav-item.active {
-    color: #046c34;
-
-    background: #eaf6ef;
-  }
-
-
-  /* =======================================================
-     ACTIVE ICON
-     ======================================================= */
-
-  .mobile-bottom-nav-item.active
-  .mobile-bottom-nav-icon {
-    font-size: 19px;
-  }
-
-
-  /* =======================================================
-     NOTIFICATION BADGE
-     ======================================================= */
-
-  .mobile-bottom-nav-notification-badge {
-    position: absolute;
-
-    top: -5px;
-    right: calc(50% - 18px);
-
-    min-width: 16px;
-    height: 16px;
-
-    padding: 0 4px;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 20px;
-
-    background: #d62828;
-
-    color: #ffffff;
-
-    border: 2px solid #ffffff;
-
-    font-size: 8px;
-
-    font-weight: 800;
-
-    line-height: 1;
-  }
-
-
-  /* =======================================================
-     HOVER
-     ======================================================= */
-
-  .mobile-bottom-nav-item:hover {
-    color: #046c34;
-
-    background: #f2f8f4;
-  }
-
-
-  /* =======================================================
-     PRESS
-     ======================================================= */
-
-  .mobile-bottom-nav-item:active {
-    transform: scale(0.96);
-  }
-
-
-  /* =======================================================
-     CONTENT CLEARANCE
-     ======================================================= */
-
-  body {
-    padding-bottom: 78px;
-  }
-
-
-  /* =======================================================
-     AUTH PAGE HIDE
-     ======================================================= */
-
-  body:has(.auth-page) .mobile-bottom-nav,
-  body:has(.verify-otp-page) .mobile-bottom-nav {
-    display: none !important;
+    height: 3px;
   }
 }
 
@@ -1068,63 +267,29 @@ body {
   .navbar {
     height: 60px;
 
-    padding:
-      0 10px;
+    padding: 0 10px;
   }
 
-  .logo-img {
+
+  .navbar-logo {
+    height: 60px;
+  }
+
+
+  .navbar-logo-img {
     width: 135px;
+
     height: 52px;
   }
 
-  .menu-toggle {
-    width: 40px;
-    height: 40px;
+
+  .navbar-home {
+    height: 60px;
   }
 
 
-  /* =======================================================
-     SMALL PHONE HALF-SCREEN MENU
-     ======================================================= */
-
-  .navbar > .navbar-menu {
-    top: 60px;
-
-    right: 0;
-    left: auto;
-
-    width: 50%;
-    min-width: 220px;
-    max-width: 300px;
-
-    max-height: calc(100vh - 60px);
-  }
-
-  .navbar > .navbar-menu.menu-open {
-    max-height: calc(100vh - 60px);
-
-    padding: 10px;
-  }
-
-  .mobile-menu-item {
-    min-height: 50px;
-
-    padding:
-      10px 12px;
-
+  .navbar-home-link {
     font-size: 13px;
-  }
-
-  .mobile-bottom-nav {
-    height: 68px;
-  }
-
-  .mobile-bottom-nav-item {
-    height: 57px;
-  }
-
-  body {
-    padding-bottom: 72px !important;
   }
 }
 
@@ -1138,160 +303,29 @@ body {
   .navbar {
     height: 58px;
 
-    padding:
-      0 8px;
-  }
-
-  .logo-img {
-    width: 125px;
-    height: 50px;
-  }
-
-  .menu-toggle {
-    width: 38px;
-    height: 38px;
+    padding: 0 8px;
   }
 
 
-  /* =======================================================
-     VERY SMALL PHONE HALF-SCREEN MENU
-     ======================================================= */
-
-  .navbar > .navbar-menu {
-    top: 58px;
-
-    right: 0;
-    left: auto;
-
-    width: 50%;
-    min-width: 210px;
-    max-width: 280px;
-
-    max-height: calc(100vh - 58px);
-  }
-
-  .navbar > .navbar-menu.menu-open {
-    max-height: calc(100vh - 58px);
-
-    padding: 8px;
-  }
-
-  .mobile-menu-item {
-    min-height: 48px;
-
-    padding:
-      9px 10px;
-
-    font-size: 12px;
-  }
-
-  .mobile-menu-icon {
-    width: 26px;
-
-    font-size: 17px;
-  }
-
-  .mobile-bottom-nav {
-    height: 65px;
-  }
-
-  .mobile-bottom-nav-item {
-    height: 55px;
-
-    border-radius: 8px;
-  }
-
-  .mobile-bottom-nav-icon {
-    font-size: 19px;
-  }
-
-  .mobile-bottom-nav-item.active
-  .mobile-bottom-nav-icon {
-    font-size: 17px;
-  }
-
-  .mobile-bottom-nav-item.active
-  .mobile-bottom-nav-label {
-    font-size: 8px;
-  }
-
-  body {
-    padding-bottom: 69px !important;
-  }
-}
-
-
-/* =========================================================
-   LANDSCAPE PHONES
-   ========================================================= */
-
-@media
-(max-width: 800px)
-and
-(orientation: landscape) {
-
-  .navbar {
-    height: 56px;
-  }
-
-  .logo-img {
-    height: 48px;
-  }
-
-  .menu-toggle {
-    width: 38px;
-    height: 38px;
-  }
-
-
-  /* =======================================================
-     LANDSCAPE HALF-SCREEN MENU
-     ======================================================= */
-
-  .navbar > .navbar-menu {
-    top: 56px;
-
-    right: 0;
-    left: auto;
-
-    width: 50%;
-    min-width: 240px;
-    max-width: 340px;
-
-    max-height:
-      calc(100vh - 56px);
-  }
-
-  .navbar > .navbar-menu.menu-open {
-    max-height:
-      calc(100vh - 56px);
-  }
-
-  .mobile-menu-item {
-    min-height: 44px;
-  }
-
-  .mobile-bottom-nav {
+  .navbar-logo {
     height: 58px;
   }
 
-  .mobile-bottom-nav-item {
-    height: 49px;
+
+  .navbar-logo-img {
+    width: 125px;
+
+    height: 50px;
   }
 
-  .mobile-bottom-nav-icon {
-    height: 32px;
-    font-size: 18px;
+
+  .navbar-home {
+    height: 58px;
   }
 
-  .mobile-bottom-nav-item.active
-  .mobile-bottom-nav-icon {
-    height: 21px;
-    font-size: 17px;
-  }
 
-  body {
-    padding-bottom: 62px !important;
+  .navbar-home-link {
+    font-size: 12px;
   }
 }
 
@@ -1304,171 +338,42 @@ html[data-theme="dark"] .navbar,
 body.dark-mode .navbar {
   background: rgba(18, 27, 22, 0.98);
 
+  border-bottom-color: rgba(73, 201, 129, 0.12);
+
   box-shadow:
     0 3px 18px rgba(0, 0, 0, 0.30);
 }
 
-html[data-theme="dark"] .nav-links a,
-body.dark-mode .nav-links a {
+
+/* =========================================================
+   DARK MODE HOME
+   ========================================================= */
+
+html[data-theme="dark"] .navbar-home-link,
+body.dark-mode .navbar-home-link {
   color: #edf4ef;
 }
 
-html[data-theme="dark"] .nav-links a:hover,
-body.dark-mode .nav-links a:hover {
-  color: #49c981;
+
+html[data-theme="dark"] .navbar-home-link:hover,
+body.dark-mode .navbar-home-link:hover {
+  color: #55d18b;
 }
 
-html[data-theme="dark"] .nav-links a.active,
-body.dark-mode .nav-links a.active {
-  color: #49c981;
-}
 
-html[data-theme="dark"] .nav-links a.active::after,
-body.dark-mode .nav-links a.active::after {
-  background: #49c981;
-}
-
-html[data-theme="dark"] .login-btn,
-body.dark-mode .login-btn {
-  background: #18231d;
-
-  border-color: #3e7655;
-
-  color: #5ed18e;
-}
-
-html[data-theme="dark"] .login-btn:hover,
-body.dark-mode .login-btn:hover {
-  background: #0b7d45;
-
-  border-color: #0b7d45;
-
-  color: #ffffff;
-}
-
-html[data-theme="dark"] .notification-button,
-body.dark-mode .notification-button {
-  background: #1b2a21;
-
-  border-color: #385341;
-}
-
-html[data-theme="dark"] .notification-button:hover,
-body.dark-mode .notification-button:hover {
-  background: #23392c;
-}
-
-html[data-theme="dark"] .menu-toggle,
-body.dark-mode .menu-toggle {
-  background: #1b2a21;
-}
-
-html[data-theme="dark"] .menu-toggle:hover,
-body.dark-mode .menu-toggle:hover {
-  background: #23392c;
-}
-
-html[data-theme="dark"] .menu-toggle span,
-body.dark-mode .menu-toggle span {
-  background: #52d18b;
+html[data-theme="dark"] .navbar-home-link.active,
+body.dark-mode .navbar-home-link.active {
+  color: #55d18b;
 }
 
 
 /* =========================================================
-   DARK MODE - MOBILE
+   DARK MODE UNDERLINE
    ========================================================= */
 
-@media (max-width: 800px) {
-
-  html[data-theme="dark"]
-  .navbar > .navbar-menu.menu-open,
-
-  body.dark-mode
-  .navbar > .navbar-menu.menu-open {
-    background: #121b16;
-
-    box-shadow:
-      -8px 10px 30px rgba(0, 0, 0, 0.35);
-  }
-
-  html[data-theme="dark"] .mobile-menu-item,
-  body.dark-mode .mobile-menu-item {
-    background: #19241e;
-
-    border-color: #304237;
-
-    color: #edf4ef;
-  }
-
-  html[data-theme="dark"] .mobile-menu-item:hover,
-  body.dark-mode .mobile-menu-item:hover {
-    background: #21362a;
-
-    border-color: #41604d;
-  }
-
-  html[data-theme="dark"] .mobile-menu-value,
-  body.dark-mode .mobile-menu-value {
-    color: #55d18b;
-  }
-
-  html[data-theme="dark"] .mobile-menu-version,
-  body.dark-mode .mobile-menu-version {
-    background: #20392a;
-
-    color: #55d18b;
-  }
-
-  html[data-theme="dark"] .mobile-logout-item,
-  body.dark-mode .mobile-logout-item {
-    background: #2a1919;
-
-    border-color: #553333;
-
-    color: #ff9696;
-  }
-
-  html[data-theme="dark"] .mobile-logout-item:hover,
-  body.dark-mode .mobile-logout-item:hover {
-    background: #351d1d;
-
-    border-color: #6b3d3d;
-  }
-
-  html[data-theme="dark"] .mobile-bottom-nav,
-  body.dark-mode .mobile-bottom-nav {
-    background: #121b16;
-
-    border-top-color: #2d3c33;
-
-    box-shadow:
-      0 -5px 20px rgba(0, 0, 0, 0.35);
-  }
-
-  html[data-theme="dark"] .mobile-bottom-nav-item,
-  body.dark-mode .mobile-bottom-nav-item {
-    color: #9eaba3;
-  }
-
-  html[data-theme="dark"]
-  .mobile-bottom-nav-item.active,
-
-  body.dark-mode
-  .mobile-bottom-nav-item.active {
-    background: #20392a;
-
-    color: #55d18b;
-  }
-
-  html[data-theme="dark"]
-  .mobile-bottom-nav-item:hover,
-
-  body.dark-mode
-  .mobile-bottom-nav-item:hover {
-    background: #1b3023;
-
-    color: #55d18b;
-  }
+html[data-theme="dark"] .navbar-home-link.active::after,
+body.dark-mode .navbar-home-link.active::after {
+  background: #55d18b;
 }
 
 
@@ -1479,14 +384,7 @@ body.dark-mode .menu-toggle span {
 @media (prefers-reduced-motion: reduce) {
 
   .navbar,
-  .nav-links a,
-  .login-btn,
-  .signup-btn,
-  .menu-toggle,
-  .menu-toggle span,
-  .mobile-menu-item,
-  .mobile-bottom-nav-item,
-  .mobile-bottom-nav-icon {
+  .navbar-home-link {
     transition: none !important;
   }
 }
