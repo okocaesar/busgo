@@ -11,16 +11,14 @@ import "./AppUpdate.css";
 //
 // IMPORTANT:
 //
-// This value represents the version of the
-// frontend bundle currently installed.
-//
-// Whenever you publish a NEW frontend build,
-// change this version.
+// Whenever you deploy a new frontend build,
+// increase this version.
 //
 // Example:
 //
-// 1.0.1 → current installed version
-// 1.0.2 → new deployed version
+// 1.0.1 -> current version
+// 1.0.2 -> next version
+// 1.0.3 -> next version
 //
 // =========================================
 
@@ -31,9 +29,7 @@ const BUSGO_APP_VERSION = "1.0.1";
 // =========================================
 
 function AppUpdate({ children }) {
-
-  const [checking, setChecking] =
-    useState(true);
+  const [checking, setChecking] = useState(true);
 
   const [updateRequired, setUpdateRequired] =
     useState(false);
@@ -46,37 +42,37 @@ function AppUpdate({ children }) {
   // =========================================
 
   useEffect(() => {
-
     let mounted = true;
 
     const checkVersion = async () => {
-
       try {
-
         // =====================================
-        // REQUEST CURRENT SERVER VERSION
+        // REQUEST SERVER VERSION
+        // =====================================
+        //
+        // IMPORTANT:
+        //
+        // Do NOT manually send Cache-Control
+        // or Pragma headers here.
+        //
+        // They were causing:
+        //
+        // "Request header field cache-control
+        // is not allowed..."
+        //
         // =====================================
 
-        const response =
-          await axios.get(
-            `${API_URL}/api/version`,
-            {
-              timeout: 5000,
+        const response = await axios.get(
+          `${API_URL}/api/version`,
+          {
+            timeout: 10000,
 
-              // Prevent browser/proxy caching
-              // of the version response.
-              headers: {
-                "Cache-Control":
-                  "no-cache",
-                "Pragma":
-                  "no-cache"
-              },
-
-              params: {
-                t: Date.now()
-              }
+            params: {
+              version: BUSGO_APP_VERSION,
+              t: Date.now()
             }
-          );
+          }
+        );
 
         if (!mounted) {
           return;
@@ -91,7 +87,6 @@ function AppUpdate({ children }) {
 
         const latestVersion =
           serverData.currentVersion ||
-          serverData.minimumVersion ||
           BUSGO_APP_VERSION;
 
         const minimumVersion =
@@ -99,7 +94,7 @@ function AppUpdate({ children }) {
           latestVersion;
 
         // =====================================
-        // VERSION LOG
+        // LOG VERSION INFORMATION
         // =====================================
 
         console.log(
@@ -116,7 +111,7 @@ function AppUpdate({ children }) {
         );
 
         console.log(
-          "Latest version:",
+          "Server version:",
           latestVersion
         );
 
@@ -126,17 +121,16 @@ function AppUpdate({ children }) {
         );
 
         console.log(
+          "Server says update required:",
+          serverData.updateRequired
+        );
+
+        console.log(
           "========================================="
         );
 
         // =====================================
-        // DETERMINE WHETHER UPDATE IS NEEDED
-        // =====================================
-        //
-        // The update screen appears ONLY when
-        // the installed version is older than
-        // the server version.
-        //
+        // COMPARE INSTALLED VERSION
         // =====================================
 
         const installedIsOlder =
@@ -146,13 +140,7 @@ function AppUpdate({ children }) {
           ) < 0;
 
         // =====================================
-        // MINIMUM VERSION CHECK
-        // =====================================
-        //
-        // If the backend specifies a minimum
-        // supported version, an older frontend
-        // must update.
-        //
+        // CHECK MINIMUM VERSION
         // =====================================
 
         const belowMinimum =
@@ -162,46 +150,46 @@ function AppUpdate({ children }) {
           ) < 0;
 
         // =====================================
-        // UPDATE REQUIRED
+        // FINAL UPDATE DECISION
+        // =====================================
+        //
+        // We calculate this locally instead of
+        // blindly trusting updateRequired.
+        //
+        // This prevents a backend mistake from
+        // forcing every user to update.
+        //
         // =====================================
 
-        if (
+        const shouldUpdate =
           installedIsOlder ||
-          belowMinimum
-        ) {
+          belowMinimum;
 
+        if (shouldUpdate) {
           setUpdateData({
             ...serverData,
 
             currentVersion:
               latestVersion,
 
-            minimumVersion
+            minimumVersion:
+              minimumVersion
           });
 
           setUpdateRequired(true);
-
         } else {
-
-          // ===================================
-          // CURRENT VERSION
-          // ===================================
-
           setUpdateData(null);
 
           setUpdateRequired(false);
-
         }
 
       } catch (error) {
-
         // =====================================
         // VERSION SERVER UNAVAILABLE
         // =====================================
         //
-        // Do NOT block the BusGo application
-        // if the version endpoint is temporarily
-        // unavailable.
+        // Never block BusGo because the version
+        // server is temporarily unavailable.
         //
         // =====================================
 
@@ -211,33 +199,27 @@ function AppUpdate({ children }) {
         );
 
         if (mounted) {
-
           setUpdateRequired(false);
 
           setUpdateData(null);
-
         }
 
       } finally {
-
         if (mounted) {
-
           setChecking(false);
-
         }
-
       }
-
     };
 
     checkVersion();
 
+    // =======================================
+    // CLEANUP
+    // =======================================
+
     return () => {
-
       mounted = false;
-
     };
-
   }, []);
 
   // =========================================
@@ -245,110 +227,119 @@ function AppUpdate({ children }) {
   // =========================================
 
   const updateApp = async () => {
-
     try {
-
       // =====================================
-      // CHECK SERVICE WORKER
+      // SERVICE WORKER
+      // =====================================
+      //
+      // Service worker is OPTIONAL.
+      //
+      // We do NOT depend on it for updating.
+      //
       // =====================================
 
       if (
         "serviceWorker" in navigator
       ) {
+        try {
+          const registrations =
+            await navigator.serviceWorker.getRegistrations();
 
-        const registration =
-          await navigator.serviceWorker
-            .getRegistration();
-
-        if (registration) {
-
-          try {
-
-            await registration.update();
-
-          } catch (error) {
-
-            console.warn(
-              "BusGo service worker update check skipped:",
-              error?.message || error
-            );
-
-          }
-
+          await Promise.all(
+            registrations.map(
+              async (registration) => {
+                try {
+                  await registration.unregister();
+                } catch (error) {
+                  console.warn(
+                    "Unable to unregister BusGo service worker:",
+                    error?.message || error
+                  );
+                }
+              }
+            )
+          );
+        } catch (error) {
+          console.warn(
+            "BusGo service worker cleanup skipped:",
+            error?.message || error
+          );
         }
-
       }
 
-    } catch (error) {
-
-      console.warn(
-        "BusGo service worker update unavailable:",
-        error?.message || error
-      );
-
-    }
-
-    // =========================================
-    // CLEAR BUSGO CACHE
-    // =========================================
-
-    try {
+      // =====================================
+      // CLEAR CACHE STORAGE
+      // =====================================
+      //
+      // Some browsers / service workers can
+      // throw CacheStorage errors.
+      //
+      // Therefore this is completely optional.
+      //
+      // =====================================
 
       if (
         "caches" in window
       ) {
+        try {
+          const cacheNames =
+            await window.caches.keys();
 
-        const cacheNames =
-          await caches.keys();
-
-        await Promise.all(
-          cacheNames.map(
-            (cacheName) =>
-              caches.delete(
-                cacheName
-              )
-          )
-        );
-
+          await Promise.all(
+            cacheNames.map(
+              (cacheName) =>
+                window.caches.delete(
+                  cacheName
+                )
+            )
+          );
+        } catch (error) {
+          console.warn(
+            "BusGo cache cleanup skipped:",
+            error?.message || error
+          );
+        }
       }
 
     } catch (error) {
-
       console.warn(
-        "Unable to clear BusGo cache:",
+        "BusGo update cleanup encountered an issue:",
         error?.message || error
       );
-
     }
 
     // =========================================
-    // FORCE APPLICATION RELOAD
+    // FORCE FRESH APPLICATION LOAD
     // =========================================
     //
-    // The browser will request the latest
-    // deployed BusGo files.
+    // The query parameter prevents the browser
+    // from simply displaying an old cached page.
     //
     // =========================================
 
-    window.location.reload();
+    const currentUrl =
+      new URL(
+        window.location.href
+      );
 
+    currentUrl.searchParams.set(
+      "busgo_update",
+      Date.now().toString()
+    );
+
+    window.location.replace(
+      currentUrl.toString()
+    );
   };
 
   // =========================================
   // CHECKING SCREEN
   // =========================================
-  //
-  // Keep this very short.
-  //
-  // =========================================
 
   if (checking) {
-
     return (
       <div className="app-update-loading">
-
-        <div className="app-update-loader">
-        </div>
+        <div className="app-update-loader"></div>
 
         <h2>
           Checking BusGo...
@@ -357,26 +348,16 @@ function AppUpdate({ children }) {
         <p>
           Checking for the latest version.
         </p>
-
       </div>
     );
-
   }
 
   // =========================================
   // UPDATE REQUIRED
   // =========================================
-  //
-  // This screen ONLY appears when:
-  //
-  // Installed version < server version
-  //
-  // =========================================
 
   if (updateRequired) {
-
     return (
-
       <div className="app-update-screen">
 
         <div className="app-update-card">
@@ -390,7 +371,6 @@ function AppUpdate({ children }) {
           </h1>
 
           <p className="app-update-message">
-
             A newer version of BusGo is
             available.
 
@@ -398,7 +378,6 @@ function AppUpdate({ children }) {
 
             Update now to get the latest
             improvements and features.
-
           </p>
 
           {/* ================================= */}
@@ -408,7 +387,6 @@ function AppUpdate({ children }) {
           <div className="app-version-info">
 
             <div>
-
               <span>
                 Your version
               </span>
@@ -416,11 +394,9 @@ function AppUpdate({ children }) {
               <strong>
                 {BUSGO_APP_VERSION}
               </strong>
-
             </div>
 
             <div>
-
               <span>
                 New version
               </span>
@@ -432,7 +408,6 @@ function AppUpdate({ children }) {
                   "New version"
                 }
               </strong>
-
             </div>
 
           </div>
@@ -446,24 +421,18 @@ function AppUpdate({ children }) {
             className="app-update-button"
             onClick={updateApp}
           >
-
             Update BusGo
-
           </button>
 
           <p className="app-update-note">
-
             Please update BusGo to continue
             using the latest version.
-
           </p>
 
         </div>
 
       </div>
-
     );
-
   }
 
   // =========================================
@@ -471,7 +440,6 @@ function AppUpdate({ children }) {
   // =========================================
 
   return children;
-
 }
 
 // =========================================
@@ -482,15 +450,14 @@ function compareVersions(
   versionA,
   versionB
 ) {
-
   const a =
-    String(versionA)
+    String(versionA || "0.0.0")
       .replace(/^v/i, "")
       .split(".")
       .map(Number);
 
   const b =
-    String(versionB)
+    String(versionB || "0.0.0")
       .replace(/^v/i, "")
       .split(".")
       .map(Number);
@@ -506,41 +473,30 @@ function compareVersions(
     index < length;
     index++
   ) {
-
     const valueA =
-      Number.isFinite(
-        a[index]
-      )
+      Number.isFinite(a[index])
         ? a[index]
         : 0;
 
     const valueB =
-      Number.isFinite(
-        b[index]
-      )
+      Number.isFinite(b[index])
         ? b[index]
         : 0;
 
     if (
       valueA > valueB
     ) {
-
       return 1;
-
     }
 
     if (
       valueA < valueB
     ) {
-
       return -1;
-
     }
-
   }
 
   return 0;
-
 }
 
 export default AppUpdate;

@@ -3,339 +3,239 @@
 // =========================================
 // BUSGO SERVICE WORKER
 // =========================================
+//
+// IMPORTANT
+// -----------------------------------------
+// This service worker is intentionally simple.
+//
+// - Never caches API requests
+// - Never caches external resources
+// - Does NOT use cache-first for new JS/CSS
+// - Always checks the network first
+// - Falls back to cache only when offline
+// - Automatically removes old BusGo caches
+//
+// This prevents old Vercel deployments from
+// being trapped behind stale service-worker
+// caches.
+// =========================================
 
-const CACHE_NAME =
-"busgo-cache-v5";
-
-const OFFLINE_PAGE =
-"/offline.html";
-
-const APP_SHELL = [
-
-"/",
-
-"/index.html",
-
-"/manifest.json",
-
-"/offline.html",
-
-"/icons/icon-192.png"
-
-];
+const CACHE_NAME = "busgo-cache-v6";
+const OFFLINE_PAGE = "/offline.html";
 
 // =========================================
 // INSTALL
 // =========================================
 
-self.addEventListener(
-"install",
-(event) => {
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => {
+        // Only cache the offline page.
+        //
+        // We intentionally do NOT use cache.addAll()
+        // here because one missing file can cause the
+        // entire service worker installation to fail.
 
-
-event.waitUntil(
-
-  caches
-    .open(CACHE_NAME)
-    .then((cache) => {
-
-      return cache.addAll(
-        APP_SHELL
-      );
-
-    })
-
-);
-
-// Activate the new service worker
-// immediately.
-
-self.skipWaiting();
-
-
-}
-);
+        return cache
+          .add(OFFLINE_PAGE)
+          .catch(() => {
+            // Offline page is optional.
+            // Service worker installation should
+            // still succeed if it is unavailable.
+            return undefined;
+          });
+      })
+      .then(() => {
+        // Activate immediately.
+        return self.skipWaiting();
+      })
+  );
+});
 
 // =========================================
 // ACTIVATE
 // =========================================
 
-self.addEventListener(
-"activate",
-(event) => {
-
-
-event.waitUntil(
-
-  caches
-    .keys()
-    .then((cacheNames) => {
-
-      return Promise.all(
-
-        cacheNames
-          .filter(
-            (name) =>
-              name !== CACHE_NAME
-          )
-          .map(
-            (name) =>
-              caches.delete(name)
-          )
-
-      );
-
-    })
-
-);
-
-// Take control of existing pages.
-
-self.clients.claim();
-
-
-}
-);
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches
+      .keys()
+      .then((cacheNames) => {
+        return Promise.all(
+          cacheNames
+            .filter((name) => {
+              return name.startsWith("busgo-") &&
+                name !== CACHE_NAME;
+            })
+            .map((name) => {
+              return caches.delete(name);
+            })
+        );
+      })
+      .then(() => {
+        // Take control of open pages immediately.
+        return self.clients.claim();
+      })
+  );
+});
 
 // =========================================
 // FETCH
 // =========================================
 
-self.addEventListener(
-"fetch",
-(event) => {
+self.addEventListener("fetch", (event) => {
+  const request = event.request;
 
+  // -----------------------------------------
+  // ONLY GET REQUESTS
+  // -----------------------------------------
 
-const request =
-  event.request;
+  if (request.method !== "GET") {
+    return;
+  }
 
-const url =
-  new URL(
-    request.url
-  );
+  // -----------------------------------------
+  // ONLY HTTP / HTTPS
+  // -----------------------------------------
 
-// =====================================
-// IGNORE NON-HTTP REQUESTS
-// =====================================
+  const url = new URL(request.url);
 
-if (
-  url.protocol !== "http:" &&
-  url.protocol !== "https:"
-) {
+  if (
+    url.protocol !== "http:" &&
+    url.protocol !== "https:"
+  ) {
+    return;
+  }
 
-  return;
+  // -----------------------------------------
+  // DO NOT HANDLE EXTERNAL REQUESTS
+  // -----------------------------------------
+  //
+  // This prevents the BusGo service worker
+  // from interfering with:
+  //
+  // - Render API
+  // - Vercel services
+  // - Google services
+  // - external images
+  // - external fonts
+  // - Socket.IO connections
+  //
+  // -----------------------------------------
 
-}
+  if (url.origin !== self.location.origin) {
+    return;
+  }
 
-// =====================================
-// ONLY HANDLE GET REQUESTS
-// =====================================
+  // -----------------------------------------
+  // NEVER CACHE API REQUESTS
+  // -----------------------------------------
 
-if (
-  request.method !== "GET"
-) {
+  if (
+    url.pathname.startsWith("/api/")
+  ) {
+    event.respondWith(
+      fetch(request).catch(() => {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message: "BusGo API is currently unavailable."
+          }),
+          {
+            status: 503,
+            headers: {
+              "Content-Type": "application/json"
+            }
+          }
+        );
+      })
+    );
 
-  return;
+    return;
+  }
 
-}
+  // =========================================
+  // NAVIGATION REQUESTS
+  // =========================================
 
-// =====================================
-// NAVIGATION REQUEST
-//
-// Example:
-// /
-// /about
-// /routes
-// /offers
-// =====================================
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          return response;
+        })
+        .catch(() => {
+          return caches.match(OFFLINE_PAGE);
+        })
+    );
 
-if (
-  request.mode ===
-  "navigate"
-) {
+    return;
+  }
+
+  // =========================================
+  // STATIC FILES
+  // =========================================
+  //
+  // NETWORK FIRST
+  //
+  // This is important for Vercel.
+  //
+  // New deployments should always be fetched
+  // from the network instead of being trapped
+  // behind an old cache.
+  //
+  // =========================================
 
   event.respondWith(
-
     fetch(request)
-
       .then((response) => {
-
-        // Cache successful pages.
+        // -------------------------------------
+        // Only cache successful same-origin
+        // responses.
+        // -------------------------------------
 
         if (
           response &&
-          response.status === 200
+          response.status === 200 &&
+          response.type === "basic"
         ) {
-
-          const responseClone =
-            response.clone();
+          const responseClone = response.clone();
 
           caches
             .open(CACHE_NAME)
             .then((cache) => {
-
-              cache.put(
-                request,
-                responseClone
-              );
-
+              cache.put(request, responseClone);
+            })
+            .catch(() => {
+              // Cache failure must never break
+              // the actual network response.
             });
-
         }
 
         return response;
-
       })
-
       .catch(() => {
+        // -------------------------------------
+        // NETWORK FAILED
+        // -------------------------------------
+        //
+        // Try cached resource.
+        // -------------------------------------
 
-        // =================================
-        // INTERNET UNAVAILABLE
-        // =================================
-
-        return caches.match(
-          request
-        )
-
-          .then(
-            (cachedPage) => {
-
-              if (cachedPage) {
-                return cachedPage;
-              }
-
-              return caches.match(
-                OFFLINE_PAGE
-              );
-
-            }
-          );
-
-      })
-
-  );
-
-  return;
-
-}
-
-// =====================================
-// STATIC FILES / API / OTHER REQUESTS
-// =====================================
-
-event.respondWith(
-
-  caches
-    .match(request)
-
-    .then((cachedResponse) => {
-
-      // =================================
-      // USE CACHE FIRST
-      // =================================
-
-      if (cachedResponse) {
-
-        // Try to update the cached
-        // resource in the background.
-
-        fetch(request)
-          .then((networkResponse) => {
-
-            if (
-              networkResponse &&
-              networkResponse.status ===
-                200 &&
-              networkResponse.type ===
-                "basic"
-            ) {
-
-              const responseClone =
-                networkResponse.clone();
-
-              caches
-                .open(CACHE_NAME)
-                .then((cache) => {
-
-                  cache.put(
-                    request,
-                    responseClone
-                  );
-
-                });
-
+        return caches.match(request).then(
+          (cachedResponse) => {
+            if (cachedResponse) {
+              return cachedResponse;
             }
 
-          })
-          .catch(() => {
-            // Internet unavailable.
-            // Cached version is already
-            // being returned.
-          });
-
-        return cachedResponse;
-
-      }
-
-      // =================================
-      // NOT IN CACHE
-      // TRY NETWORK
-      // =================================
-
-      return fetch(request)
-
-        .then((response) => {
-
-          if (
-            !response ||
-            response.status !== 200 ||
-            response.type !==
-              "basic"
-          ) {
-
-            return response;
-
-          }
-
-          const responseClone =
-            response.clone();
-
-          caches
-            .open(CACHE_NAME)
-            .then((cache) => {
-
-              cache.put(
-                request,
-                responseClone
-              );
-
-            });
-
-          return response;
-
-        })
-
-        .catch(() => {
-
-          // =================================
-          // NON-NAVIGATION OFFLINE REQUEST
-          // =================================
-
-          return new Response(
-            "",
-            {
+            return new Response("", {
               status: 503,
-              statusText:
-                "BusGo is offline"
-            }
-          );
-
-        });
-
-    })
-
-);
-
-
-}
-);
+              statusText: "BusGo is offline"
+            });
+          }
+        );
+      })
+  );
+});

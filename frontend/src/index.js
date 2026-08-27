@@ -28,7 +28,8 @@ root.render(
 // =========================================
 
 const hideSplashScreen = () => {
-  const splash = document.getElementById("app-splash");
+  const splash =
+    document.getElementById("app-splash");
 
   if (!splash) {
     return;
@@ -46,29 +47,22 @@ const hideSplashScreen = () => {
 };
 
 // =========================================
-// SERVICE WORKER
+// REMOVE OLD BUSGO SERVICE WORKERS
 // =========================================
+//
+// BusGo does NOT depend on a service worker.
+//
+// Old service workers can continue controlling
+// the Vercel site and serving stale files.
+//
+// We therefore unregister any previously
+// installed BusGo service workers.
 //
 // IMPORTANT:
+// We do NOT register a new service worker.
 //
-// Service workers can cache an old React build.
-// This can make a new Vercel deployment appear
-// not to have updated.
-//
-// For now BusGo does NOT register a service
-// worker.
-//
-// This gives us a clean deployment environment
-// while the frontend/backend deployment is being
-// fixed.
-//
-// We also unregister any OLD BusGo service
-// workers that may already be installed in the
-// user's browser.
-//
-// =========================================
 
-const disableOldServiceWorkers = async () => {
+const removeOldServiceWorkers = async () => {
   if (!("serviceWorker" in navigator)) {
     return;
   }
@@ -78,50 +72,90 @@ const disableOldServiceWorkers = async () => {
       await navigator.serviceWorker.getRegistrations();
 
     if (!registrations.length) {
+      console.log(
+        "BusGo: No service workers found."
+      );
+
       return;
     }
 
-    for (const registration of registrations) {
-      const success =
-        await registration.unregister();
+    for (
+      const registration of registrations
+    ) {
+      try {
+        const removed =
+          await registration.unregister();
 
-      if (success) {
         console.log(
-          "BusGo old service worker removed."
+          "BusGo old service worker removed:",
+          removed
         );
-      }
-    }
-
-    // =======================================
-    // CLEAR OLD BUSGO CACHE
-    // =======================================
-
-    if ("caches" in window) {
-      const cacheNames =
-        await caches.keys();
-
-      for (const cacheName of cacheNames) {
-        try {
-          await caches.delete(cacheName);
-
-          console.log(
-            "BusGo old cache removed:",
-            cacheName
-          );
-        } catch (cacheError) {
-          console.warn(
-            "Unable to remove cache:",
-            cacheName,
-            cacheError
-          );
-        }
+      } catch (error) {
+        console.warn(
+          "BusGo could not remove old service worker:",
+          error?.message || error
+        );
       }
     }
 
   } catch (error) {
     console.warn(
-      "BusGo could not remove old service worker/cache.",
-      error
+      "BusGo service worker cleanup skipped:",
+      error?.message || error
+    );
+  }
+};
+
+// =========================================
+// CLEAR OLD CACHE STORAGE
+// =========================================
+//
+// This is only cleanup.
+//
+// BusGo does not depend on CacheStorage.
+//
+// If the browser refuses access to CacheStorage,
+// the application continues normally.
+//
+
+const clearOldCaches = async () => {
+  if (!("caches" in window)) {
+    return;
+  }
+
+  try {
+    const cacheNames =
+      await window.caches.keys();
+
+    if (!cacheNames.length) {
+      return;
+    }
+
+    await Promise.all(
+      cacheNames.map(
+        async (cacheName) => {
+          try {
+            await window.caches.delete(
+              cacheName
+            );
+          } catch (error) {
+            console.warn(
+              `BusGo could not remove cache "${cacheName}":`,
+              error?.message || error
+            );
+          }
+        }
+      )
+    );
+
+    console.log(
+      "BusGo old browser caches cleaned."
+    );
+
+  } catch (error) {
+    console.warn(
+      "BusGo cache cleanup skipped:",
+      error?.message || error
     );
   }
 };
@@ -136,10 +170,20 @@ window.addEventListener(
 
     hideSplashScreen();
 
-    await disableOldServiceWorkers();
+    // =======================================
+    // CLEAN OLD SERVICE WORKER
+    // =======================================
+
+    await removeOldServiceWorkers();
+
+    // =======================================
+    // CLEAN OLD CACHES
+    // =======================================
+
+    await clearOldCaches();
 
     console.log(
-      "BusGo started without service worker caching."
+      "BusGo startup completed."
     );
   }
 );
