@@ -15,10 +15,7 @@ console.log("=========================================");
 console.log("BUSGO SERVER STARTING");
 console.log("=========================================");
 
-console.log(
-  "PORT:",
-  process.env.PORT || 5000
-);
+console.log("PORT:", process.env.PORT || 5000);
 
 console.log(
   "JWT_SECRET loaded:",
@@ -48,60 +45,141 @@ const server = http.createServer(app);
 // CORS
 // =========================================
 
-const normalizeOrigin = (value) =>
-  String(value || "").trim().replace(/\/+$/, "");
-
 const allowedOrigins = [
+  // Local development
   "http://localhost:3000",
-  "http://localhost:10000",
   "http://localhost:10001",
+  "http://localhost:10000",
+
   "http://127.0.0.1:3000",
-  "http://127.0.0.1:10000",
   "http://127.0.0.1:10001",
+  "http://127.0.0.1:10000",
+
+  // Main Vercel deployment
   "https://okocaesar-group2internship.vercel.app",
-  "https://okocaesar-group2internship-f21au0ck3-okocaesars-projects.vercel.app",
-  ...String(process.env.FRONTEND_URLS || "")
-    .split(",")
-    .map(normalizeOrigin)
-    .filter(Boolean)
-];
 
-const isAllowedOrigin = (origin) => {
-  const normalizedOrigin = normalizeOrigin(origin);
+  // Optional environment variable
+  process.env.FRONTEND_URL
+].filter(Boolean);
 
-  if (allowedOrigins.includes(normalizedOrigin)) {
+// =========================================
+// CHECK WHETHER ORIGIN IS ALLOWED
+// =========================================
+
+function isAllowedOrigin(origin) {
+  if (!origin) {
     return true;
   }
 
-  // Allows preview deployments belonging to this Vercel project.
-  return /^https:\/\/okocaesar-group2internship(-[a-z0-9-]+)?\.vercel\.app$/i.test(
-    normalizedOrigin
-  );
-};
+  // Exact allowed origins
+  if (allowedOrigins.includes(origin)) {
+    return true;
+  }
+
+  // Allow Vercel preview deployments
+  try {
+    const url = new URL(origin);
+
+    if (
+      url.protocol === "https:" &&
+      url.hostname.endsWith(".vercel.app")
+    ) {
+      return true;
+    }
+  } catch (error) {
+    return false;
+  }
+
+  return false;
+}
+
+// =========================================
+// CORS OPTIONS
+// =========================================
 
 const corsOptions = {
-  origin(origin, callback) {
-    if (!origin || isAllowedOrigin(origin)) {
+  origin: function (origin, callback) {
+    if (isAllowedOrigin(origin)) {
+      console.log(
+        "CORS ALLOWED:",
+        origin || "NO ORIGIN"
+      );
+
       return callback(null, true);
     }
 
-    console.warn("CORS BLOCKED:", origin);
-    return callback(new Error(`CORS blocked for origin: ${origin}`));
+    console.log(
+      "CORS BLOCKED:",
+      origin
+    );
+
+    return callback(
+      new Error(
+        `CORS blocked origin: ${origin}`
+      )
+    );
   },
+
   credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+
+  methods: [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS"
+  ],
+
   allowedHeaders: [
     "Content-Type",
     "Authorization",
     "Accept",
     "Origin",
-    "X-Requested-With"
+    "X-Requested-With",
+    "Cache-Control",
+    "Pragma",
+    "Expires"
   ],
+
+  exposedHeaders: [
+    "Content-Length",
+    "Content-Type"
+  ],
+
   optionsSuccessStatus: 204
 };
 
+// =========================================
+// APPLY CORS
+// =========================================
+
 app.use(cors(corsOptions));
-app.use(express.json());
+
+// Explicit OPTIONS handler
+app.options("*", cors(corsOptions));
+
+// =========================================
+// BODY PARSER
+// =========================================
+
+app.use(
+  express.json({
+    limit: "10mb"
+  })
+);
+
+// =========================================
+// REQUEST LOGGER
+// =========================================
+
+app.use((req, res, next) => {
+  console.log(
+    `${new Date().toISOString()} ${req.method} ${req.originalUrl}`
+  );
+
+  next();
+});
 
 // =========================================
 // SOCKET.IO
@@ -109,34 +187,37 @@ app.use(express.json());
 
 const io = new Server(server, {
   cors: {
-    origin(origin, callback) {
-      if (!origin || isAllowedOrigin(origin)) {
+    origin: function (origin, callback) {
+      if (isAllowedOrigin(origin)) {
         return callback(null, true);
       }
 
-      console.warn("SOCKET CORS BLOCKED:", origin);
-      return callback(new Error(`Socket CORS blocked for origin: ${origin}`));
+      return callback(
+        new Error(
+          `Socket.IO CORS blocked origin: ${origin}`
+        )
+      );
     },
-    credentials: true,
-    methods: ["GET", "POST"]
-  },
-  transports: ["websocket", "polling"]
-});
 
+    methods: [
+      "GET",
+      "POST"
+    ],
+
+    credentials: true
+  },
+
+  transports: [
+    "websocket",
+    "polling"
+  ]
+});
 
 // =========================================
 // COMMUNITY DATA
 // =========================================
 
 const communityUsers = new Map();
-
-// Keep recent community messages in memory.
-// This prevents the page from becoming empty
-// immediately after refresh.
-//
-// NOTE:
-// These messages disappear if the server restarts.
-// Later we can move them permanently into MySQL.
 
 const communityMessages = [];
 
@@ -148,14 +229,11 @@ const MAX_COMMUNITY_MESSAGES = 200;
 
 io.use(
   (socket, next) => {
-
     try {
-
       const token =
         socket.handshake.auth?.token;
 
       if (!token) {
-
         return next(
           new Error(
             "Authentication token is missing."
@@ -164,7 +242,6 @@ io.use(
       }
 
       if (!process.env.JWT_SECRET) {
-
         console.error(
           "JWT_SECRET is missing."
         );
@@ -182,13 +259,11 @@ io.use(
           process.env.JWT_SECRET
         );
 
-      socket.user =
-        decoded;
+      socket.user = decoded;
 
       next();
 
     } catch (error) {
-
       console.error(
         "SOCKET AUTH ERROR:",
         error.message
@@ -230,8 +305,8 @@ io.on(
     );
 
     console.log(
-      "=========================================");
-
+      "========================================="
+    );
 
     // =======================================
     // GET USER INFORMATION
@@ -252,13 +327,11 @@ io.on(
       decodedUser.email ||
       "BusGo User";
 
-
     // =======================================
     // STORE USER
     // =======================================
 
     const user = {
-
       id:
         userId ||
         socket.id,
@@ -278,16 +351,13 @@ io.on(
     socket.data.user =
       user;
 
-
     console.log(
       "COMMUNITY USER JOINED:",
       user.name
     );
 
-
     // =======================================
     // SEND MESSAGE HISTORY
-    // ONLY TO NEW USER
     // =======================================
 
     socket.emit(
@@ -295,9 +365,8 @@ io.on(
       communityMessages
     );
 
-
     // =======================================
-    // SEND ONLINE COUNT
+    // ONLINE COUNT
     // =======================================
 
     io.emit(
@@ -305,9 +374,8 @@ io.on(
       communityUsers.size
     );
 
-
     // =======================================
-    // SEND ONLINE USERS
+    // ONLINE USERS
     // =======================================
 
     io.emit(
@@ -321,7 +389,6 @@ io.on(
         })
       )
     );
-
 
     // =======================================
     // COMMUNITY MESSAGE
@@ -340,7 +407,6 @@ io.on(
             String(
               messageData.message || ""
             ).trim();
-
 
           // ===================================
           // EMPTY MESSAGE
@@ -361,7 +427,6 @@ io.on(
 
             return;
           }
-
 
           // ===================================
           // MESSAGE LENGTH
@@ -385,7 +450,6 @@ io.on(
             return;
           }
 
-
           // ===================================
           // USER
           // ===================================
@@ -393,13 +457,11 @@ io.on(
           const currentUser =
             socket.data.user || {};
 
-
           // ===================================
           // CREATE MESSAGE
           // ===================================
 
           const communityMessage = {
-
             id:
               `${Date.now()}-${socket.id}`,
 
@@ -419,7 +481,6 @@ io.on(
               new Date().toISOString()
           };
 
-
           // ===================================
           // SAVE IN MEMORY
           // ===================================
@@ -427,7 +488,6 @@ io.on(
           communityMessages.push(
             communityMessage
           );
-
 
           // ===================================
           // LIMIT HISTORY
@@ -437,10 +497,8 @@ io.on(
             communityMessages.length >
             MAX_COMMUNITY_MESSAGES
           ) {
-
             communityMessages.shift();
           }
-
 
           console.log(
             "========================================="
@@ -464,10 +522,8 @@ io.on(
             "========================================="
           );
 
-
           // ===================================
           // SEND TO EVERYONE
-          // INCLUDING SENDER
           // ===================================
 
           io.emit(
@@ -475,16 +531,14 @@ io.on(
             communityMessage
           );
 
-
           // ===================================
-          // ACKNOWLEDGE SENDER
+          // ACKNOWLEDGE
           // ===================================
 
           if (
             typeof acknowledgement ===
             "function"
           ) {
-
             acknowledgement({
               success: true,
               message:
@@ -503,7 +557,6 @@ io.on(
             typeof acknowledgement ===
             "function"
           ) {
-
             acknowledgement({
               success: false,
               message:
@@ -522,7 +575,6 @@ io.on(
       }
     );
 
-
     // =======================================
     // DISCONNECT
     // =======================================
@@ -535,7 +587,6 @@ io.on(
           communityUsers.get(
             socket.id
           );
-
 
         console.log(
           "========================================="
@@ -560,11 +611,9 @@ io.on(
           "========================================="
         );
 
-
         communityUsers.delete(
           socket.id
         );
-
 
         // ===================================
         // UPDATE ONLINE COUNT
@@ -574,7 +623,6 @@ io.on(
           "community-online-count",
           communityUsers.size
         );
-
 
         // ===================================
         // UPDATE ONLINE USERS
@@ -770,6 +818,16 @@ app.use(
       err
     );
 
+    if (
+      err.message &&
+      err.message.startsWith("CORS blocked")
+    ) {
+      return res.status(403).json({
+        message:
+          "CORS policy blocked this request."
+      });
+    }
+
     res.status(500).json({
 
       message:
@@ -780,8 +838,6 @@ app.use(
 
 // =========================================
 // START SERVER
-// IMPORTANT:
-// DO NOT USE app.listen()
 // =========================================
 
 const PORT =
@@ -789,6 +845,7 @@ const PORT =
 
 server.listen(
   PORT,
+  "0.0.0.0",
   () => {
 
     console.log(
