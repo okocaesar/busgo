@@ -1,6 +1,6 @@
-/* =========================================
+/* =========================================================
    BUSGO REPORT PAGE
-========================================= */
+   ========================================================= */
 
 .report-page {
   width: 100%;
@@ -8,23 +8,19 @@
   padding: 90px 20px 110px;
   background: #f5f7fb;
   color: #172033;
+  box-sizing: border-box;
 }
-
-
-/* =========================================
-   CONTAINER
-========================================= */
 
 .report-container {
   width: 100%;
-  max-width: 900px;
+  max-width: 920px;
   margin: 0 auto;
 }
 
 
-/* =========================================
+/* =========================================================
    HEADER
-========================================= */
+   ========================================================= */
 
 .report-header {
   margin-bottom: 28px;
@@ -33,70 +29,57 @@
 .report-eyebrow {
   display: inline-block;
   margin-bottom: 8px;
-
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 1.5px;
-
   color: #2563eb;
 }
 
 .report-header h1 {
   margin: 0 0 10px;
-
   font-size: 32px;
   line-height: 1.15;
   font-weight: 800;
-
   color: #172033;
 }
 
 .report-header p {
   max-width: 680px;
   margin: 0;
-
   font-size: 15px;
   line-height: 1.7;
-
   color: #667085;
 }
 
 
-/* =========================================
-   SUCCESS MESSAGE
-========================================= */
+/* =========================================================
+   SUCCESS
+   ========================================================= */
 
 .report-success {
   display: flex;
   align-items: flex-start;
   gap: 14px;
-
   width: 100%;
   margin-bottom: 22px;
   padding: 17px 18px;
-
   border: 1px solid #b7ebc6;
   border-radius: 14px;
-
   background: #f0fff4;
   color: #166534;
+  box-sizing: border-box;
 }
 
 .report-success-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-
   flex-shrink: 0;
-
   width: 30px;
   height: 30px;
-
   border-radius: 50%;
-
   background: #22c55e;
-  color: #ffffff;
-
+  color: #fff;
   font-size: 17px;
   font-weight: 800;
 }
@@ -104,60 +87,53 @@
 .report-success strong {
   display: block;
   margin-bottom: 4px;
-
   font-size: 14px;
   font-weight: 800;
 }
 
 .report-success p {
   margin: 0;
-
   font-size: 13px;
   line-height: 1.5;
 }
 
 
-/* =========================================
-   ERROR MESSAGE
-========================================= */
+/* =========================================================
+   ERROR
+   ========================================================= */
 
 .report-error {
   width: 100%;
   margin-bottom: 22px;
   padding: 15px 17px;
-
   border: 1px solid #fecaca;
   border-radius: 12px;
-
   background: #fff1f2;
   color: #b91c1c;
-
   font-size: 14px;
   line-height: 1.5;
+  box-sizing: border-box;
 }
 
 
-/* =========================================
-   REPORT CARD
-========================================= */
+/* =========================================================
+   REPORT FORM CARD
+   ========================================================= */
 
 .report-card {
   width: 100%;
   padding: 24px;
-
   border: 1px solid #e5e7eb;
   border-radius: 20px;
-
-  background: #ffffff;
-
-  box-shadow:
-    0 8px 30px rgba(15, 23, 42, 0.06);
+  background: #fff;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
 }
 
 
-/* =========================================
+/* =========================================================
    CARD TITLE
-========================================= */
+   ========================================================= */
 
 .report-card-title {
   margin-bottom: 25px;
@@ -166,37 +142,31 @@
 .report-card-title span {
   display: inline-block;
   margin-bottom: 7px;
-
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 1.3px;
-
   color: #2563eb;
 }
 
 .report-card-title h2 {
   margin: 0 0 8px;
-
   font-size: 22px;
   line-height: 1.25;
   font-weight: 800;
-
   color: #172033;
 }
 
 .report-card-title p {
   margin: 0;
-
   font-size: 14px;
   line-height: 1.6;
-
   color: #667085;
 }
 
 
-/* =========================================
+/* =========================================================
    FORM FIELD
-========================================= */
+   ========================================================= */
 
 .report-field {
   position: relative;
@@ -206,39 +176,31 @@
 .report-field label {
   display: block;
   margin-bottom: 9px;
-
   font-size: 14px;
   font-weight: 700;
-
   color: #344054;
 }
 
 
-/* =========================================
+/* =========================================================
    TEXTAREA
-========================================= */
+   ========================================================= */
 
 .report-field textarea {
   display: block;
-
   width: 100%;
   min-height: 190px;
-
   padding: 15px 16px 36px;
-
   border: 1px solid #d0d5dd;
   border-radius: 13px;
-
   outline: none;
-
   resize: vertical;
-
-  background: #ffffff;
+  background: #fff;
   color: #172033;
-
   font-family: inherit;
   font-size: 14px;
   line-height: 1.6;
+  box-sizing: border-box;
 
   transition:
     border-color 0.2s ease,
@@ -252,9 +214,7 @@
 
 .report-field textarea:focus {
   border-color: #2563eb;
-
-  box-shadow:
-    0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .report-field textarea:disabled {
@@ -263,45 +223,36 @@
 }
 
 
-/* =========================================
+/* =========================================================
    CHARACTER COUNT
-========================================= */
+   ========================================================= */
 
 .report-character-count {
   position: absolute;
-
   right: 13px;
   bottom: 12px;
-
   font-size: 11px;
   font-weight: 600;
-
   color: #98a2b3;
-
   pointer-events: none;
 }
 
 
-/* =========================================
+/* =========================================================
    SUBMIT BUTTON
-========================================= */
+   ========================================================= */
 
 .report-submit-btn {
   width: 100%;
   min-height: 50px;
-
   margin-top: 20px;
-
   border: none;
   border-radius: 12px;
-
   background: #2563eb;
-  color: #ffffff;
-
+  color: #fff;
   font-family: inherit;
   font-size: 14px;
   font-weight: 700;
-
   cursor: pointer;
 
   transition:
@@ -313,9 +264,7 @@
 
 .report-submit-btn:hover {
   background: #1d4ed8;
-
-  box-shadow:
-    0 8px 18px rgba(37, 99, 235, 0.22);
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.22);
 }
 
 .report-submit-btn:active {
@@ -329,61 +278,543 @@
 }
 
 
-/* =========================================
+/* =========================================================
    INFORMATION CARD
-========================================= */
+   ========================================================= */
 
 .report-info-card {
   display: flex;
   align-items: flex-start;
   gap: 14px;
-
   width: 100%;
   margin-top: 20px;
   padding: 18px;
-
   border: 1px solid #dbeafe;
   border-radius: 16px;
-
   background: #eff6ff;
+  box-sizing: border-box;
 }
 
 .report-info-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-
   flex-shrink: 0;
-
   width: 32px;
   height: 32px;
-
   font-size: 18px;
 }
 
 .report-info-card strong {
   display: block;
   margin-bottom: 5px;
-
   font-size: 14px;
   font-weight: 800;
-
   color: #1e3a8a;
 }
 
 .report-info-card p {
   margin: 0;
-
   font-size: 13px;
   line-height: 1.6;
-
   color: #475569;
 }
 
 
-/* =========================================
+/* =========================================================
+   ADMIN / FULL REPORT DETAILS
+   =========================================================
+   
+   These classes style the complete report:
+   
+   REPORT #1
+   User Report
+   Reporter
+   Submitted
+   Current Status
+   Full Report Message
+   Additional Information
+   Manage Report
+   
+   ========================================================= */
+
+.admin-report-page,
+.report-details-page,
+.full-report-page {
+  width: 100%;
+  min-height: 100vh;
+  padding: 100px 20px 80px;
+  background: #f5f7fb;
+  color: #172033;
+  box-sizing: border-box;
+}
+
+.admin-report-container,
+.report-details-container,
+.full-report-container {
+  width: 100%;
+  max-width: 950px;
+  margin: 0 auto;
+}
+
+
+/* =========================================================
+   ADMIN REPORT HEADER
+   ========================================================= */
+
+.admin-report-header,
+.report-details-header,
+.full-report-header {
+  margin-bottom: 24px;
+}
+
+.admin-report-header h1,
+.report-details-header h1,
+.full-report-header h1 {
+  margin: 0;
+  font-size: 30px;
+  line-height: 1.2;
+  font-weight: 800;
+  color: #172033;
+}
+
+.admin-report-header p,
+.report-details-header p,
+.full-report-header p {
+  margin: 8px 0 0;
+  color: #667085;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+
+/* =========================================================
+   REPORT DETAIL CARD
+   ========================================================= */
+
+.admin-report-card,
+.report-details-card,
+.full-report-card,
+.report-detail-card {
+  width: 100%;
+  padding: 26px;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   REPORT NUMBER
+   ========================================================= */
+
+.report-number,
+.admin-report-number {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 6px 11px;
+  margin-bottom: 14px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+
+/* =========================================================
+   REPORT TITLE
+   ========================================================= */
+
+.admin-report-card h2,
+.report-details-card h2,
+.full-report-card h2,
+.report-detail-card h2 {
+  margin: 0 0 22px;
+  font-size: 24px;
+  font-weight: 800;
+  color: #172033;
+}
+
+
+/* =========================================================
+   REPORT SECTIONS
+   ========================================================= */
+
+.report-section,
+.admin-report-section,
+.full-report-section {
+  margin-top: 22px;
+  padding-top: 22px;
+  border-top: 1px solid #eaecf0;
+}
+
+.report-section:first-child,
+.admin-report-section:first-child,
+.full-report-section:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.report-section-title,
+.admin-report-section-title,
+.full-report-section-title {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #667085;
+}
+
+
+/* =========================================================
+   REPORTER INFORMATION
+   ========================================================= */
+
+.reporter-info,
+.report-user-info,
+.admin-reporter-info {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.reporter-item,
+.report-user-item,
+.admin-reporter-item {
+  padding: 15px;
+  border: 1px solid #eaecf0;
+  border-radius: 13px;
+  background: #f9fafb;
+}
+
+.reporter-item label,
+.report-user-item label,
+.admin-reporter-item label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #98a2b3;
+}
+
+.reporter-item strong,
+.report-user-item strong,
+.admin-reporter-item strong {
+  display: block;
+  color: #172033;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.report-status,
+.admin-report-status,
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+
+/* Pending */
+
+.report-status.pending,
+.admin-report-status.pending,
+.status-badge.pending {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+
+/* In Progress */
+
+.report-status.in-progress,
+.report-status.in_progress,
+.admin-report-status.in-progress,
+.admin-report-status.in_progress,
+.status-badge.in-progress,
+.status-badge.in_progress {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+
+/* Resolved */
+
+.report-status.resolved,
+.admin-report-status.resolved,
+.status-badge.resolved {
+  background: #ecfdf3;
+  color: #15803d;
+}
+
+
+/* Rejected */
+
+.report-status.rejected,
+.admin-report-status.rejected,
+.status-badge.rejected {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+
+/* =========================================================
+   FULL REPORT MESSAGE
+   ========================================================= */
+
+.full-report-message,
+.report-message,
+.admin-report-message,
+.report-message-box {
+  width: 100%;
+  min-height: 120px;
+  padding: 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 15px;
+  background: #f9fafb;
+  color: #344054;
+  font-size: 15px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   ADDITIONAL INFORMATION
+   ========================================================= */
+
+.additional-information,
+.report-additional-info,
+.admin-additional-info {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.additional-information-item,
+.report-additional-item,
+.admin-additional-item {
+  padding: 15px;
+  border: 1px solid #eaecf0;
+  border-radius: 13px;
+  background: #f9fafb;
+}
+
+.additional-information-item label,
+.report-additional-item label,
+.admin-additional-item label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #98a2b3;
+}
+
+.additional-information-item span,
+.report-additional-item span,
+.admin-additional-item span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #344054;
+  word-break: break-word;
+}
+
+
+/* =========================================================
+   MANAGE REPORT
+   ========================================================= */
+
+.manage-report,
+.report-management,
+.admin-report-management {
+  margin-top: 26px;
+  padding: 20px;
+  border: 1px solid #dbeafe;
+  border-radius: 17px;
+  background: #eff6ff;
+  box-sizing: border-box;
+}
+
+.manage-report h3,
+.report-management h3,
+.admin-report-management h3 {
+  margin: 0 0 7px;
+  font-size: 17px;
+  font-weight: 800;
+  color: #1e3a8a;
+}
+
+.manage-report p,
+.report-management p,
+.admin-report-management p {
+  margin: 0 0 17px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #475569;
+}
+
+
+/* =========================================================
+   STATUS OPTIONS
+   ========================================================= */
+
+.report-status-options,
+.status-options,
+.report-management-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.report-status-options button,
+.status-options button,
+.report-management-options button {
+  min-height: 42px;
+  padding: 0 17px;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  background: #fff;
+  color: #344054;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.report-status-options button:hover,
+.status-options button:hover,
+.report-management-options button:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.report-status-options button:active,
+.status-options button:active,
+.report-management-options button:active {
+  transform: scale(0.97);
+}
+
+
+/* Active pending */
+
+.report-status-options button.active.pending,
+.status-options button.active.pending,
+.report-management-options button.active.pending {
+  border-color: #f97316;
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+
+/* Active in progress */
+
+.report-status-options button.active.in-progress,
+.report-status-options button.active.in_progress,
+.status-options button.active.in-progress,
+.status-options button.active.in_progress,
+.report-management-options button.active.in-progress,
+.report-management-options button.active.in_progress {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+
+/* Active resolved */
+
+.report-status-options button.active.resolved,
+.status-options button.active.resolved,
+.report-management-options button.active.resolved {
+  border-color: #22c55e;
+  background: #ecfdf3;
+  color: #15803d;
+}
+
+
+/* Active rejected */
+
+.report-status-options button.active.rejected,
+.status-options button.active.rejected,
+.report-management-options button.active.rejected {
+  border-color: #ef4444;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+
+/* =========================================================
+   CLOSE REPORT BUTTON
+   ========================================================= */
+
+.close-report-btn,
+.report-close-btn,
+.admin-report-close-btn {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 15px;
+  border: none;
+  border-radius: 11px;
+  background: #172033;
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.close-report-btn:hover,
+.report-close-btn:hover,
+.admin-report-close-btn:hover {
+  background: #0f172a;
+}
+
+.close-report-btn:active,
+.report-close-btn:active,
+.admin-report-close-btn:active {
+  transform: scale(0.98);
+}
+
+
+/* =========================================================
    TABLET
-========================================= */
+   ========================================================= */
 
 @media (min-width: 600px) {
 
@@ -409,21 +840,37 @@
     padding: 0 28px;
   }
 
+  .admin-report-page,
+  .report-details-page,
+  .full-report-page {
+    padding: 110px 30px 80px;
+  }
+
+  .admin-report-card,
+  .report-details-card,
+  .full-report-card,
+  .report-detail-card {
+    padding: 30px;
+  }
+
+  .close-report-btn,
+  .report-close-btn,
+  .admin-report-close-btn {
+    width: auto;
+    min-width: 180px;
+    padding: 0 24px;
+  }
 }
 
 
-/* =========================================
+/* =========================================================
    DESKTOP
-========================================= */
+   ========================================================= */
 
 @media (min-width: 900px) {
 
   .report-page {
     padding: 120px 40px 70px;
-  }
-
-  .report-container {
-    max-width: 920px;
   }
 
   .report-header {
@@ -450,40 +897,99 @@
     min-height: 240px;
   }
 
+  .admin-report-page,
+  .report-details-page,
+  .full-report-page {
+    padding: 120px 40px 70px;
+  }
+
+  .admin-report-card,
+  .report-details-card,
+  .full-report-card,
+  .report-detail-card {
+    padding: 34px;
+  }
+
+  .admin-report-header h1,
+  .report-details-header h1,
+  .full-report-header h1 {
+    font-size: 36px;
+  }
 }
 
 
-/* =========================================
+/* =========================================================
    DARK MODE
-========================================= */
+   ========================================================= */
 
 html.dark-mode .report-page,
-body.dark-mode .report-page {
+body.dark-mode .report-page,
+html.dark-mode .admin-report-page,
+body.dark-mode .admin-report-page,
+html.dark-mode .report-details-page,
+body.dark-mode .report-details-page,
+html.dark-mode .full-report-page,
+body.dark-mode .full-report-page {
   background: #0f172a;
   color: #f8fafc;
 }
 
+
+/* Header */
+
 html.dark-mode .report-header h1,
-body.dark-mode .report-header h1 {
+body.dark-mode .report-header h1,
+html.dark-mode .admin-report-header h1,
+body.dark-mode .admin-report-header h1,
+html.dark-mode .report-details-header h1,
+body.dark-mode .report-details-header h1,
+html.dark-mode .full-report-header h1,
+body.dark-mode .full-report-header h1 {
   color: #f8fafc;
 }
 
 html.dark-mode .report-header p,
-body.dark-mode .report-header p {
+body.dark-mode .report-header p,
+html.dark-mode .admin-report-header p,
+body.dark-mode .admin-report-header p,
+html.dark-mode .report-details-header p,
+body.dark-mode .report-details-header p,
+html.dark-mode .full-report-header p,
+body.dark-mode .full-report-header p {
   color: #94a3b8;
 }
 
+
+/* Cards */
+
 html.dark-mode .report-card,
-body.dark-mode .report-card {
+body.dark-mode .report-card,
+html.dark-mode .admin-report-card,
+body.dark-mode .admin-report-card,
+html.dark-mode .report-details-card,
+body.dark-mode .report-details-card,
+html.dark-mode .full-report-card,
+body.dark-mode .full-report-card,
+html.dark-mode .report-detail-card,
+body.dark-mode .report-detail-card {
   border-color: #263449;
   background: #111c2f;
-
-  box-shadow:
-    0 8px 30px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.22);
 }
 
+
+/* Titles */
+
 html.dark-mode .report-card-title h2,
-body.dark-mode .report-card-title h2 {
+body.dark-mode .report-card-title h2,
+html.dark-mode .admin-report-card h2,
+body.dark-mode .admin-report-card h2,
+html.dark-mode .report-details-card h2,
+body.dark-mode .report-details-card h2,
+html.dark-mode .full-report-card h2,
+body.dark-mode .full-report-card h2,
+html.dark-mode .report-detail-card h2,
+body.dark-mode .report-detail-card h2 {
   color: #f8fafc;
 }
 
@@ -491,6 +997,9 @@ html.dark-mode .report-card-title p,
 body.dark-mode .report-card-title p {
   color: #94a3b8;
 }
+
+
+/* Form */
 
 html.dark-mode .report-field label,
 body.dark-mode .report-field label {
@@ -512,15 +1021,16 @@ body.dark-mode .report-field textarea::placeholder {
 html.dark-mode .report-field textarea:focus,
 body.dark-mode .report-field textarea:focus {
   border-color: #3b82f6;
-
-  box-shadow:
-    0 0 0 3px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
 html.dark-mode .report-character-count,
 body.dark-mode .report-character-count {
   color: #64748b;
 }
+
+
+/* Info */
 
 html.dark-mode .report-info-card,
 body.dark-mode .report-info-card {
@@ -539,9 +1049,110 @@ body.dark-mode .report-info-card p {
 }
 
 
-/* =========================================
+/* Admin sections */
+
+html.dark-mode .report-section,
+body.dark-mode .report-section,
+html.dark-mode .admin-report-section,
+body.dark-mode .admin-report-section,
+html.dark-mode .full-report-section,
+body.dark-mode .full-report-section {
+  border-color: #263449;
+}
+
+html.dark-mode .reporter-item,
+body.dark-mode .reporter-item,
+html.dark-mode .report-user-item,
+body.dark-mode .report-user-item,
+html.dark-mode .admin-reporter-item,
+body.dark-mode .admin-reporter-item,
+html.dark-mode .additional-information-item,
+body.dark-mode .additional-information-item,
+html.dark-mode .report-additional-item,
+body.dark-mode .report-additional-item,
+html.dark-mode .admin-additional-item,
+body.dark-mode .admin-additional-item {
+  border-color: #334155;
+  background: #0f172a;
+}
+
+html.dark-mode .reporter-item strong,
+body.dark-mode .reporter-item strong,
+html.dark-mode .report-user-item strong,
+body.dark-mode .report-user-item strong,
+html.dark-mode .admin-reporter-item strong,
+body.dark-mode .admin-reporter-item strong,
+html.dark-mode .additional-information-item span,
+body.dark-mode .additional-information-item span,
+html.dark-mode .report-additional-item span,
+body.dark-mode .report-additional-item span,
+html.dark-mode .admin-additional-item span,
+body.dark-mode .admin-additional-item span {
+  color: #e2e8f0;
+}
+
+
+/* Full message */
+
+html.dark-mode .full-report-message,
+body.dark-mode .full-report-message,
+html.dark-mode .report-message,
+body.dark-mode .report-message,
+html.dark-mode .admin-report-message,
+body.dark-mode .admin-report-message,
+html.dark-mode .report-message-box,
+body.dark-mode .report-message-box {
+  border-color: #334155;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+
+/* Management */
+
+html.dark-mode .manage-report,
+body.dark-mode .manage-report,
+html.dark-mode .report-management,
+body.dark-mode .report-management,
+html.dark-mode .admin-report-management,
+body.dark-mode .admin-report-management {
+  border-color: #1e3a5f;
+  background: #0f2747;
+}
+
+html.dark-mode .manage-report h3,
+body.dark-mode .manage-report h3,
+html.dark-mode .report-management h3,
+body.dark-mode .report-management h3,
+html.dark-mode .admin-report-management h3,
+body.dark-mode .admin-report-management h3 {
+  color: #bfdbfe;
+}
+
+html.dark-mode .manage-report p,
+body.dark-mode .manage-report p,
+html.dark-mode .report-management p,
+body.dark-mode .report-management p,
+html.dark-mode .admin-report-management p,
+body.dark-mode .admin-report-management p {
+  color: #94a3b8;
+}
+
+html.dark-mode .report-status-options button,
+body.dark-mode .report-status-options button,
+html.dark-mode .status-options button,
+body.dark-mode .status-options button,
+html.dark-mode .report-management-options button,
+body.dark-mode .report-management-options button {
+  border-color: #334155;
+  background: #111c2f;
+  color: #e2e8f0;
+}
+
+
+/* =========================================================
    SMALL MOBILE
-========================================= */
+   ========================================================= */
 
 @media (max-width: 400px) {
 
@@ -578,4 +1189,74 @@ body.dark-mode .report-info-card p {
     padding: 15px;
   }
 
+  .admin-report-page,
+  .report-details-page,
+  .full-report-page {
+    padding: 82px 14px 100px;
+  }
+
+  .admin-report-card,
+  .report-details-card,
+  .full-report-card,
+  .report-detail-card {
+    padding: 18px;
+    border-radius: 17px;
+  }
+
+  .admin-report-header h1,
+  .report-details-header h1,
+  .full-report-header h1 {
+    font-size: 27px;
+  }
+
+  .reporter-info,
+  .report-user-info,
+  .admin-reporter-info,
+  .additional-information,
+  .report-additional-info,
+  .admin-additional-info {
+    grid-template-columns: 1fr;
+  }
+
+  .full-report-message,
+  .report-message,
+  .admin-report-message,
+  .report-message-box {
+    padding: 15px;
+    font-size: 14px;
+  }
+
+  .manage-report,
+  .report-management,
+  .admin-report-management {
+    padding: 16px;
+  }
+
+  .report-status-options,
+  .status-options,
+  .report-management-options {
+    flex-direction: column;
+  }
+
+  .report-status-options button,
+  .status-options button,
+  .report-management-options button {
+    width: 100%;
+  }
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+.report-submit-btn:focus-visible,
+.close-report-btn:focus-visible,
+.report-close-btn:focus-visible,
+.admin-report-close-btn:focus-visible,
+.report-status-options button:focus-visible,
+.status-options button:focus-visible,
+.report-management-options button:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.25);
+  outline-offset: 2px;
 }

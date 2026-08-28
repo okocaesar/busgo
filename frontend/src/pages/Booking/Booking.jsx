@@ -123,6 +123,31 @@ function Booking() {
 
 
   // =========================================
+  // STABLE REFERENCE TO t()
+  // =========================================
+  //
+  // useTranslation() returns a new `t` function
+  // identity on every render (it isn't memoized
+  // upstream). Effects below used to list `t` in
+  // their dependency arrays, which meant every
+  // render made those effects look "stale" and
+  // re-run them - triggering setState - triggering
+  // a re-render - triggering the effect again,
+  // forever ("Maximum update depth exceeded").
+  //
+  // Reading translations through a ref instead lets
+  // us always call the latest t() without making it
+  // a dependency of anything.
+  // =========================================
+
+  const tRef = useRef(t);
+
+  useEffect(() => {
+    tRef.current = t;
+  });
+
+
+  // =========================================
   // BOOKING INFORMATION
   // =========================================
 
@@ -352,12 +377,12 @@ function Booking() {
             ) {
 
               alert(
-                `${t("seat")} ${
+                `${tRef.current("seat")} ${
                   lostSeats.join(", ")
                 } ${
                   lostSeats.length > 1
-                    ? t("wereJustBooked")
-                    : t("wasJustBooked")
+                    ? tRef.current("wereJustBooked")
+                    : tRef.current("wasJustBooked")
                 }`
               );
 
@@ -389,7 +414,7 @@ function Booking() {
         // Just show the error message.
 
         setAvailabilityError(
-          t(
+          tRef.current(
             "unableCheckAvailability"
           )
         );
@@ -416,8 +441,7 @@ function Booking() {
       selectedRoute?.id,
       booking.from,
       booking.to,
-      booking.date,
-      t
+      booking.date
     ]
   );
 
@@ -551,7 +575,7 @@ function Booking() {
 
 
         setAvailabilityError(
-          t(
+          tRef.current(
             "unableCheckAvailability"
           )
         );
@@ -580,14 +604,17 @@ function Booking() {
     loadSeats();
 
 
+    return () => {
+      cancelled = true;
+    };
+
 
   }, [
     selectedBus?.id,
     selectedRoute?.id,
     booking.from,
     booking.to,
-    booking.date,
-    t
+    booking.date
   ]);
 
 

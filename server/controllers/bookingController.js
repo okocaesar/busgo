@@ -767,12 +767,30 @@ exports.createBooking = async (
 
       paymentMethod,
 
+      // ==========================================================
+      // PAYMENT / BOOKING STATUS
+      // ==========================================================
+      //
+      // IMPORTANT:
+      // A booking must NEVER default to "Successful" / "Confirmed".
+      // The frontend is not a trusted source for payment outcome -
+      // only paymentController.verifyPayment(), after checking the
+      // charge directly with Flutterwave, is allowed to promote a
+      // booking to Confirmed (see markPaymentSuccessful()).
+      //
+      // This booking is created as Pending. It gets flipped to
+      // Confirmed later, in the same request lifecycle, by the
+      // payment verification step - never here.
+      // ==========================================================
+
       paymentStatus:
         paymentStatus ||
-        "Successful",
+        "Pending",
 
       bookingStatus:
-        "Confirmed",
+        (paymentStatus === "Successful")
+          ? "Confirmed"
+          : "Pending",
 
       paymentDate:
         formatPaymentDate(

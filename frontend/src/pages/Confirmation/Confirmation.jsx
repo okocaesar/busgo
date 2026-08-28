@@ -153,6 +153,24 @@ function Confirmation() {
 
 
   // =========================================
+  // LIVE PAYMENT STATUS
+  // =========================================
+  //
+  // Shown while BusGo is waiting on Flutterwave
+  // to actually confirm the charge (phone approval,
+  // redirect, etc). Not the same as `saving`, which
+  // only covers the initial network requests.
+  // =========================================
+
+  const [paymentStage, setPaymentStage] =
+    useState(null);
+  // null | "waiting-approval" | "redirecting" | "failed"
+
+  const [paymentStageMessage, setPaymentStageMessage] =
+    useState("");
+
+
+  // =========================================
   // SAVE BOOKING TO SESSION STORAGE
   // =========================================
 
@@ -361,6 +379,105 @@ ${booking?.paymentMethod || ""}
 
 
   // =========================================
+  // POLL PAYMENT VERIFICATION
+  // =========================================
+  //
+  // Repeatedly calls POST /api/payments/verify, which
+  // checks the charge directly with Flutterwave (see
+  // paymentController.verifyPayment). Keeps polling while
+  // the charge is "Pending" (customer still needs to
+  // approve on their phone), and stops as soon as
+  // Flutterwave reports a final "Successful" or "Failed"
+  // status - or after a timeout.
+  // =========================================
+
+  const sleep = (ms) =>
+    new Promise((resolve) =>
+      setTimeout(resolve, ms)
+    );
+
+  const pollPaymentVerification = async ({
+    transactionId,
+    authToken,
+    intervalMs = 4000,
+    maxAttempts = 30 // ~2 minutes
+  }) => {
+
+    for (
+      let attempt = 1;
+      attempt <= maxAttempts;
+      attempt++
+    ) {
+
+      try {
+
+        const verifyResponse =
+          await axios.post(
+
+            `${API_URL}/api/payments/verify`,
+
+            {
+              transactionId
+            },
+
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${authToken}`
+              }
+            }
+
+          );
+
+        const status =
+          verifyResponse.data?.status;
+
+        console.log(
+          `PAYMENT VERIFY ATTEMPT ${attempt}:`,
+          status
+        );
+
+        if (
+          status === "Successful" ||
+          status === "Failed"
+        ) {
+
+          return {
+            status,
+            data: verifyResponse.data
+          };
+
+        }
+
+        // status is "Pending" - keep polling
+
+      } catch (verifyError) {
+
+        // A 404 ("charge not found yet") or transient
+        // network error shouldn't abort the whole flow -
+        // Flutterwave may just not have the charge
+        // indexed yet. Keep retrying until maxAttempts.
+
+        console.error(
+          `PAYMENT VERIFY ATTEMPT ${attempt} ERROR:`,
+          verifyError.response?.data ||
+            verifyError.message
+        );
+
+      }
+
+      if (attempt < maxAttempts) {
+        await sleep(intervalMs);
+      }
+
+    }
+
+    return { status: "Pending" };
+
+  };
+
+
+  // =========================================
   // CONFIRM BOOKING
   // =========================================
 
@@ -369,6 +486,9 @@ ${booking?.paymentMethod || ""}
     if (saving) {
       return;
     }
+
+    setPaymentStage(null);
+    setPaymentStageMessage("");
 
 
     // =========================================
@@ -773,8 +893,11 @@ ${booking?.paymentMethod || ""}
               booking.offerTitle ||
               "No Offer",
 
+            // Never claim success before Flutterwave has confirmed
+            // anything - the booking starts Pending and is only
+            // promoted to Confirmed by verifyPayment() below.
             paymentStatus:
-              "Successful",
+              "Pending",
 
             paymentMethod:
               booking.paymentMethod,
@@ -866,41 +989,205 @@ ${booking?.paymentMethod || ""}
 
 
       // =========================================
-      // SUCCESS
+      // STEP 3
+      // CONFIRM THE CHARGE WITH FLUTTERWAVE
+      // =========================================
+      //
+      // POST /api/payments only *initiates* the charge.
+      // At this point Flutterwave usually still needs the
+      // customer to approve a push notification / PIN on
+      // their phone (mobile money), or complete a redirect
+      // (card / 3DS). Nothing is actually paid yet.
+      //
+      // We must call /api/payments/verify - which checks
+      // the real status directly with Flutterwave - before
+      // this booking can be treated as paid.
       // =========================================
 
-      setConfirmed(true);
+      const transactionId =
+        paymentResponse.data?.transactionId;
 
-      clearConfirmationStorage();
+      const flutterwaveInfo =
+        paymentResponse.data?.flutterwave ||
+        {};
+
+      const nextAction =
+        flutterwaveInfo.nextAction ||
+        null;
+
+      if (!transactionId) {
+
+        throw new Error(
+          "Payment was initialized but no transaction reference was returned."
+        );
+
+      }
 
 
-      setBooking(
-        (currentBooking) => ({
-          ...currentBooking,
+      // -----------------------------------------
+      // REDIRECT FLOW
+      // (card 3DS, or Flutterwave-hosted mobile
+      // money authorization page)
+      // -----------------------------------------
 
-          ticketNumber:
-            ticketNumber,
+      const redirectUrl =
+        nextAction?.type === "redirect_url"
+          ? (
+            nextAction?.redirect_url?.url ||
+            nextAction?.url ||
+            null
+          )
+          : null;
 
-          paymentStatus:
-            "Successful",
+      if (redirectUrl) {
 
-          bookingStatus:
-            "Confirmed",
+        setPaymentStage("redirecting");
 
-          bookingId:
-            bookingId
+        setPaymentStageMessage(
+          (t("redirectingToCompletePayment") || "Redirecting you to complete the payment...")
+        );
 
-        })
+        // Persist so verification can be resumed
+        // once Flutterwave sends the customer back.
+        try {
+
+          sessionStorage.setItem(
+            "busgo_pending_payment",
+            JSON.stringify({
+              transactionId,
+              bookingId,
+              ticketNumber
+            })
+          );
+
+        } catch (storageError) {
+
+          console.error(
+            "Unable to save pending payment:",
+            storageError
+          );
+
+        }
+
+        window.location.href =
+          redirectUrl;
+
+        return;
+
+      }
+
+
+      // -----------------------------------------
+      // PUSH NOTIFICATION / PIN APPROVAL FLOW
+      // (typical for MTN / Orange mobile money)
+      // or any other "still pending" charge
+      // -----------------------------------------
+
+      setPaymentStage("waiting-approval");
+
+      setPaymentStageMessage(
+        (t("approvePaymentOnPhone") || "Check your phone and approve the payment request to continue.")
       );
 
+      const verifiedPayment =
+        await pollPaymentVerification({
+          transactionId,
+          authToken
+        });
+
+      if (
+        verifiedPayment.status ===
+        "Successful"
+      ) {
+
+        // =========================================
+        // SUCCESS - confirmed by Flutterwave
+        // =========================================
+
+        setPaymentStage(null);
+        setConfirmed(true);
+        clearConfirmationStorage();
+
+        try {
+
+          sessionStorage.removeItem(
+            "busgo_pending_payment"
+          );
+
+        } catch {
+
+          // ignore
+
+        }
+
+
+        setBooking(
+          (currentBooking) => ({
+            ...currentBooking,
+
+            ticketNumber:
+              ticketNumber,
+
+            paymentStatus:
+              "Successful",
+
+            bookingStatus:
+              "Confirmed",
+
+            bookingId:
+              bookingId
+
+          })
+        );
+
+
+        alert(
+          t("bookingPaymentSuccessful")
+        );
+
+
+        navigate(
+          "/dashboard"
+        );
+
+        return;
+
+      }
+
+      if (
+        verifiedPayment.status ===
+        "Failed"
+      ) {
+
+        setPaymentStage("failed");
+
+        setPaymentStageMessage(
+          (t("paymentFailedTryAgain") || "Payment failed or was declined. Please try again.")
+        );
+
+        alert(
+          (t("paymentFailedTryAgain") || "Payment failed or was declined. Please try again.")
+        );
+
+        return;
+
+      }
+
+      // -----------------------------------------
+      // TIMED OUT WAITING - still Pending
+      // -----------------------------------------
+      // Do NOT mark this as successful. The user can
+      // check "My Payments" later; verifyPayment() will
+      // still confirm it correctly whenever they do.
+
+      setPaymentStage("failed");
+
+      setPaymentStageMessage(
+        (t("paymentStillProcessing") || "We could not confirm your payment yet. It may still be processing - please check My Payments in a few minutes before trying again.")
+      );
 
       alert(
-        t("bookingPaymentSuccessful")
-      );
-
-
-      navigate(
-        "/dashboard"
+        (t("paymentStillProcessing") || "We could not confirm your payment yet. It may still be processing - please check My Payments in a few minutes before trying again.")
       );
 
 
@@ -1568,25 +1855,49 @@ ${booking?.paymentMethod || ""}
 
         {!confirmed && (
 
-          <button
+          <>
 
-            type="button"
+            {paymentStageMessage && (
 
-            className="confirm-btn"
+              <p
+                className={
+                  paymentStage === "failed"
+                    ? "payment-stage-message payment-stage-error"
+                    : "payment-stage-message"
+                }
+              >
 
-            onClick={
-              confirmBooking
-            }
+                {paymentStageMessage}
 
-            disabled={saving}
+              </p>
 
-          >
+            )}
 
-            {saving
-              ? t("savingBooking")
-              : t("confirmBooking")}
+            <button
 
-          </button>
+              type="button"
+
+              className="confirm-btn"
+
+              onClick={
+                confirmBooking
+              }
+
+              disabled={saving}
+
+            >
+
+              {paymentStage === "waiting-approval"
+                ? (t("waitingForApproval") || "Waiting for approval...")
+                : paymentStage === "redirecting"
+                ? (t("redirecting") || "Redirecting...")
+                : saving
+                ? t("savingBooking")
+                : t("confirmBooking")}
+
+            </button>
+
+          </>
 
         )}
 
