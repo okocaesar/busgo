@@ -1,23 +1,20 @@
 const db = require("../config/database");
 
-
-// =========================================
-// GET CURRENT USER ID
-// =========================================
+/* =========================================================
+   GET CURRENT USER ID
+   ========================================================= */
 
 const getUserId = (req) => {
   return req.user?.id || req.user?.userId || null;
 };
 
 
-// =========================================
-// CREATE REPORT
-// =========================================
-// POST /api/reports
-// =========================================
+/* =========================================================
+   CREATE REPORT
+   POST /api/reports
+   ========================================================= */
 
 const createReport = (req, res) => {
-
   const userId = getUserId(req);
 
   if (!userId) {
@@ -26,48 +23,67 @@ const createReport = (req, res) => {
     });
   }
 
+  const {
+    subject,
+    message
+  } = req.body;
 
-  const { message } = req.body;
+
+  /* =======================================================
+     VALIDATE SUBJECT
+     ======================================================= */
+
+  if (
+    !subject ||
+    typeof subject !== "string" ||
+    !subject.trim()
+  ) {
+    return res.status(400).json({
+      message: "Report subject is required."
+    });
+  }
+
+  const cleanSubject = subject.trim();
+
+  if (cleanSubject.length > 255) {
+    return res.status(400).json({
+      message: "Report subject cannot exceed 255 characters."
+    });
+  }
 
 
-  // =========================================
-  // VALIDATE MESSAGE
-  // =========================================
+  /* =======================================================
+     VALIDATE MESSAGE
+     ======================================================= */
 
   if (
     !message ||
     typeof message !== "string" ||
     !message.trim()
   ) {
-
     return res.status(400).json({
       message: "Report message is required."
     });
-
   }
-
 
   const cleanMessage = message.trim();
 
-
-  if (cleanMessage.length > 2000) {
-
+  if (cleanMessage.length > 5000) {
     return res.status(400).json({
-      message:
-        "Report message cannot exceed 2000 characters."
+      message: "Report message cannot exceed 5000 characters."
     });
-
   }
 
 
-  // =========================================
-  // CREATE REPORT
-  // =========================================
+  /* =======================================================
+     CREATE REPORT
+     ======================================================= */
 
   const sql = `
     INSERT INTO reports
     (
       user_id,
+      subject,
       message,
       status
     )
@@ -75,31 +91,29 @@ const createReport = (req, res) => {
     (
       ?,
       ?,
-      'pending'
+      ?,
+      'Pending'
     )
   `;
-
 
   db.query(
     sql,
     [
       userId,
+      cleanSubject,
       cleanMessage
     ],
     (error, result) => {
 
       if (error) {
-
         console.error(
           "CREATE REPORT ERROR:",
           error
         );
 
         return res.status(500).json({
-          message:
-            "Unable to submit report."
+          message: "Unable to submit report."
         });
-
       }
 
 
@@ -113,54 +127,39 @@ const createReport = (req, res) => {
 
 
       return res.status(201).json({
-
-        message:
-          "Report submitted successfully.",
+        message: "Report submitted successfully.",
 
         report: {
-
-          id:
-            result.insertId,
-
-          user_id:
-            userId,
-
-          message:
-            cleanMessage,
-
-          status:
-            "pending"
-
+          id: result.insertId,
+          user_id: userId,
+          subject: cleanSubject,
+          message: cleanMessage,
+          status: "Pending",
+          admin_reply: null,
+          replied_at: null
         }
-
       });
-
     }
   );
-
 };
 
 
-// =========================================
-// GET MY REPORTS
-// =========================================
-// GET /api/reports
-//
-// IMPORTANT:
-// Users can only see their own reports.
-// =========================================
+/* =========================================================
+   GET MY REPORTS
+   GET /api/reports
+   =========================================================
+
+   IMPORTANT:
+   Users can only see their own reports.
+   ========================================================= */
 
 const getMyReports = (req, res) => {
-
   const userId = getUserId(req);
 
   if (!userId) {
-
     return res.status(401).json({
-      message:
-        "Authentication required."
+      message: "Authentication required."
     });
-
   }
 
 
@@ -168,17 +167,16 @@ const getMyReports = (req, res) => {
     SELECT
       id,
       user_id,
+      subject,
       message,
       status,
+      admin_reply,
+      replied_at,
       created_at,
       updated_at
-
     FROM reports
-
     WHERE user_id = ?
-
-    ORDER BY
-      created_at DESC
+    ORDER BY created_at DESC
   `;
 
 
@@ -188,50 +186,37 @@ const getMyReports = (req, res) => {
     (error, results) => {
 
       if (error) {
-
         console.error(
           "GET MY REPORTS ERROR:",
           error
         );
 
         return res.status(500).json({
-          message:
-            "Unable to load your reports."
+          message: "Unable to load your reports."
         });
-
       }
 
 
       return res.status(200).json({
-
-        reports:
-          results || []
-
+        reports: results || []
       });
-
     }
   );
-
 };
 
 
-// =========================================
-// GET MY REPORT BY ID
-// =========================================
-// GET /api/reports/:id
-// =========================================
+/* =========================================================
+   GET MY REPORT BY ID
+   GET /api/reports/:id
+   ========================================================= */
 
 const getMyReportById = (req, res) => {
-
   const userId = getUserId(req);
 
   if (!userId) {
-
     return res.status(401).json({
-      message:
-        "Authentication required."
+      message: "Authentication required."
     });
-
   }
 
 
@@ -239,29 +224,26 @@ const getMyReportById = (req, res) => {
 
 
   if (!id) {
-
     return res.status(400).json({
-      message:
-        "Report ID is required."
+      message: "Report ID is required."
     });
-
   }
 
 
   const sql = `
     SELECT
-      r.id,
-      r.user_id,
-      r.message,
-      r.status,
-      r.created_at,
-      r.updated_at
-
-    FROM reports r
-
-    WHERE r.id = ?
-      AND r.user_id = ?
-
+      id,
+      user_id,
+      subject,
+      message,
+      status,
+      admin_reply,
+      replied_at,
+      created_at,
+      updated_at
+    FROM reports
+    WHERE id = ?
+      AND user_id = ?
     LIMIT 1
   `;
 
@@ -275,17 +257,14 @@ const getMyReportById = (req, res) => {
     (error, results) => {
 
       if (error) {
-
         console.error(
           "GET MY REPORT ERROR:",
           error
         );
 
         return res.status(500).json({
-          message:
-            "Unable to load report."
+          message: "Unable to load report."
         });
-
       }
 
 
@@ -293,33 +272,25 @@ const getMyReportById = (req, res) => {
         !results ||
         results.length === 0
       ) {
-
         return res.status(404).json({
-          message:
-            "Report not found."
+          message: "Report not found."
         });
-
       }
 
 
       return res.status(200).json({
-
-        report:
-          results[0]
-
+        report: results[0]
       });
-
     }
   );
-
 };
 
 
-// =========================================
-// GET ALL REPORTS
-// =========================================
-// ADMIN ONLY
-// =========================================
+/* =========================================================
+   GET ALL REPORTS
+   ADMIN ONLY
+   GET /api/admin/reports
+   ========================================================= */
 
 const getAllReports = (req, res) => {
 
@@ -327,8 +298,11 @@ const getAllReports = (req, res) => {
     SELECT
       r.id,
       r.user_id,
+      r.subject,
       r.message,
       r.status,
+      r.admin_reply,
+      r.replied_at,
       r.created_at,
       r.updated_at,
 
@@ -351,39 +325,132 @@ const getAllReports = (req, res) => {
     (error, results) => {
 
       if (error) {
-
         console.error(
           "GET ALL REPORTS ERROR:",
           error
         );
 
         return res.status(500).json({
-          message:
-            "Unable to load reports."
+          message: "Unable to load reports."
         });
-
       }
 
 
       return res.status(200).json({
-
-        reports:
-          results || []
-
+        reports: results || []
       });
-
     }
   );
-
 };
 
 
-// =========================================
-// UPDATE REPORT STATUS
-// =========================================
-// ADMIN ONLY
-// PATCH /api/admin/reports/:reportId/status
-// =========================================
+/* =========================================================
+   GET REPORT STATISTICS
+   ADMIN ONLY
+   GET /api/admin/reports/stats
+   =========================================================
+
+   Returns:
+
+   Total Reports
+   Pending
+   In Progress
+   Resolved
+   Rejected
+   ========================================================= */
+
+const getReportStats = (req, res) => {
+
+  const sql = `
+    SELECT
+
+      COUNT(*) AS total_reports,
+
+      SUM(
+        CASE
+          WHEN status = 'Pending'
+          THEN 1
+          ELSE 0
+        END
+      ) AS pending,
+
+      SUM(
+        CASE
+          WHEN status = 'In Progress'
+          THEN 1
+          ELSE 0
+        END
+      ) AS in_progress,
+
+      SUM(
+        CASE
+          WHEN status = 'Resolved'
+          THEN 1
+          ELSE 0
+        END
+      ) AS resolved,
+
+      SUM(
+        CASE
+          WHEN status = 'Rejected'
+          THEN 1
+          ELSE 0
+        END
+      ) AS rejected
+
+    FROM reports
+  `;
+
+
+  db.query(
+    sql,
+    (error, results) => {
+
+      if (error) {
+        console.error(
+          "GET REPORT STATS ERROR:",
+          error
+        );
+
+        return res.status(500).json({
+          message: "Unable to load report statistics."
+        });
+      }
+
+
+      const stats = results?.[0] || {};
+
+
+      return res.status(200).json({
+
+        stats: {
+          total_reports:
+            Number(stats.total_reports || 0),
+
+          pending:
+            Number(stats.pending || 0),
+
+          in_progress:
+            Number(stats.in_progress || 0),
+
+          resolved:
+            Number(stats.resolved || 0),
+
+          rejected:
+            Number(stats.rejected || 0)
+        }
+
+      });
+    }
+  );
+};
+
+
+/* =========================================================
+   UPDATE REPORT STATUS
+   ADMIN ONLY
+   PATCH /api/admin/reports/:reportId/status
+   ========================================================= */
 
 const updateReportStatus = (req, res) => {
 
@@ -397,43 +464,42 @@ const updateReportStatus = (req, res) => {
   } = req.body;
 
 
-  // =========================================
-  // VALIDATION
-  // =========================================
+  /* =======================================================
+     VALIDATE REPORT ID
+     ======================================================= */
 
   if (!reportId) {
-
     return res.status(400).json({
-      message:
-        "Report ID is required."
+      message: "Report ID is required."
     });
-
   }
 
 
+  /* =======================================================
+     ALLOWED STATUSES
+     ======================================================= */
+
   const allowedStatuses = [
-    "pending",
-    "reviewed",
-    "resolved",
-    "rejected"
+    "Pending",
+    "In Progress",
+    "Resolved",
+    "Rejected"
   ];
 
 
   if (
     !allowedStatuses.includes(status)
   ) {
-
     return res.status(400).json({
       message:
-        "Invalid report status."
+        "Invalid report status. Allowed statuses are Pending, In Progress, Resolved, and Rejected."
     });
-
   }
 
 
-  // =========================================
-  // UPDATE STATUS
-  // =========================================
+  /* =======================================================
+     UPDATE STATUS
+     ======================================================= */
 
   const sql = `
     UPDATE reports
@@ -455,7 +521,6 @@ const updateReportStatus = (req, res) => {
     (error, result) => {
 
       if (error) {
-
         console.error(
           "UPDATE REPORT STATUS ERROR:",
           error
@@ -465,19 +530,15 @@ const updateReportStatus = (req, res) => {
           message:
             "Unable to update report status."
         });
-
       }
 
 
       if (
         result.affectedRows === 0
       ) {
-
         return res.status(404).json({
-          message:
-            "Report not found."
+          message: "Report not found."
         });
-
       }
 
 
@@ -496,25 +557,209 @@ const updateReportStatus = (req, res) => {
           "Report status updated successfully.",
 
         report: {
-
-          id:
-            Number(reportId),
-
+          id: Number(reportId),
           status
-
         }
 
       });
-
     }
   );
-
 };
 
 
-// =========================================
-// EXPORT
-// =========================================
+/* =========================================================
+   ADMIN REPLY TO REPORT
+   ADMIN ONLY
+   PATCH /api/admin/reports/:reportId/reply
+   ========================================================= */
+
+const replyToReport = (req, res) => {
+
+  const {
+    reportId
+  } = req.params;
+
+
+  const {
+    admin_reply
+  } = req.body;
+
+
+  /* =======================================================
+     VALIDATE REPORT ID
+     ======================================================= */
+
+  if (!reportId) {
+    return res.status(400).json({
+      message: "Report ID is required."
+    });
+  }
+
+
+  /* =======================================================
+     VALIDATE ADMIN REPLY
+     ======================================================= */
+
+  if (
+    !admin_reply ||
+    typeof admin_reply !== "string" ||
+    !admin_reply.trim()
+  ) {
+    return res.status(400).json({
+      message: "Admin reply is required."
+    });
+  }
+
+
+  const cleanReply =
+    admin_reply.trim();
+
+
+  if (cleanReply.length > 5000) {
+    return res.status(400).json({
+      message:
+        "Admin reply cannot exceed 5000 characters."
+    });
+  }
+
+
+  /* =======================================================
+     UPDATE REPORT
+     ======================================================= */
+
+  const sql = `
+    UPDATE reports
+
+    SET
+      admin_reply = ?,
+      replied_at = CURRENT_TIMESTAMP,
+      status = 'In Progress',
+      updated_at = CURRENT_TIMESTAMP
+
+    WHERE id = ?
+  `;
+
+
+  db.query(
+    sql,
+    [
+      cleanReply,
+      reportId
+    ],
+    (error, result) => {
+
+      if (error) {
+        console.error(
+          "REPLY TO REPORT ERROR:",
+          error
+        );
+
+        return res.status(500).json({
+          message:
+            "Unable to send admin reply."
+        });
+      }
+
+
+      if (
+        result.affectedRows === 0
+      ) {
+        return res.status(404).json({
+          message: "Report not found."
+        });
+      }
+
+
+      console.log(
+        "ADMIN REPLIED TO REPORT:",
+        {
+          reportId
+        }
+      );
+
+
+      return res.status(200).json({
+
+        message:
+          "Reply sent successfully.",
+
+        report: {
+          id: Number(reportId),
+          admin_reply: cleanReply,
+          status: "In Progress"
+        }
+
+      });
+    }
+  );
+};
+
+
+/* =========================================================
+   DELETE REPORT
+   ADMIN ONLY
+   DELETE /api/admin/reports/:reportId
+   ========================================================= */
+
+const deleteReport = (req, res) => {
+
+  const {
+    reportId
+  } = req.params;
+
+
+  if (!reportId) {
+    return res.status(400).json({
+      message: "Report ID is required."
+    });
+  }
+
+
+  const sql = `
+    DELETE FROM reports
+    WHERE id = ?
+  `;
+
+
+  db.query(
+    sql,
+    [reportId],
+    (error, result) => {
+
+      if (error) {
+        console.error(
+          "DELETE REPORT ERROR:",
+          error
+        );
+
+        return res.status(500).json({
+          message:
+            "Unable to delete report."
+        });
+      }
+
+
+      if (
+        result.affectedRows === 0
+      ) {
+        return res.status(404).json({
+          message: "Report not found."
+        });
+      }
+
+
+      return res.status(200).json({
+        message:
+          "Report deleted successfully."
+      });
+    }
+  );
+};
+
+
+/* =========================================================
+   EXPORT
+   ========================================================= */
 
 module.exports = {
 
@@ -526,6 +771,12 @@ module.exports = {
 
   getAllReports,
 
-  updateReportStatus
+  getReportStats,
+
+  updateReportStatus,
+
+  replyToReport,
+
+  deleteReport
 
 };

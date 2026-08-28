@@ -1,22 +1,64 @@
-/* =========================================
-   ADMIN DASHBOARD RESET
-========================================= */
+/* =========================================================
+   ADMIN DASHBOARD
+   MODERN RESPONSIVE ADMIN UI
+   ========================================================= */
+
+/* =========================================================
+   GLOBAL RESET
+   ========================================================= */
+
+.admin-shell,
+.admin-shell *,
+.admin-shell *::before,
+.admin-shell *::after {
+  box-sizing: border-box;
+}
 
 .admin-shell {
+  --admin-primary: #087f4f;
+  --admin-primary-dark: #066d43;
+  --admin-primary-light: #e8f7f0;
+
+  --admin-bg: #f6f8fb;
+  --admin-surface: #ffffff;
+  --admin-surface-2: #f8fafc;
+
+  --admin-border: #e8edf2;
+  --admin-border-light: #edf0f2;
+
+  --admin-text: #172b22;
+  --admin-text-2: #344054;
+  --admin-muted: #667085;
+  --admin-muted-2: #98a2b3;
+
+  --admin-danger: #d92d20;
+  --admin-danger-bg: #fff1f0;
+
+  --admin-radius: 14px;
+  --admin-radius-sm: 10px;
+
+  --admin-shadow:
+    0 5px 18px rgba(16, 24, 40, 0.05);
+
+  --admin-shadow-lg:
+    0 12px 35px rgba(16, 24, 40, 0.08);
+
   margin: 0;
   padding: 0;
   min-height: 100vh;
   width: 100%;
-  background: #f6f8fb;
+  max-width: 100%;
+  background: var(--admin-bg);
+  color: var(--admin-text);
   display: flex;
   position: relative;
-  box-sizing: border-box;
+  overflow-x: hidden;
+  font-family: inherit;
 }
 
-
-/* =========================================
+/* =========================================================
    SIDEBAR
-========================================= */
+   ========================================================= */
 
 .admin-sidebar {
   position: fixed;
@@ -25,9 +67,10 @@
 
   width: 250px;
   height: 100vh;
+  height: 100dvh;
 
-  background: #ffffff;
-  border-right: 1px solid #e8edf2;
+  background: var(--admin-surface);
+  border-right: 1px solid var(--admin-border);
 
   display: flex;
   flex-direction: column;
@@ -39,13 +82,26 @@
 
   box-sizing: border-box;
 
-  transition: transform 0.3s ease;
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.25s ease,
+    border-color 0.25s ease;
+
+  scrollbar-width: thin;
 }
 
+.admin-sidebar::-webkit-scrollbar {
+  width: 5px;
+}
 
-/* =========================================
+.admin-sidebar::-webkit-scrollbar-thumb {
+  background: #d0d5dd;
+  border-radius: 20px;
+}
+
+/* =========================================================
    SIDEBAR TOP
-========================================= */
+   ========================================================= */
 
 .sidebar-top {
   min-height: 110px;
@@ -54,23 +110,22 @@
   display: flex;
   align-items: center;
 
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid var(--admin-border-light);
 
   position: relative;
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
-
-/* =========================================
+/* =========================================================
    LOGO
-========================================= */
+   ========================================================= */
 
 .sidebar-brand {
   width: 100%;
   display: flex;
   align-items: center;
 }
-
 
 .sidebar-logo {
   width: 165px;
@@ -83,10 +138,9 @@
   display: block;
 }
 
-
-/* =========================================
+/* =========================================================
    SIDEBAR NAVIGATION
-========================================= */
+   ========================================================= */
 
 .sidebar-navigation {
   flex: 1;
@@ -101,12 +155,13 @@
   box-sizing: border-box;
 }
 
-
-/* =========================================
+/* =========================================================
    SIDEBAR LINKS
-========================================= */
+   ========================================================= */
 
 .sidebar-link {
+  position: relative;
+
   width: 100%;
   min-height: 46px;
 
@@ -114,7 +169,7 @@
   outline: none;
 
   background: transparent;
-  color: #667085;
+  color: var(--admin-muted);
 
   border-radius: 10px;
 
@@ -133,37 +188,73 @@
 
   cursor: pointer;
 
+  overflow: hidden;
+
   transition:
     background 0.2s ease,
     color 0.2s ease,
-    transform 0.2s ease;
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
+.sidebar-link::after,
+.refresh-btn::after,
+.admin-mobile-menu-btn::after,
+.send-notification-btn::after,
+.settings-action-btn::after,
+.admin-error-card button::after {
+  content: "";
+
+  position: absolute;
+
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.45);
+
+  transform: scale(0);
+  opacity: 0;
+
+  pointer-events: none;
+}
+
+.sidebar-link:active::after,
+.refresh-btn:active::after,
+.admin-mobile-menu-btn:active::after,
+.send-notification-btn:active::after,
+.settings-action-btn:active::after,
+.admin-error-card button:active::after {
+  animation: adminRipple 0.7s ease-out;
+}
 
 .sidebar-link:hover {
   background: #f0f8f4;
-  color: #087f4f;
+  color: var(--admin-primary);
 }
 
-
 .sidebar-link.active {
-  background: #087f4f;
+  background: var(--admin-primary);
   color: #ffffff;
 
   box-shadow:
     0 5px 14px rgba(8, 127, 79, 0.18);
 }
 
-
 .sidebar-link.active:hover {
-  background: #087f4f;
+  background: var(--admin-primary);
   color: #ffffff;
 }
 
+.sidebar-link:focus-visible {
+  box-shadow:
+    0 0 0 3px rgba(8, 127, 79, 0.18);
+}
 
-/* =========================================
+/* =========================================================
    SIDEBAR ICON
-========================================= */
+   ========================================================= */
 
 .sidebar-icon {
   width: 20px;
@@ -178,57 +269,52 @@
   font-size: 18px;
 }
 
-
 .sidebar-link:not(.active) .sidebar-icon {
-  color: #667085;
+  color: var(--admin-muted);
 }
-
 
 .sidebar-link.active .sidebar-icon {
   color: #ffffff;
 }
 
-
-/* =========================================
+/* =========================================================
    FUTURE LINKS
-========================================= */
+   ========================================================= */
 
 .future-link {
   opacity: 0.8;
 }
 
-
-/* =========================================
+/* =========================================================
    SIDEBAR BOTTOM
-========================================= */
+   ========================================================= */
 
 .sidebar-bottom {
   padding: 14px;
 
-  border-top: 1px solid #f0f2f5;
+  border-top: 1px solid var(--admin-border-light);
 
-  background: #ffffff;
+  background: var(--admin-surface);
+
+  flex-shrink: 0;
 }
 
-
-/* =========================================
+/* =========================================================
    LOGOUT
-========================================= */
+   ========================================================= */
 
 .logout-link {
-  color: #d92d20;
+  color: var(--admin-danger);
 }
-
 
 .logout-link:hover {
-  background: #fff1f0;
-  color: #d92d20;
+  background: var(--admin-danger-bg);
+  color: var(--admin-danger);
 }
 
-
-/* =========================================
+/* =========================================================
    SIDEBAR CLOSE BUTTON
-========================================= */
+   ========================================================= */
 
 .sidebar-close {
   display: none;
@@ -258,53 +344,55 @@
     transform 0.2s ease;
 }
 
-
 .sidebar-close:hover {
   background: #e4e7ec;
   transform: rotate(90deg);
 }
-
 
 .sidebar-close svg {
   width: 20px;
   height: 20px;
 }
 
-
-/* =========================================
+/* =========================================================
    MAIN AREA
-========================================= */
+   ========================================================= */
 
 .admin-main {
   min-width: 0;
+  max-width: 100%;
 
   flex: 1;
 
   margin-left: 250px;
 
   min-height: 100vh;
+  min-height: 100dvh;
 
   display: flex;
   flex-direction: column;
+
+  overflow-x: hidden;
 }
 
-
-/* =========================================
+/* =========================================================
    ADMIN CONTENT
-========================================= */
+   ========================================================= */
 
 .admin-content {
   flex: 1;
+
+  width: 100%;
+  max-width: 100%;
 
   padding: 40px 42px;
 
   box-sizing: border-box;
 }
 
-
-/* =========================================
+/* =========================================================
    DASHBOARD HEADING
-========================================= */
+   ========================================================= */
 
 .dashboard-heading {
   display: flex;
@@ -317,34 +405,40 @@
   margin-bottom: 25px;
 }
 
+.dashboard-heading > div {
+  min-width: 0;
+}
 
 .dashboard-heading h1 {
   margin: 0 0 7px;
 
-  color: #172b22;
+  color: var(--admin-text);
 
   font-size: 30px;
+  line-height: 1.2;
   font-weight: 700;
 }
-
 
 .dashboard-heading p {
   margin: 0;
 
-  color: #667085;
+  color: var(--admin-muted);
 
   font-size: 14px;
+  line-height: 1.5;
 }
 
-
-/* =========================================
+/* =========================================================
    REFRESH BUTTON
-========================================= */
+   ========================================================= */
 
 .refresh-btn {
+  position: relative;
+  overflow: hidden;
+
   border: none;
 
-  background: #087f4f;
+  background: var(--admin-primary);
   color: #ffffff;
 
   border-radius: 9px;
@@ -365,23 +459,40 @@
 
   cursor: pointer;
 
+  white-space: nowrap;
+
   transition:
     background 0.2s ease,
-    transform 0.2s ease;
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
-
 
 .refresh-btn:hover {
-  background: #066d43;
+  background: var(--admin-primary-dark);
   transform: translateY(-1px);
+
+  box-shadow:
+    0 6px 16px rgba(8, 127, 79, 0.18);
 }
 
+.refresh-btn:active {
+  transform: scale(0.97);
+}
 
-/* =========================================
-   HAMBURGER MENU BUTTON
-========================================= */
+.refresh-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(8, 127, 79, 0.16);
+}
+
+/* =========================================================
+   MOBILE MENU BUTTON
+   ========================================================= */
 
 .admin-mobile-menu-btn {
+  position: relative;
+  overflow: hidden;
+
   display: none;
 
   align-items: center;
@@ -399,7 +510,7 @@
 
   border-radius: 10px;
 
-  background: #0b7d45;
+  background: var(--admin-primary);
   color: #ffffff;
 
   font-family: inherit;
@@ -418,15 +529,13 @@
     box-shadow 0.2s ease;
 }
 
-
 .admin-mobile-menu-btn svg {
   width: 18px;
   height: 18px;
 }
 
-
 .admin-mobile-menu-btn:hover {
-  background: #096b3b;
+  background: var(--admin-primary-dark);
 
   transform: translateY(-1px);
 
@@ -434,24 +543,21 @@
     0 7px 18px rgba(11, 125, 69, 0.25);
 }
 
-
 .admin-mobile-menu-btn:active {
   transform: scale(0.97);
 }
 
-
-/* =========================================
+/* =========================================================
    MOBILE SIDEBAR OVERLAY
-========================================= */
+   ========================================================= */
 
 .admin-sidebar-overlay {
   display: none;
 }
 
-
-/* =========================================
+/* =========================================================
    STAT CARDS
-========================================= */
+   ========================================================= */
 
 .admin-stats {
   display: grid;
@@ -464,22 +570,33 @@
   margin-bottom: 28px;
 }
 
-
 .admin-stat-card {
-  background: #ffffff;
+  position: relative;
 
-  border: 1px solid #edf0f2;
+  background: var(--admin-surface);
 
-  border-radius: 14px;
+  border: 1px solid var(--admin-border-light);
+
+  border-radius: var(--admin-radius);
 
   padding: 22px;
 
-  box-shadow:
-    0 5px 18px rgba(16, 24, 40, 0.05);
+  box-shadow: var(--admin-shadow);
 
   min-width: 0;
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
 }
 
+.admin-stat-card:hover {
+  transform: translateY(-3px);
+
+  box-shadow: var(--admin-shadow-lg);
+  border-color: rgba(8, 127, 79, 0.12);
+}
 
 .stat-card-top {
   display: flex;
@@ -492,14 +609,12 @@
   margin-bottom: 15px;
 }
 
-
 .stat-card-top > span {
-  color: #667085;
+  color: var(--admin-muted);
 
   font-size: 13px;
   font-weight: 600;
 }
-
 
 .stat-icon {
   width: 40px;
@@ -517,35 +632,30 @@
   font-size: 18px;
 }
 
-
 .stat-icon.blue {
   background: #e9f2ff;
   color: #1769aa;
 }
 
-
 .stat-icon.green {
   background: #e6f7ef;
-  color: #087f4f;
+  color: var(--admin-primary);
 }
-
 
 .stat-icon.purple {
   background: #f0eaff;
   color: #6941c6;
 }
 
-
 .stat-icon.orange {
   background: #fff1df;
   color: #d97706;
 }
 
-
 .admin-stat-card > strong {
   display: block;
 
-  color: #172b22;
+  color: var(--admin-text);
 
   font-size: 25px;
 
@@ -556,22 +666,19 @@
   word-break: break-word;
 }
 
-
 .admin-stat-card small {
-  color: #98a2b3;
+  color: var(--admin-muted-2);
 
   font-size: 12px;
 }
-
 
 .revenue-value {
   font-size: 20px !important;
 }
 
-
-/* =========================================
+/* =========================================================
    DASHBOARD OVERVIEW
-========================================= */
+   ========================================================= */
 
 .dashboard-overview-grid {
   display: grid;
@@ -583,20 +690,19 @@
   gap: 20px;
 }
 
-
 .dashboard-card {
-  background: #ffffff;
+  background: var(--admin-surface);
 
-  border: 1px solid #edf0f2;
+  border: 1px solid var(--admin-border-light);
 
-  border-radius: 14px;
+  border-radius: var(--admin-radius);
 
-  box-shadow:
-    0 5px 18px rgba(16, 24, 40, 0.05);
+  box-shadow: var(--admin-shadow);
 
   overflow: hidden;
-}
 
+  min-width: 0;
+}
 
 .dashboard-card-header {
   padding: 21px 22px;
@@ -608,34 +714,31 @@
 
   gap: 15px;
 
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid var(--admin-border-light);
 }
-
 
 .dashboard-card-header h2 {
   margin: 0 0 5px;
 
-  color: #172b22;
+  color: var(--admin-text);
 
   font-size: 17px;
 }
 
-
 .dashboard-card-header p {
   margin: 0;
 
-  color: #98a2b3;
+  color: var(--admin-muted-2);
 
   font-size: 12px;
 }
-
 
 .dashboard-card-header button {
   border: none;
 
   background: transparent;
 
-  color: #087f4f;
+  color: var(--admin-primary);
 
   font-family: inherit;
 
@@ -643,17 +746,17 @@
   font-weight: 700;
 
   cursor: pointer;
+
+  white-space: nowrap;
 }
 
-
-/* =========================================
+/* =========================================================
    RECENT BOOKINGS
-========================================= */
+   ========================================================= */
 
 .recent-bookings {
   padding: 5px 22px;
 }
-
 
 .recent-booking {
   min-height: 74px;
@@ -664,14 +767,12 @@
 
   gap: 13px;
 
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid var(--admin-border-light);
 }
-
 
 .recent-booking:last-child {
   border-bottom: none;
 }
-
 
 .booking-avatar {
   width: 38px;
@@ -680,7 +781,7 @@
   border-radius: 10px;
 
   background: #eaf7f1;
-  color: #087f4f;
+  color: var(--admin-primary);
 
   display: flex;
 
@@ -689,7 +790,6 @@
 
   flex-shrink: 0;
 }
-
 
 .booking-summary {
   min-width: 0;
@@ -702,9 +802,8 @@
   gap: 4px;
 }
 
-
 .booking-summary strong {
-  color: #344054;
+  color: var(--admin-text-2);
 
   font-size: 13px;
 
@@ -715,13 +814,11 @@
   white-space: nowrap;
 }
 
-
 .booking-summary span {
-  color: #98a2b3;
+  color: var(--admin-muted-2);
 
   font-size: 12px;
 }
-
 
 .booking-right {
   display: flex;
@@ -735,33 +832,29 @@
   flex-shrink: 0;
 }
 
-
 .booking-right strong {
-  color: #344054;
+  color: var(--admin-text-2);
 
   font-size: 12px;
 }
 
-
 .dashboard-empty {
-  padding: 35px 0;
+  padding: 35px 15px;
 
   text-align: center;
 
-  color: #98a2b3;
+  color: var(--admin-muted-2);
 
   font-size: 14px;
 }
 
-
-/* =========================================
+/* =========================================================
    SUMMARY
-========================================= */
+   ========================================================= */
 
 .summary-list {
   padding: 8px 22px 15px;
 }
-
 
 .summary-item {
   display: flex;
@@ -772,22 +865,19 @@
 
   padding: 14px 0;
 
-  border-bottom: 1px solid #f0f2f5;
+  border-bottom: 1px solid var(--admin-border-light);
 }
-
 
 .summary-item:last-child {
   border-bottom: none;
 }
-
 
 .summary-icon {
   width: 38px;
   height: 38px;
 
   background: #f1f7f4;
-
-  color: #087f4f;
+  color: var(--admin-primary);
 
   border-radius: 9px;
 
@@ -799,33 +889,31 @@
   flex-shrink: 0;
 }
 
-
 .summary-item div:last-child {
   display: flex;
 
   flex-direction: column;
 
   gap: 4px;
+
+  min-width: 0;
 }
 
-
 .summary-item span {
-  color: #98a2b3;
+  color: var(--admin-muted-2);
 
   font-size: 12px;
 }
 
-
 .summary-item strong {
-  color: #344054;
+  color: var(--admin-text-2);
 
   font-size: 16px;
 }
 
-
-/* =========================================
+/* =========================================================
    STATUS
-========================================= */
+   ========================================================= */
 
 .status {
   display: inline-flex;
@@ -843,44 +931,40 @@
   white-space: nowrap;
 }
 
-
 .status.confirmed {
-  color: #087f4f;
+  color: var(--admin-primary);
   background: #e0f7eb;
 }
-
 
 .status.cancelled {
   color: #b42318;
   background: #ffe5e5;
 }
 
-
 .status.pending {
   color: #b54708;
   background: #fff3e0;
 }
 
-
-/* =========================================
+/* =========================================================
    TABLE CARD
-========================================= */
+   ========================================================= */
 
 .admin-table-card {
-  background: #ffffff;
+  background: var(--admin-surface);
 
-  border: 1px solid #edf0f2;
+  border: 1px solid var(--admin-border-light);
 
-  border-radius: 14px;
+  border-radius: var(--admin-radius);
 
-  box-shadow:
-    0 5px 18px rgba(16, 24, 40, 0.05);
+  box-shadow: var(--admin-shadow);
 
   padding: 25px;
 
   box-sizing: border-box;
-}
 
+  min-width: 0;
+}
 
 .section-heading {
   display: flex;
@@ -893,24 +977,21 @@
   margin-bottom: 25px;
 }
 
-
 .section-heading h1 {
   margin: 0 0 6px;
 
-  color: #172b22;
+  color: var(--admin-text);
 
   font-size: 25px;
 }
 
-
 .section-heading p {
   margin: 0;
 
-  color: #98a2b3;
+  color: var(--admin-muted-2);
 
   font-size: 13px;
 }
-
 
 .section-count {
   display: inline-flex;
@@ -925,49 +1006,61 @@
 
   background: #eef8f3;
 
-  color: #087f4f;
+  color: var(--admin-primary);
 
   font-size: 13px;
   font-weight: 700;
+
+  white-space: nowrap;
 }
 
-
-/* =========================================
+/* =========================================================
    TABLE
-========================================= */
+   ========================================================= */
 
 .admin-table-scroll {
   width: 100%;
 
+  max-width: 100%;
+
   overflow-x: auto;
 
   -webkit-overflow-scrolling: touch;
+
+  scrollbar-width: thin;
 }
 
+.admin-table-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.admin-table-scroll::-webkit-scrollbar-thumb {
+  background: #d0d5dd;
+  border-radius: 20px;
+}
 
 .admin-table-card table {
   width: 100%;
 
   min-width: 850px;
 
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 }
-
 
 .admin-table-card th,
 .admin-table-card td {
   padding: 14px 12px;
 
-  border-bottom: 1px solid #edf0f2;
+  border-bottom: 1px solid var(--admin-border-light);
 
   text-align: left;
 
   vertical-align: middle;
 }
 
-
 .admin-table-card th {
-  color: #667085;
+  color: var(--admin-muted);
 
   font-size: 11px;
   font-weight: 700;
@@ -975,37 +1068,51 @@
   text-transform: uppercase;
 
   letter-spacing: 0.4px;
+
+  background: var(--admin-surface-2);
 }
 
+.admin-table-card th:first-child {
+  border-radius: 8px 0 0 0;
+}
+
+.admin-table-card th:last-child {
+  border-radius: 0 8px 0 0;
+}
 
 .admin-table-card td {
-  color: #475467;
+  color: var(--admin-text-2);
 
   font-size: 13px;
 }
 
+.admin-table-card tbody tr {
+  transition: background 0.2s ease;
+}
+
+.admin-table-card tbody tr:hover {
+  background: rgba(8, 127, 79, 0.025);
+}
 
 .admin-table-card td small {
   display: block;
 
   margin-top: 4px;
 
-  color: #98a2b3;
+  color: var(--admin-muted-2);
 
   font-size: 11px;
 }
 
-
 .route-arrow {
   margin: 0 8px;
 
-  color: #98a2b3;
+  color: var(--admin-muted-2);
 }
 
-
-/* =========================================
+/* =========================================================
    BOOKING ACTION BUTTONS
-========================================= */
+   ========================================================= */
 
 .confirm-status-btn,
 .cancel-status-btn {
@@ -1021,34 +1128,40 @@
   font-weight: 700;
 
   cursor: pointer;
-}
 
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
 
 .confirm-status-btn {
   background: #e0f7eb;
-  color: #087f4f;
+  color: var(--admin-primary);
 }
-
 
 .cancel-status-btn {
   background: #fff0ef;
   color: #b42318;
 }
 
-
 .confirm-status-btn:hover {
   background: #ccefdc;
+  transform: translateY(-1px);
 }
-
 
 .cancel-status-btn:hover {
   background: #ffe1df;
+  transform: translateY(-1px);
 }
 
+.confirm-status-btn:active,
+.cancel-status-btn:active {
+  transform: scale(0.97);
+}
 
-/* =========================================
+/* =========================================================
    USER CELL
-========================================= */
+   ========================================================= */
 
 .user-cell {
   display: flex;
@@ -1056,8 +1169,9 @@
   align-items: center;
 
   gap: 10px;
-}
 
+  min-width: 150px;
+}
 
 .user-avatar {
   width: 34px;
@@ -1066,7 +1180,7 @@
   border-radius: 50%;
 
   background: #e7f5ee;
-  color: #087f4f;
+  color: var(--admin-primary);
 
   display: flex;
 
@@ -1079,10 +1193,9 @@
   font-weight: 700;
 }
 
-
-/* =========================================
+/* =========================================================
    ROLE BADGE
-========================================= */
+   ========================================================= */
 
 .role-badge {
   display: inline-flex;
@@ -1092,27 +1205,26 @@
   border-radius: 15px;
 
   background: #f2f4f7;
-  color: #667085;
+  color: var(--admin-muted);
 
   font-size: 11px;
   font-weight: 700;
-}
 
+  white-space: nowrap;
+}
 
 .role-badge.admin-role {
   background: #e0f7eb;
-  color: #087f4f;
+  color: var(--admin-primary);
 }
 
-
-/* =========================================
+/* =========================================================
    NOTIFICATION PANEL
-========================================= */
+   ========================================================= */
 
 .notification-panel {
   max-width: 100%;
 }
-
 
 .notification-heading-icon {
   width: 46px;
@@ -1121,7 +1233,7 @@
   border-radius: 12px;
 
   background: #e8f7f0;
-  color: #087f4f;
+  color: var(--admin-primary);
 
   display: flex;
 
@@ -1131,10 +1243,9 @@
   font-size: 20px;
 }
 
-
-/* =========================================
+/* =========================================================
    NOTIFICATION FORM
-========================================= */
+   ========================================================= */
 
 .admin-notification-form {
   width: 100%;
@@ -1148,7 +1259,6 @@
   gap: 20px;
 }
 
-
 .form-grid {
   display: grid;
 
@@ -1158,7 +1268,6 @@
   gap: 18px;
 }
 
-
 .admin-form-group {
   display: flex;
 
@@ -1167,14 +1276,12 @@
   gap: 8px;
 }
 
-
 .admin-form-group label {
-  color: #344054;
+  color: var(--admin-text-2);
 
   font-size: 13px;
   font-weight: 700;
 }
-
 
 .admin-form-group input,
 .admin-form-group select,
@@ -1187,8 +1294,8 @@
 
   border-radius: 9px;
 
-  background: #ffffff;
-  color: #344054;
+  background: var(--admin-surface);
+  color: var(--admin-text-2);
 
   padding: 12px 14px;
 
@@ -1200,30 +1307,35 @@
 
   transition:
     border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
+.admin-form-group input::placeholder,
+.admin-form-group textarea::placeholder {
+  color: var(--admin-muted-2);
+}
 
 .admin-form-group input:focus,
 .admin-form-group select:focus,
 .admin-form-group textarea:focus {
-  border-color: #087f4f;
+  border-color: var(--admin-primary);
 
   box-shadow:
     0 0 0 3px rgba(8, 127, 79, 0.09);
 }
 
-
 .admin-form-group textarea {
   resize: vertical;
 
   min-height: 145px;
+  line-height: 1.55;
 }
 
-
-/* =========================================
+/* =========================================================
    NOTIFICATION MESSAGES
-========================================= */
+   ========================================================= */
 
 .admin-notification-success,
 .admin-notification-error {
@@ -1243,14 +1355,12 @@
   font-weight: 600;
 }
 
-
 .admin-notification-success {
   background: #e8f7ef;
-  color: #087f4f;
+  color: var(--admin-primary);
 
   border: 1px solid #c9ead8;
 }
-
 
 .admin-notification-error {
   background: #fff0ef;
@@ -1259,12 +1369,14 @@
   border: 1px solid #ffd4d0;
 }
 
-
-/* =========================================
+/* =========================================================
    SEND NOTIFICATION BUTTON
-========================================= */
+   ========================================================= */
 
 .send-notification-btn {
+  position: relative;
+  overflow: hidden;
+
   border: none;
 
   width: fit-content;
@@ -1275,7 +1387,7 @@
 
   border-radius: 9px;
 
-  background: #087f4f;
+  background: var(--admin-primary);
   color: #ffffff;
 
   display: inline-flex;
@@ -1294,16 +1406,22 @@
 
   transition:
     background 0.2s ease,
-    transform 0.2s ease;
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
-
 
 .send-notification-btn:hover {
-  background: #066d43;
+  background: var(--admin-primary-dark);
 
   transform: translateY(-1px);
+
+  box-shadow:
+    0 6px 16px rgba(8, 127, 79, 0.18);
 }
 
+.send-notification-btn:active {
+  transform: scale(0.97);
+}
 
 .send-notification-btn:disabled {
   opacity: 0.6;
@@ -1311,24 +1429,24 @@
   cursor: not-allowed;
 
   transform: none;
+
+  box-shadow: none;
 }
 
-
-/* =========================================
+/* =========================================================
    COMING SOON
-========================================= */
+   ========================================================= */
 
 .coming-soon-card {
   min-height: 450px;
 
-  background: #ffffff;
+  background: var(--admin-surface);
 
-  border: 1px solid #edf0f2;
+  border: 1px solid var(--admin-border-light);
 
-  border-radius: 14px;
+  border-radius: var(--admin-radius);
 
-  box-shadow:
-    0 5px 18px rgba(16, 24, 40, 0.05);
+  box-shadow: var(--admin-shadow);
 
   display: flex;
 
@@ -1342,7 +1460,6 @@
   padding: 40px;
 }
 
-
 .coming-soon-icon {
   width: 70px;
   height: 70px;
@@ -1350,7 +1467,7 @@
   border-radius: 18px;
 
   background: #e8f7f0;
-  color: #087f4f;
+  color: var(--admin-primary);
 
   display: flex;
 
@@ -1362,32 +1479,29 @@
   margin-bottom: 20px;
 }
 
-
 .coming-soon-card h1 {
   margin: 0 0 10px;
 
-  color: #172b22;
+  color: var(--admin-text);
 
   font-size: 25px;
 }
-
 
 .coming-soon-card p {
   max-width: 500px;
 
   margin: 0;
 
-  color: #98a2b3;
+  color: var(--admin-muted-2);
 
   font-size: 14px;
 
   line-height: 1.7;
 }
 
-
-/* =========================================
+/* =========================================================
    ERROR CARD
-========================================= */
+   ========================================================= */
 
 .admin-error-card {
   width: min(500px, calc(100% - 40px));
@@ -1396,29 +1510,26 @@
 
   padding: 35px;
 
-  background: #ffffff;
+  background: var(--admin-surface);
 
-  border-radius: 14px;
+  border-radius: var(--admin-radius);
 
-  border: 1px solid #edf0f2;
+  border: 1px solid var(--admin-border-light);
 
-  box-shadow:
-    0 5px 18px rgba(16, 24, 40, 0.05);
+  box-shadow: var(--admin-shadow-lg);
 
   text-align: center;
 
   box-sizing: border-box;
 }
 
-
 .admin-error-card > svg {
-  color: #d92d20;
+  color: var(--admin-danger);
 
   font-size: 35px;
 
   margin-bottom: 15px;
 }
-
 
 .admin-error-card p {
   color: #b42318;
@@ -1428,13 +1539,15 @@
   line-height: 1.6;
 }
 
-
 .admin-error-card button {
+  position: relative;
+  overflow: hidden;
+
   border: none;
 
   border-radius: 8px;
 
-  background: #087f4f;
+  background: var(--admin-primary);
   color: #ffffff;
 
   padding: 11px 18px;
@@ -1444,12 +1557,24 @@
   font-weight: 700;
 
   cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
 }
 
+.admin-error-card button:hover {
+  background: var(--admin-primary-dark);
+  transform: translateY(-1px);
+}
 
-/* =========================================
+.admin-error-card button:active {
+  transform: scale(0.97);
+}
+
+/* =========================================================
    FOOTER
-========================================= */
+   ========================================================= */
 
 .admin-footer {
   min-height: 60px;
@@ -1458,43 +1583,46 @@
 
   padding: 0 42px;
 
-  background: #ffffff;
+  background: var(--admin-surface);
 
-  border-top: 1px solid #e8edf2;
+  border-top: 1px solid var(--admin-border);
 
   display: flex;
 
   align-items: center;
   justify-content: space-between;
 
-  color: #98a2b3;
+  color: var(--admin-muted-2);
 
   font-size: 13px;
 
   box-sizing: border-box;
+
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease;
 }
 
-
-/* =========================================
+/* =========================================================
    PAYMENTS
-========================================= */
+   ========================================================= */
 
 .payments-panel {
   width: 100%;
+  min-width: 0;
 }
-
 
 .payment-summary {
   display: grid;
 
   grid-template-columns:
-    repeat(4, 1fr);
+    repeat(4, minmax(0, 1fr));
 
   gap: 16px;
 
   margin: 25px 0;
 }
-
 
 .payment-summary-card {
   background: #f1f8f4;
@@ -1504,8 +1632,9 @@
   border-radius: 12px;
 
   padding: 18px;
-}
 
+  min-width: 0;
+}
 
 .payment-summary-card span {
   display: block;
@@ -1517,52 +1646,46 @@
   margin-bottom: 8px;
 }
 
-
 .payment-summary-card strong {
   display: block;
 
   color: #08743e;
 
   font-size: 25px;
-}
 
+  word-break: break-word;
+}
 
 .payment-summary-card.reversal {
   background: #fff8e8;
   border-color: #f5e2af;
 }
 
-
 .payment-summary-card.reversal strong {
   color: #a66a00;
 }
-
 
 .payment-summary-card.reversed {
   background: #eef2ff;
   border-color: #d9defd;
 }
 
-
 .payment-summary-card.reversed strong {
   color: #4656a8;
 }
-
 
 .payment-summary-card.failed {
   background: #fff1f1;
   border-color: #f4d4d4;
 }
 
-
 .payment-summary-card.failed strong {
   color: #b42318;
 }
 
-
-/* =========================================
+/* =========================================================
    PAYMENT USER
-========================================= */
+   ========================================================= */
 
 .payment-user {
   display: flex;
@@ -1572,20 +1695,17 @@
   gap: 4px;
 }
 
-
 .payment-user strong {
-  color: #173426;
+  color: var(--admin-text);
 }
-
 
 .payment-user small {
-  color: #7a857e;
+  color: var(--admin-muted);
 }
 
-
-/* =========================================
+/* =========================================================
    PAYMENT STATUS
-========================================= */
+   ========================================================= */
 
 .payment-status {
   display: inline-flex;
@@ -1603,40 +1723,34 @@
   white-space: nowrap;
 }
 
-
 .payment-status.successful {
   background: #ddf5e5;
   color: #08743e;
 }
-
 
 .payment-status.pending {
   background: #fff5d9;
   color: #9a6700;
 }
 
-
 .payment-status.requested-reversal {
   background: #fff0c7;
   color: #a66a00;
 }
-
 
 .payment-status.reversed {
   background: #e7ebff;
   color: #4656a8;
 }
 
-
 .payment-status.failed {
   background: #ffe5e5;
   color: #b42318;
 }
 
-
-/* =========================================
+/* =========================================================
    PAYMENT ACTIONS
-========================================= */
+   ========================================================= */
 
 .payment-actions {
   display: flex;
@@ -1645,7 +1759,6 @@
 
   gap: 7px;
 }
-
 
 .accept-reversal-btn,
 .deny-reversal-btn {
@@ -1669,31 +1782,29 @@
 
   white-space: nowrap;
 
-  transition: 0.2s ease;
+  transition:
+    0.2s ease;
 }
-
 
 .accept-reversal-btn {
   background: #ddf5e5;
   color: #08743e;
 }
 
-
 .accept-reversal-btn:hover {
   background: #c8edd5;
+  transform: translateY(-1px);
 }
-
 
 .deny-reversal-btn {
   background: #ffe5e5;
   color: #b42318;
 }
 
-
 .deny-reversal-btn:hover {
   background: #ffd1d1;
+  transform: translateY(-1px);
 }
-
 
 .no-payment-action {
   color: #9aa49d;
@@ -1701,19 +1812,17 @@
   font-weight: 600;
 }
 
-
 .empty-payment {
   text-align: center !important;
 
   padding: 40px !important;
 
-  color: #7a857e;
+  color: var(--admin-muted);
 }
 
-
-/* =========================================
+/* =========================================================
    ADMIN SETTINGS
-========================================= */
+   ========================================================= */
 
 .admin-settings {
   width: 100%;
@@ -1722,7 +1831,6 @@
 
   margin: 0 auto;
 }
-
 
 .settings-heading {
   display: flex;
@@ -1735,24 +1843,21 @@
   margin-bottom: 30px;
 }
 
-
 .settings-heading h1 {
   margin: 0;
 
   font-size: 30px;
 
-  color: #12372a;
+  color: var(--admin-text);
 }
-
 
 .settings-heading p {
   margin: 6px 0 0;
 
-  color: #718096;
+  color: var(--admin-muted);
 
   font-size: 14px;
 }
-
 
 .settings-heading-icon {
   width: 52px;
@@ -1761,7 +1866,7 @@
   border-radius: 14px;
 
   background: #e8f6ef;
-  color: #0b7d45;
+  color: var(--admin-primary);
 
   display: flex;
 
@@ -1769,17 +1874,18 @@
   justify-content: center;
 
   font-size: 24px;
+
+  flex-shrink: 0;
 }
 
-
-/* =========================================
+/* =========================================================
    SETTINGS CARD
-========================================= */
+   ========================================================= */
 
 .settings-card {
-  background: #ffffff;
+  background: var(--admin-surface);
 
-  border: 1px solid #e8edf0;
+  border: 1px solid var(--admin-border);
 
   border-radius: 18px;
 
@@ -1789,8 +1895,12 @@
 
   box-shadow:
     0 5px 20px rgba(0, 0, 0, 0.04);
-}
 
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
 
 .settings-card-header {
   display: flex;
@@ -1802,7 +1912,6 @@
   margin-bottom: 22px;
 }
 
-
 .settings-card-icon {
   width: 46px;
   height: 46px;
@@ -1812,7 +1921,7 @@
   border-radius: 12px;
 
   background: #e8f6ef;
-  color: #0b7d45;
+  color: var(--admin-primary);
 
   display: flex;
 
@@ -1822,28 +1931,25 @@
   font-size: 21px;
 }
 
-
 .settings-card-header h2 {
   margin: 0;
 
-  color: #1a202c;
+  color: var(--admin-text);
 
   font-size: 18px;
 }
 
-
 .settings-card-header p {
   margin: 4px 0 0;
 
-  color: #718096;
+  color: var(--admin-muted);
 
   font-size: 13px;
 }
 
-
-/* =========================================
+/* =========================================================
    SETTINGS OPTIONS
-========================================= */
+   ========================================================= */
 
 .settings-options {
   display: grid;
@@ -1854,8 +1960,9 @@
   gap: 15px;
 }
 
-
 .settings-option {
+  position: relative;
+
   width: 100%;
 
   min-height: 85px;
@@ -1872,29 +1979,33 @@
 
   border-radius: 14px;
 
-  background: #ffffff;
+  background: var(--admin-surface);
 
   cursor: pointer;
 
   text-align: left;
 
-  transition: 0.25s ease;
+  transition:
+    border-color 0.25s ease,
+    transform 0.25s ease,
+    background 0.25s ease,
+    box-shadow 0.25s ease;
 }
-
 
 .settings-option:hover {
-  border-color: #0b7d45;
+  border-color: var(--admin-primary);
 
   transform: translateY(-2px);
+
+  box-shadow:
+    0 6px 16px rgba(8, 127, 79, 0.07);
 }
 
-
 .settings-option.selected {
-  border: 2px solid #0b7d45;
+  border: 2px solid var(--admin-primary);
 
   background: #f0faf5;
 }
-
 
 .settings-option-icon {
   width: 40px;
@@ -1905,7 +2016,7 @@
   border-radius: 10px;
 
   background: #e8f6ef;
-  color: #0b7d45;
+  color: var(--admin-primary);
 
   display: flex;
 
@@ -1915,7 +2026,6 @@
   font-size: 19px;
 }
 
-
 .settings-option-text {
   flex: 1;
 
@@ -1924,26 +2034,29 @@
   flex-direction: column;
 
   gap: 3px;
+
+  min-width: 0;
 }
 
-
 .settings-option-text strong {
-  color: #1a202c;
+  color: var(--admin-text);
 
   font-size: 14px;
 }
 
-
 .settings-option-text small {
-  color: #718096;
+  color: var(--admin-muted);
 
   font-size: 12px;
-}
 
+  line-height: 1.4;
+}
 
 .settings-radio {
   width: 24px;
   height: 24px;
+
+  min-width: 24px;
 
   border-radius: 50%;
 
@@ -1960,35 +2073,31 @@
   font-weight: 700;
 }
 
-
 .settings-option.selected .settings-radio {
-  background: #0b7d45;
+  background: var(--admin-primary);
 
-  border-color: #0b7d45;
+  border-color: var(--admin-primary);
 }
 
-
-/* =========================================
+/* =========================================================
    LANGUAGE
-========================================= */
+   ========================================================= */
 
 .settings-language {
   max-width: 500px;
 }
-
 
 .settings-language label {
   display: block;
 
   margin-bottom: 8px;
 
-  color: #2d3748;
+  color: var(--admin-text-2);
 
   font-size: 14px;
 
   font-weight: 600;
 }
-
 
 .settings-language select {
   width: 100%;
@@ -1999,42 +2108,48 @@
 
   border-radius: 10px;
 
-  background: #ffffff;
+  background: var(--admin-surface);
 
-  color: #2d3748;
+  color: var(--admin-text-2);
 
   font-size: 14px;
 
   outline: none;
 
   cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
-
 .settings-language select:focus {
-  border-color: #0b7d45;
+  border-color: var(--admin-primary);
 
   box-shadow:
     0 0 0 3px rgba(11, 125, 69, 0.1);
 }
-
 
 .settings-language small {
   display: block;
 
   margin-top: 7px;
 
-  color: #718096;
+  color: var(--admin-muted);
 
   font-size: 12px;
 }
 
-
-/* =========================================
+/* =========================================================
    SETTINGS ACTION BUTTONS
-========================================= */
+   ========================================================= */
 
 .settings-action-btn {
+  position: relative;
+  overflow: hidden;
+
   display: inline-flex;
 
   align-items: center;
@@ -2055,15 +2170,14 @@
 
   cursor: pointer;
 
-  transition: 0.25s ease;
+  transition:
+    0.25s ease;
 }
-
 
 .client-view-btn {
-  background: #0b7d45;
+  background: var(--admin-primary);
   color: #ffffff;
 }
-
 
 .client-view-btn:hover {
   background: #086238;
@@ -2074,19 +2188,21 @@
     0 7px 18px rgba(11, 125, 69, 0.2);
 }
 
+.client-view-btn:active {
+  transform: scale(0.97);
+}
 
-/* =========================================
+/* =========================================================
    ABOUT APP
-========================================= */
+   ========================================================= */
 
 .about-app-info {
-  border: 1px solid #edf1f3;
+  border: 1px solid var(--admin-border);
 
   border-radius: 12px;
 
   overflow: hidden;
 }
-
 
 .about-app-row {
   display: flex;
@@ -2098,46 +2214,42 @@
 
   padding: 15px 17px;
 
-  border-bottom: 1px solid #edf1f3;
+  border-bottom: 1px solid var(--admin-border);
 }
-
 
 .about-app-row:last-child {
   border-bottom: none;
 }
 
-
 .about-app-row span {
-  color: #718096;
+  color: var(--admin-muted);
 
   font-size: 14px;
 }
 
-
 .about-app-row strong {
-  color: #2d3748;
+  color: var(--admin-text-2);
 
   font-size: 14px;
 
   text-align: right;
+
+  word-break: break-word;
 }
 
-
-/* =========================================
+/* =========================================================
    SETTINGS LOGOUT
-========================================= */
+   ========================================================= */
 
 .settings-danger-card {
   border-color: #f0dede;
 }
-
 
 .settings-card-icon.danger {
   background: #fff1f1;
 
   color: #d64545;
 }
-
 
 .logout-settings-btn {
   background: #fff1f1;
@@ -2147,7 +2259,6 @@
   border: 1px solid #f3cccc;
 }
 
-
 .logout-settings-btn:hover {
   background: #d64545;
 
@@ -2156,123 +2267,294 @@
   transform: translateY(-2px);
 }
 
-
-/* =========================================
-   DARK MODE
-========================================= */
+/* =========================================================
+   FULL DARK MODE
+   ========================================================= */
 
 .admin-theme-dark {
-  background: #111827;
+  --admin-bg: #0f172a;
+  --admin-surface: #111827;
+  --admin-surface-2: #172033;
 
-  color: #f7fafc;
+  --admin-border: #293548;
+  --admin-border-light: #263244;
+
+  --admin-text: #f8fafc;
+  --admin-text-2: #e2e8f0;
+  --admin-muted: #a8b2c1;
+  --admin-muted-2: #8491a3;
+
+  background: #0f172a;
+  color: #f8fafc;
 }
 
+.admin-theme-dark .admin-sidebar {
+  background: #111827;
+  border-color: #293548;
+}
+
+.admin-theme-dark .sidebar-top {
+  border-color: #263244;
+}
+
+.admin-theme-dark .sidebar-bottom {
+  background: #111827;
+  border-color: #263244;
+}
+
+.admin-theme-dark .sidebar-link {
+  color: #a8b2c1;
+}
+
+.admin-theme-dark .sidebar-link:hover {
+  background: #163b2a;
+  color: #4ade80;
+}
+
+.admin-theme-dark .sidebar-link.active {
+  background: var(--admin-primary);
+  color: #ffffff;
+}
+
+.admin-theme-dark .sidebar-link.active:hover {
+  background: var(--admin-primary);
+  color: #ffffff;
+}
 
 .admin-theme-dark .admin-main,
 .admin-theme-dark .admin-content {
+  background: #0f172a;
+}
+
+.admin-theme-dark .admin-stat-card,
+.admin-theme-dark .dashboard-card,
+.admin-theme-dark .admin-table-card,
+.admin-theme-dark .coming-soon-card,
+.admin-theme-dark .admin-error-card,
+.admin-theme-dark .settings-card {
   background: #111827;
+  border-color: #293548;
+  color: #f8fafc;
 }
 
-
-.admin-theme-dark .settings-card,
-.admin-theme-dark .settings-option {
-  background: #1f2937;
-
-  border-color: #374151;
+.admin-theme-dark .admin-stat-card:hover {
+  border-color: rgba(74, 222, 128, 0.2);
 }
 
+.admin-theme-dark .dashboard-card-header,
+.admin-theme-dark .recent-booking,
+.admin-theme-dark .summary-item {
+  border-color: #263244;
+}
 
+.admin-theme-dark .dashboard-card-header h2,
+.admin-theme-dark .dashboard-heading h1,
+.admin-theme-dark .admin-stat-card > strong,
+.admin-theme-dark .section-heading h1,
+.admin-theme-dark .coming-soon-card h1,
 .admin-theme-dark .settings-heading h1,
 .admin-theme-dark .settings-card-header h2,
-.admin-theme-dark .settings-option-text strong,
-.admin-theme-dark .about-app-row strong {
-  color: #f7fafc;
+.admin-theme-dark .settings-option-text strong {
+  color: #f8fafc;
 }
 
-
+.admin-theme-dark .dashboard-card-header p,
+.admin-theme-dark .dashboard-heading p,
+.admin-theme-dark .stat-card-top > span,
+.admin-theme-dark .admin-stat-card small,
+.admin-theme-dark .booking-summary span,
+.admin-theme-dark .summary-item span,
+.admin-theme-dark .section-heading p,
+.admin-theme-dark .coming-soon-card p,
 .admin-theme-dark .settings-heading p,
 .admin-theme-dark .settings-card-header p,
 .admin-theme-dark .settings-option-text small,
-.admin-theme-dark .about-app-row span,
-.admin-theme-dark .settings-language small {
-  color: #9ca3af;
+.admin-theme-dark .settings-language small,
+.admin-theme-dark .about-app-row span {
+  color: #8491a3;
 }
 
-
-.admin-theme-dark .settings-option.selected {
-  background: #163b2a;
-
-  border-color: #0b7d45;
+.admin-theme-dark .booking-summary strong,
+.admin-theme-dark .booking-right strong,
+.admin-theme-dark .summary-item strong,
+.admin-theme-dark .admin-table-card td,
+.admin-theme-dark .payment-user strong,
+.admin-theme-dark .admin-form-group label,
+.admin-theme-dark .settings-language label,
+.admin-theme-dark .about-app-row strong {
+  color: #e2e8f0;
 }
 
+.admin-theme-dark .admin-table-card th {
+  background: #172033;
+  color: #a8b2c1;
+}
 
+.admin-theme-dark .admin-table-card th,
+.admin-theme-dark .admin-table-card td {
+  border-color: #263244;
+}
+
+.admin-theme-dark .admin-table-card tbody tr:hover {
+  background: rgba(74, 222, 128, 0.035);
+}
+
+.admin-theme-dark .admin-form-group input,
+.admin-theme-dark .admin-form-group select,
+.admin-theme-dark .admin-form-group textarea,
 .admin-theme-dark .settings-language select {
-  background: #111827;
-
-  color: #f7fafc;
-
+  background: #0f172a;
+  color: #f8fafc;
   border-color: #374151;
 }
 
+.admin-theme-dark .admin-form-group input::placeholder,
+.admin-theme-dark .admin-form-group textarea::placeholder {
+  color: #64748b;
+}
+
+.admin-theme-dark .settings-option {
+  background: #111827;
+  border-color: #374151;
+}
+
+.admin-theme-dark .settings-option:hover {
+  border-color: var(--admin-primary);
+}
+
+.admin-theme-dark .settings-option.selected {
+  background: #163b2a;
+  border-color: var(--admin-primary);
+}
+
+.admin-theme-dark .settings-heading-icon,
+.admin-theme-dark .settings-card-icon,
+.admin-theme-dark .settings-option-icon,
+.admin-theme-dark .notification-heading-icon,
+.admin-theme-dark .coming-soon-icon {
+  background: #163b2a;
+  color: #4ade80;
+}
 
 .admin-theme-dark .about-app-info {
   border-color: #374151;
 }
 
-
 .admin-theme-dark .about-app-row {
   border-color: #374151;
 }
 
+.admin-theme-dark .admin-footer {
+  background: #111827;
+  border-color: #293548;
+  color: #8491a3;
+}
 
-.admin-theme-dark .settings-heading-icon,
-.admin-theme-dark .settings-card-icon,
-.admin-theme-dark .settings-option-icon {
-  background: #163b2a;
+.admin-theme-dark .sidebar-close {
+  background: #1f2937;
+  color: #e2e8f0;
+}
 
+.admin-theme-dark .sidebar-close:hover {
+  background: #374151;
+}
+
+.admin-theme-dark .admin-mobile-menu-btn {
+  box-shadow:
+    0 5px 20px rgba(0, 0, 0, 0.25);
+}
+
+.admin-theme-dark .payment-summary-card {
+  background: #143224;
+  border-color: #23543b;
+}
+
+.admin-theme-dark .payment-summary-card span {
+  color: #9fb4a8;
+}
+
+.admin-theme-dark .payment-summary-card strong {
   color: #4ade80;
 }
 
+.admin-theme-dark .payment-summary-card.reversal {
+  background: #332b16;
+  border-color: #5d4b1e;
+}
 
-/* =========================================
+.admin-theme-dark .payment-summary-card.reversal strong {
+  color: #fbbf24;
+}
+
+.admin-theme-dark .payment-summary-card.reversed {
+  background: #1d2545;
+  border-color: #34427a;
+}
+
+.admin-theme-dark .payment-summary-card.reversed strong {
+  color: #93a3ff;
+}
+
+.admin-theme-dark .payment-summary-card.failed {
+  background: #351c1c;
+  border-color: #5d3030;
+}
+
+.admin-theme-dark .payment-summary-card.failed strong {
+  color: #f87171;
+}
+
+.admin-theme-dark .settings-danger-card {
+  border-color: #5d3030;
+}
+
+.admin-theme-dark .logout-settings-btn {
+  background: #351c1c;
+  border-color: #5d3030;
+  color: #f87171;
+}
+
+.admin-theme-dark .logout-settings-btn:hover {
+  background: #d64545;
+  color: #ffffff;
+}
+
+.admin-theme-dark .admin-sidebar-overlay {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* =========================================================
    TABLET
-========================================= */
+   ========================================================= */
 
 @media (max-width: 1100px) {
+  .admin-content {
+    padding: 32px 30px;
+  }
 
   .admin-stats {
     grid-template-columns:
       repeat(2, minmax(0, 1fr));
   }
 
-
   .dashboard-overview-grid {
     grid-template-columns: 1fr;
   }
 
-
   .payment-summary {
     grid-template-columns:
-      repeat(2, 1fr);
+      repeat(2, minmax(0, 1fr));
   }
-
 }
 
-
-/* =========================================
-   MOBILE / TABLET SIDEBAR
-========================================= */
+/* =========================================================
+   TABLET / MOBILE SIDEBAR
+   ========================================================= */
 
 @media (max-width: 900px) {
-
-  /* HAMBURGER */
-
   .admin-mobile-menu-btn {
     display: inline-flex;
   }
-
-
-  /* SIDEBAR */
 
   .admin-sidebar {
     width: 280px;
@@ -2291,15 +2573,9 @@
       );
   }
 
-
-  /* OPEN SIDEBAR */
-
   .admin-sidebar.sidebar-open {
     transform: translateX(0);
   }
-
-
-  /* OVERLAY */
 
   .admin-sidebar-overlay {
     display: block;
@@ -2312,21 +2588,17 @@
 
     background: rgba(0, 0, 0, 0.45);
 
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(3px);
+
+    -webkit-backdrop-filter: blur(3px);
 
     animation:
       adminOverlayFade 0.25s ease;
   }
 
-
-  /* CLOSE BUTTON */
-
   .sidebar-close {
     display: flex;
   }
-
-
-  /* MAIN */
 
   .admin-main {
     width: 100%;
@@ -2336,31 +2608,20 @@
     margin-left: 0;
   }
 
-
-  /* CONTENT */
-
   .admin-content {
     width: 100%;
 
-    padding:
-      30px 20px;
+    padding: 30px 20px;
   }
-
-
-  /* FOOTER */
 
   .admin-footer {
     padding-left: 20px;
     padding-right: 20px;
   }
 
-
-  /* NAVIGATION */
-
   .sidebar-navigation {
     padding: 15px;
   }
-
 
   .sidebar-link {
     min-height: 48px;
@@ -2368,13 +2629,9 @@
     margin-bottom: 6px;
   }
 
-
   .sidebar-link:active {
     transform: scale(0.98);
   }
-
-
-  /* DASHBOARD HEADING */
 
   .dashboard-heading {
     align-items: flex-start;
@@ -2382,19 +2639,23 @@
     flex-direction: column;
   }
 
-
   .refresh-btn {
     width: fit-content;
   }
 
+  .admin-table-card {
+    overflow: hidden;
+  }
 }
 
-
-/* =========================================
+/* =========================================================
    MOBILE
-========================================= */
+   ========================================================= */
 
 @media (max-width: 600px) {
+  .admin-shell {
+    min-height: 100dvh;
+  }
 
   .admin-mobile-menu-btn {
     margin: 12px 15px 0;
@@ -2404,26 +2665,37 @@
     border-radius: 12px;
   }
 
-
   .admin-sidebar {
-    width: min(85vw, 300px);
+    width: min(86vw, 310px);
   }
 
+  .sidebar-top {
+    min-height: 92px;
+    padding: 15px 20px;
+  }
+
+  .sidebar-logo {
+    width: 145px;
+    max-height: 65px;
+  }
 
   .admin-content {
     padding: 24px 15px;
   }
 
-
   .admin-stats {
     grid-template-columns: 1fr;
+
+    gap: 13px;
   }
 
+  .admin-stat-card {
+    padding: 18px;
+  }
 
   .dashboard-overview-grid {
     grid-template-columns: 1fr;
   }
-
 
   .dashboard-heading {
     flex-direction: row;
@@ -2435,21 +2707,18 @@
     gap: 12px;
   }
 
-
   .dashboard-heading > div {
     min-width: 0;
+    flex: 1;
   }
-
 
   .dashboard-heading h1 {
     font-size: 1.7rem;
   }
 
-
   .dashboard-heading p {
     font-size: 0.85rem;
   }
-
 
   .refresh-btn {
     flex-shrink: 0;
@@ -2463,7 +2732,6 @@
     font-size: 13px;
   }
 
-
   .section-heading {
     flex-direction: column;
 
@@ -2472,28 +2740,31 @@
     gap: 15px;
   }
 
+  .section-heading h1 {
+    font-size: 22px;
+  }
 
   .admin-table-card {
     padding: 17px;
-  }
 
+    border-radius: 13px;
+  }
 
   .admin-table-scroll {
-    overflow-x: auto;
-
-    -webkit-overflow-scrolling: touch;
+    margin-right: -2px;
   }
-
 
   .admin-table-scroll table {
     min-width: 800px;
   }
 
-
   .dashboard-card-header {
     flex-direction: column;
   }
 
+  .recent-bookings {
+    padding: 5px 17px;
+  }
 
   .recent-booking {
     align-items: flex-start;
@@ -2501,21 +2772,23 @@
     padding: 14px 0;
   }
 
+  .booking-summary {
+    padding-top: 1px;
+  }
 
   .booking-right {
     align-items: flex-end;
   }
 
-
   .form-grid {
     grid-template-columns: 1fr;
   }
 
-
   .payment-summary {
     grid-template-columns: 1fr;
-  }
 
+    gap: 12px;
+  }
 
   .payment-actions {
     flex-direction: column;
@@ -2523,12 +2796,12 @@
     align-items: stretch;
   }
 
-
   .accept-reversal-btn,
   .deny-reversal-btn {
     width: 100%;
-  }
 
+    min-height: 40px;
+  }
 
   .admin-footer {
     min-height: auto;
@@ -2544,16 +2817,13 @@
     text-align: center;
   }
 
-
   .send-notification-btn {
     width: 100%;
   }
 
-
   .notification-heading-icon {
     display: none;
   }
-
 
   /* SETTINGS */
 
@@ -2561,18 +2831,15 @@
     width: 100%;
   }
 
-
   .settings-heading {
     align-items: flex-start;
 
     margin-bottom: 20px;
   }
 
-
   .settings-heading h1 {
     font-size: 25px;
   }
-
 
   .settings-heading-icon {
     width: 44px;
@@ -2583,23 +2850,19 @@
     font-size: 20px;
   }
 
-
   .settings-card {
     padding: 18px;
 
     border-radius: 15px;
   }
 
-
   .settings-options {
     grid-template-columns: 1fr;
   }
 
-
   .settings-option {
     min-height: 75px;
   }
-
 
   .about-app-row {
     align-items: flex-start;
@@ -2609,11 +2872,9 @@
     gap: 5px;
   }
 
-
   .about-app-row strong {
     text-align: left;
   }
-
 
   .settings-action-btn {
     width: auto;
@@ -2621,29 +2882,49 @@
     max-width: 100%;
   }
 
+  .coming-soon-card {
+    min-height: 380px;
+
+    padding: 25px;
+  }
+
+  .admin-error-card {
+    width: calc(100% - 20px);
+
+    margin: 50px auto;
+
+    padding: 25px 20px;
+  }
 }
 
-
-/* =========================================
+/* =========================================================
    SMALL MOBILE
-========================================= */
+   ========================================================= */
 
 @media (max-width: 480px) {
+  .admin-mobile-menu-btn {
+    width: calc(100% - 24px);
+
+    margin: 12px;
+
+    justify-content: center;
+  }
 
   .admin-content {
     padding: 20px 12px;
   }
 
+  .dashboard-heading {
+    align-items: flex-start;
+  }
 
   .dashboard-heading h1 {
     font-size: 22px;
   }
 
-
   .dashboard-heading p {
     font-size: 13px;
   }
-
 
   .refresh-btn {
     min-width: 90px;
@@ -2653,45 +2934,163 @@
     font-size: 12px;
   }
 
+  .admin-stat-card {
+    padding: 16px;
+  }
+
+  .admin-stat-card > strong {
+    font-size: 23px;
+  }
+
+  .dashboard-card-header {
+    padding: 18px;
+  }
+
+  .recent-bookings {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .summary-list {
+    padding-left: 17px;
+    padding-right: 17px;
+  }
+
+  .admin-table-card {
+    padding: 13px;
+  }
+
+  .admin-table-card th,
+  .admin-table-card td {
+    padding: 12px 10px;
+  }
+
+  .admin-table-scroll table {
+    min-width: 760px;
+  }
 
   .settings-heading h1 {
     font-size: 22px;
   }
 
-
   .settings-heading p {
     font-size: 13px;
   }
-
 
   .settings-card {
     padding: 15px;
   }
 
-
   .settings-card-header {
     align-items: flex-start;
   }
-
 
   .settings-option {
     padding: 13px;
   }
 
-
   .settings-option-text small {
     line-height: 1.4;
   }
 
+  .payment-summary-card {
+    padding: 16px;
+  }
+
+  .payment-summary-card strong {
+    font-size: 22px;
+  }
+
+  .admin-footer {
+    font-size: 12px;
+  }
 }
 
+/* =========================================================
+   EXTRA SMALL DEVICES
+   ========================================================= */
 
-/* =========================================
+@media (max-width: 360px) {
+  .admin-content {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .dashboard-heading h1 {
+    font-size: 20px;
+  }
+
+  .dashboard-heading p {
+    font-size: 12px;
+  }
+
+  .refresh-btn {
+    min-width: 82px;
+    padding: 8px;
+    font-size: 11px;
+  }
+
+  .admin-stat-card {
+    padding: 14px;
+  }
+
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .admin-table-card {
+    padding: 10px;
+  }
+
+  .settings-card {
+    padding: 13px;
+  }
+
+  .settings-option {
+    gap: 10px;
+    padding: 11px;
+  }
+
+  .settings-option-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+  }
+}
+
+/* =========================================================
+   ACCESSIBILITY / FOCUS
+   ========================================================= */
+
+.admin-shell button:focus-visible,
+.admin-shell input:focus-visible,
+.admin-shell select:focus-visible,
+.admin-shell textarea:focus-visible {
+  outline: 2px solid var(--admin-primary);
+  outline-offset: 2px;
+}
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-shell *,
+  .admin-shell *::before,
+  .admin-shell *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* =========================================================
    SIDEBAR OVERLAY ANIMATION
-========================================= */
+   ========================================================= */
 
 @keyframes adminOverlayFade {
-
   from {
     opacity: 0;
   }
@@ -2699,5 +3098,399 @@
   to {
     opacity: 1;
   }
+}
 
+/* =========================================================
+   BUTTON RIPPLE
+   ========================================================= */
+
+@keyframes adminRipple {
+  0% {
+    transform: scale(0);
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: scale(35);
+    opacity: 0;
+  }
+}
+
+/* =========================================================
+   LOADING / SPIN SUPPORT
+   ========================================================= */
+
+.admin-shell .spin {
+  animation: adminSpin 0.8s linear infinite;
+}
+
+@keyframes adminSpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   PRINT
+   ========================================================= */
+
+@media print {
+  .admin-sidebar,
+  .admin-mobile-menu-btn,
+  .admin-sidebar-overlay,
+  .sidebar-close {
+    display: none !important;
+  }
+
+  .admin-main {
+    margin-left: 0 !important;
+  }
+
+  .admin-content {
+    padding: 0 !important;
+  }
+
+  .admin-shell {
+    background: #ffffff !important;
+  }
+
+  .admin-stat-card,
+  .dashboard-card,
+  .admin-table-card,
+  .settings-card {
+    box-shadow: none !important;
+  }
+}
+
+
+
+
+
+
+/* =========================================================
+   MOBILE REPORT SUMMARY
+   5 COMPACT BOXES IN ONE HORIZONTAL ROW
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  /*
+   * Report summary container
+   *
+   * This targets common report-summary wrappers.
+   * The five cards stay on ONE row.
+   */
+  .report-summary,
+  .reports-summary,
+  .report-stats,
+  .reports-stats,
+  .admin-report-stats {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 7px;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 2px 0 8px;
+    margin-bottom: 18px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .report-summary::-webkit-scrollbar,
+  .reports-summary::-webkit-scrollbar,
+  .report-stats::-webkit-scrollbar,
+  .reports-stats::-webkit-scrollbar,
+  .admin-report-stats::-webkit-scrollbar {
+    display: none;
+  }
+
+  /*
+   * Individual report boxes
+   */
+  .report-summary > *,
+  .reports-summary > *,
+  .report-stats > *,
+  .reports-stats > *,
+  .admin-report-stats > * {
+    flex: 0 0 calc((100% - 28px) / 5);
+    min-width: 72px;
+    max-width: 100px;
+    min-height: 62px;
+
+    padding: 8px 6px;
+
+    border-radius: 9px;
+
+    box-sizing: border-box;
+  }
+
+  /*
+   * Smaller numbers
+   */
+  .report-summary strong,
+  .reports-summary strong,
+  .report-stats strong,
+  .reports-stats strong,
+  .admin-report-stats strong {
+    font-size: 17px;
+    line-height: 1.1;
+  }
+
+  /*
+   * Smaller labels
+   */
+  .report-summary span,
+  .reports-summary span,
+  .report-stats span,
+  .reports-stats span,
+  .admin-report-stats span {
+    font-size: 9px;
+    line-height: 1.15;
+  }
+
+  /*
+   * Icons inside report cards
+   */
+  .report-summary svg,
+  .reports-summary svg,
+  .report-stats svg,
+  .reports-stats svg,
+  .admin-report-stats svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+  .report-summary,
+  .reports-summary,
+  .report-stats,
+  .reports-stats,
+  .admin-report-stats {
+    gap: 5px;
+    padding-bottom: 7px;
+  }
+
+  .report-summary > *,
+  .reports-summary > *,
+  .report-stats > *,
+  .reports-stats > *,
+  .admin-report-stats > * {
+    flex: 0 0 72px;
+    min-width: 72px;
+    max-width: 78px;
+    min-height: 58px;
+
+    padding: 7px 5px;
+
+    border-radius: 8px;
+  }
+
+  .report-summary strong,
+  .reports-summary strong,
+  .report-stats strong,
+  .reports-stats strong,
+  .admin-report-stats strong {
+    font-size: 15px;
+  }
+
+  .report-summary span,
+  .reports-summary span,
+  .report-stats span,
+  .reports-stats span,
+  .admin-report-stats span {
+    font-size: 8px;
+  }
+}
+
+
+/* =========================================================
+   MOBILE ADMIN MENU
+   LEFT-SIDE PANEL — DOES NOT COVER ENTIRE SCREEN
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+  .admin-sidebar {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+    bottom: 0;
+
+    /*
+     * IMPORTANT:
+     * The menu is no longer full-screen.
+     */
+    width: 280px;
+    max-width: 82vw;
+
+    height: 100vh;
+
+    transform: translateX(-105%);
+
+    border-right: 1px solid #e8edf2;
+    border-radius: 0 16px 16px 0;
+
+    box-shadow:
+      8px 0 30px rgba(0, 0, 0, 0.18);
+
+    z-index: 1001;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    transition:
+      transform 0.3s cubic-bezier(
+        0.4,
+        0,
+        0.2,
+        1
+      );
+  }
+
+  /*
+   * OPEN MENU
+   */
+  .admin-sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  /*
+   * Overlay remains behind the menu.
+   *
+   * It does NOT belong to the sidebar.
+   */
+  .admin-sidebar-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 1000;
+
+    background: rgba(0, 0, 0, 0.35);
+
+    backdrop-filter: blur(1px);
+
+    animation: adminOverlayFade 0.25s ease;
+  }
+
+  /*
+   * CLOSE BUTTON
+   */
+  .sidebar-close {
+    display: flex;
+
+    position: absolute;
+
+    top: 18px;
+    right: 14px;
+
+    width: 36px;
+    height: 36px;
+
+    border-radius: 9px;
+  }
+
+  /*
+   * Keep the main page full width.
+   */
+  .admin-main {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+
+/* =========================================================
+   MOBILE MENU — SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  .admin-sidebar {
+    width: 270px;
+    max-width: 82vw;
+
+    border-radius: 0 15px 15px 0;
+  }
+
+  .admin-sidebar-overlay {
+    background: rgba(0, 0, 0, 0.30);
+  }
+
+  .sidebar-top {
+    min-height: 90px;
+    padding: 15px 18px;
+  }
+
+  .sidebar-logo {
+    width: 145px;
+    max-height: 65px;
+  }
+
+  .sidebar-navigation {
+    padding: 14px 12px;
+    gap: 4px;
+  }
+
+  .sidebar-link {
+    min-height: 45px;
+    padding: 0 12px;
+
+    gap: 11px;
+
+    font-size: 13px;
+
+    border-radius: 9px;
+  }
+
+  .sidebar-icon {
+    width: 19px;
+    height: 19px;
+
+    font-size: 17px;
+  }
+
+  .sidebar-bottom {
+    padding: 12px;
+  }
+}
+
+
+/* =========================================================
+   EXTRA SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 400px) {
+
+  .admin-sidebar {
+    width: 255px;
+    max-width: 84vw;
+  }
+
+  .sidebar-top {
+    min-height: 82px;
+  }
+
+  .sidebar-logo {
+    width: 135px;
+  }
+
+  .sidebar-link {
+    min-height: 43px;
+
+    font-size: 12px;
+  }
 }

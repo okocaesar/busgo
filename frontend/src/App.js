@@ -63,6 +63,53 @@ function PageNotFound() {
 
 
 // =========================================
+// CHECK MOBILE DEVICE
+// =========================================
+
+function isMobileDevice() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return window.matchMedia(
+    "(max-width: 768px)"
+  ).matches;
+}
+
+
+// =========================================
+// MOBILE START ROUTE
+// =========================================
+//
+// Mobile:
+// - No logged-in user -> Login
+// - Logged-in user -> Home
+//
+// Desktop:
+// - Always behaves normally -> Home
+// =========================================
+
+function MobileStartRoute() {
+  const currentUser = JSON.parse(
+    localStorage.getItem("currentUser") || "null"
+  );
+
+  const isMobile = isMobileDevice();
+
+  if (isMobile && !currentUser) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
+  }
+
+  return <Home />;
+}
+
+
+// =========================================
 // CLIENT ROUTE
 // =========================================
 
@@ -111,9 +158,20 @@ function AppContent() {
 
             <Route element={<ClientRoute />}>
 
+              {/* =================================
+                  START PAGE
+
+                  MOBILE:
+                  Not logged in -> Login
+                  Logged in -> Home
+
+                  DESKTOP:
+                  Home as before
+              ================================= */}
+
               <Route
                 path="/"
-                element={<Home />}
+                element={<MobileStartRoute />}
               />
 
               <Route

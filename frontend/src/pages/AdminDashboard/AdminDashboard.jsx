@@ -29,7 +29,13 @@ import {
   FiMoon,
   FiMonitor,
   FiInfo,
-  FiExternalLink
+  FiExternalLink,
+  FiSearch,
+  FiEye,
+  FiClock,
+  FiMessageSquare,
+  FiUser,
+  FiAlertCircle
 } from "react-icons/fi";
 
 import { API_URL } from "../../api";
@@ -38,18 +44,14 @@ import packageJson from "../../../package.json";
 
 import "./AdminDashboard.css";
 
-
 function AdminDashboard() {
-
   const navigate = useNavigate();
 
   // =========================================
   // SIDEBAR
   // =========================================
 
-  const [sidebarOpen, setSidebarOpen] =
-    useState(false);
-
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // =========================================
   // ADMIN THEME
@@ -59,7 +61,6 @@ function AdminDashboard() {
     localStorage.getItem("busgo-admin-theme") || "light"
   );
 
-
   // =========================================
   // LANGUAGE
   // =========================================
@@ -67,7 +68,6 @@ function AdminDashboard() {
   const [language, setLanguage] = useState(
     localStorage.getItem("busgo-admin-language") || "English"
   );
-
 
   // =========================================
   // ADMIN DATA
@@ -83,11 +83,31 @@ function AdminDashboard() {
 
   const [routes, setRoutes] = useState([]);
 
-  const [activeTab, setActiveTab] =
-    useState("dashboard");
+  // =========================================
+  // REPORTS
+  // =========================================
+
+  const [reports, setReports] = useState([]);
+
+  const [reportsLoading, setReportsLoading] = useState(false);
+
+  const [reportsError, setReportsError] = useState("");
+
+  const [reportFilter, setReportFilter] = useState("all");
+
+  const [reportSearch, setReportSearch] = useState("");
+
+  const [selectedReport, setSelectedReport] = useState(null);
+
+  const [updatingReportId, setUpdatingReportId] = useState(null);
+
+  // =========================================
+  // ACTIVE TAB
+  // =========================================
+
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   const [error, setError] = useState("");
-
 
   // =========================================
   // ADMIN CREATE BOOKING
@@ -105,79 +125,126 @@ function AdminDashboard() {
     date: ""
   });
 
-  const [creatingBooking, setCreatingBooking] =
-    useState(false);
+  const [creatingBooking, setCreatingBooking] = useState(false);
 
-  const [bookingSuccess, setBookingSuccess] =
-    useState("");
+  const [bookingSuccess, setBookingSuccess] = useState("");
 
-  const [bookingError, setBookingError] =
-    useState("");
-
+  const [bookingError, setBookingError] = useState("");
 
   // =========================================
   // NOTIFICATION FORM
   // =========================================
 
-  const [notificationData, setNotificationData] =
-    useState({
-      userId: "all",
-      title: "",
-      message: "",
-      type: "info"
+  const [notificationData, setNotificationData] = useState({
+    userId: "all",
+    title: "",
+    message: "",
+    type: "info"
+  });
+
+  const [sendingNotification, setSendingNotification] = useState(false);
+
+  const [notificationSuccess, setNotificationSuccess] = useState("");
+
+  const [notificationError, setNotificationError] = useState("");
+
+  // =========================================
+  // CREATE ADMIN API
+  // =========================================
+
+  const getAdminApi = useCallback(() => {
+    const token = localStorage.getItem("authToken");
+
+    return axios.create({
+      baseURL: `${API_URL}/api/admin`,
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     });
+  }, []);
 
+  // =========================================
+  // LOAD REPORTS
+  // =========================================
 
-  const [sendingNotification, setSendingNotification] =
-    useState(false);
+  const loadReports = useCallback(async () => {
+    const token = localStorage.getItem("authToken");
 
+    if (!token) {
+      navigate("/login");
+      return;
+    }
 
-  const [notificationSuccess, setNotificationSuccess] =
-    useState("");
+    try {
+      setReportsLoading(true);
+      setReportsError("");
 
+      const api = getAdminApi();
 
-  const [notificationError, setNotificationError] =
-    useState("");
+      const response = await api.get("/reports");
 
+      const receivedReports =
+        response.data?.reports ||
+        response.data?.data ||
+        [];
+
+      setReports(
+        Array.isArray(receivedReports)
+          ? receivedReports
+          : []
+      );
+    } catch (requestError) {
+      console.error(
+        "FAILED TO LOAD REPORTS:",
+        requestError
+      );
+
+      if (
+        requestError.response?.status === 401 ||
+        requestError.response?.status === 403
+      ) {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("loggedIn");
+        localStorage.removeItem("currentUser");
+
+        navigate("/login");
+
+        return;
+      }
+
+      setReportsError(
+        requestError.response?.data?.message ||
+          "Unable to load reports."
+      );
+    } finally {
+      setReportsLoading(false);
+    }
+  }, [getAdminApi, navigate]);
 
   // =========================================
   // LOAD ADMIN DATA
   // =========================================
 
   const loadAdminData = useCallback(async () => {
-
     const token =
       localStorage.getItem("authToken");
 
-
     if (!token) {
-
       navigate("/login");
-
       return;
-
     }
 
-
     const api = axios.create({
-
       baseURL:
         `${API_URL}/api/admin`,
-
       headers: {
-
         Authorization:
           `Bearer ${token}`
-
       }
-
     });
 
-
     try {
-
       setError("");
-
 
       const [
         statsResponse,
@@ -193,57 +260,180 @@ function AdminDashboard() {
         api.get("/routes")
       ]);
 
-
       setStats(
         statsResponse.data
       );
-
 
       setUsers(
         usersResponse.data.users || []
       );
 
-
       setBookings(
         bookingsResponse.data.bookings || []
       );
-
 
       setPayments(
         paymentsResponse.data.payments || []
       );
 
-
       setRoutes(
         routesResponse.data.routes || []
       );
-
-
     } catch (requestError) {
-
       console.error(
         "FAILED TO LOAD ADMIN DATA:",
         requestError
       );
 
-
       setError(
-
         requestError.response?.data?.message ||
-
-        "Unable to load admin information."
-
+          "Unable to load admin information."
       );
 
+      if (
+        requestError.response?.status === 401 ||
+        requestError.response?.status === 403
+      ) {
+        localStorage.removeItem(
+          "authToken"
+        );
+
+        localStorage.removeItem(
+          "loggedIn"
+        );
+
+        localStorage.removeItem(
+          "currentUser"
+        );
+
+        navigate("/login");
+      }
+    }
+  }, [navigate]);
+
+  // =========================================
+  // CHECK ADMIN USER
+  // =========================================
+
+  useEffect(() => {
+    const currentUser =
+      JSON.parse(
+        localStorage.getItem(
+          "currentUser"
+        ) || "null"
+      );
+
+    if (
+      !currentUser ||
+      currentUser.role !== "admin"
+    ) {
+      navigate("/");
+      return;
+    }
+
+    loadAdminData();
+  }, [
+    navigate,
+    loadAdminData
+  ]);
+
+  // =========================================
+  // LOAD REPORTS WHEN REPORT PAGE OPENS
+  // =========================================
+
+  useEffect(() => {
+    if (activeTab === "reports") {
+      loadReports();
+    }
+  }, [
+    activeTab,
+    loadReports
+  ]);
+
+  // =========================================
+  // UPDATE REPORT STATUS
+  // =========================================
+
+  const updateReportStatus = async (
+    reportId,
+    status
+  ) => {
+    const token =
+      localStorage.getItem("authToken");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    if (!reportId) {
+      return;
+    }
+
+    try {
+      setUpdatingReportId(reportId);
+
+      const api = getAdminApi();
+
+      const response =
+        await api.patch(
+          `/reports/${reportId}/status`,
+          {
+            status
+          }
+        );
+
+      const updatedReport =
+        response.data?.report;
+
+      setReports(
+        currentReports =>
+          currentReports.map(
+            report =>
+              String(report.id) ===
+              String(reportId)
+                ? {
+                    ...report,
+                    ...(updatedReport ||
+                      {}),
+                    status:
+                      updatedReport?.status ||
+                      status
+                  }
+                : report
+          )
+      );
+
+      setSelectedReport(
+        currentReport => {
+          if (
+            !currentReport ||
+            String(currentReport.id) !==
+              String(reportId)
+          ) {
+            return currentReport;
+          }
+
+          return {
+            ...currentReport,
+            ...(updatedReport ||
+              {}),
+            status:
+              updatedReport?.status ||
+              status
+          };
+        }
+      );
+    } catch (requestError) {
+      console.error(
+        "UPDATE REPORT STATUS ERROR:",
+        requestError
+      );
 
       if (
-
         requestError.response?.status === 401 ||
-
         requestError.response?.status === 403
-
       ) {
-
         localStorage.removeItem(
           "authToken"
         );
@@ -258,49 +448,17 @@ function AdminDashboard() {
 
         navigate("/login");
 
+        return;
       }
 
-    }
-
-  }, [navigate]);
-
-
-  // =========================================
-  // CHECK ADMIN USER
-  // =========================================
-
-  useEffect(() => {
-
-    const currentUser =
-      JSON.parse(
-        localStorage.getItem(
-          "currentUser"
-        ) || "null"
+      alert(
+        requestError.response?.data?.message ||
+          "Unable to update report status."
       );
-
-
-    if (
-
-      !currentUser ||
-
-      currentUser.role !== "admin"
-
-    ) {
-
-      navigate("/");
-
-      return;
-
+    } finally {
+      setUpdatingReportId(null);
     }
-
-
-    loadAdminData();
-
-  }, [
-    navigate,
-    loadAdminData
-  ]);
-
+  };
 
   // =========================================
   // UPDATE BOOKING STATUS
@@ -310,100 +468,58 @@ function AdminDashboard() {
     bookingId,
     bookingStatus
   ) => {
-
     const token =
       localStorage.getItem("authToken");
 
-
     if (!token) {
-
       navigate("/login");
-
       return;
-
     }
 
-
     const api = axios.create({
-
       baseURL:
         `${API_URL}/api/admin`,
-
       headers: {
-
         Authorization:
           `Bearer ${token}`
-
       }
-
     });
 
-
     try {
-
       await api.patch(
-
         `/bookings/${bookingId}/status`,
-
         {
           bookingStatus
         }
-
       );
-
 
       setBookings(
-
-        (currentBookings) =>
-
+        currentBookings =>
           currentBookings.map(
-
-            (booking) =>
-
+            booking =>
               booking.id === bookingId
-
                 ? {
-
                     ...booking,
-
                     booking_status:
                       bookingStatus
-
                   }
-
                 : booking
-
           )
-
       );
-
 
       await loadAdminData();
-
-
     } catch (requestError) {
-
       console.error(
-
         "UNABLE TO UPDATE BOOKING:",
-
         requestError
-
       );
-
 
       alert(
-
         requestError.response?.data?.message ||
-
-        "Unable to update this booking."
-
+          "Unable to update this booking."
       );
-
     }
-
   };
-
 
   // =========================================
   // ACCEPT PAYMENT REVERSAL
@@ -412,78 +528,53 @@ function AdminDashboard() {
   const acceptPaymentReversal = async (
     paymentId
   ) => {
-
     const token =
       localStorage.getItem("authToken");
 
-
     if (!token) {
-
       navigate("/login");
-
       return;
-
     }
-
 
     if (
       !window.confirm(
         "Are you sure you want to accept this payment reversal?"
       )
     ) {
-
       return;
-
     }
 
-
     try {
-
       const api = axios.create({
-
         baseURL:
           `${API_URL}/api/admin`,
-
         headers: {
-
           Authorization:
             `Bearer ${token}`
-
         }
-
       });
-
 
       await api.patch(
         `/payments/${paymentId}/accept-reversal`
       );
 
-
       await loadAdminData();
-
 
       alert(
         "Payment reversal accepted successfully."
       );
-
-
     } catch (requestError) {
-
       console.error(
         "ACCEPT REVERSAL ERROR:",
         requestError
       );
 
-
       alert(
         requestError.response?.data?.message ||
-        "Unable to accept payment reversal."
+          "Unable to accept payment reversal."
       );
-
     }
-
   };
-
 
   // =========================================
   // DENY PAYMENT REVERSAL
@@ -492,228 +583,161 @@ function AdminDashboard() {
   const denyPaymentReversal = async (
     paymentId
   ) => {
-
     const token =
       localStorage.getItem("authToken");
 
-
     if (!token) {
-
       navigate("/login");
-
       return;
-
     }
-
 
     if (
       !window.confirm(
         "Are you sure you want to deny this payment reversal?"
       )
     ) {
-
       return;
-
     }
 
-
     try {
-
       const api = axios.create({
-
         baseURL:
           `${API_URL}/api/admin`,
-
         headers: {
-
           Authorization:
             `Bearer ${token}`
-
         }
-
       });
-
 
       await api.patch(
         `/payments/${paymentId}/deny-reversal`
       );
 
-
       await loadAdminData();
-
 
       alert(
         "Payment reversal request denied."
       );
-
-
     } catch (requestError) {
-
       console.error(
         "DENY REVERSAL ERROR:",
         requestError
       );
 
-
       alert(
         requestError.response?.data?.message ||
-        "Unable to deny payment reversal."
+          "Unable to deny payment reversal."
       );
-
     }
-
   };
-
 
   // =========================================
   // HANDLE NOTIFICATION INPUT
   // =========================================
 
-  const handleNotificationChange = (e) => {
-
+  const handleNotificationChange = (
+    e
+  ) => {
     const {
       name,
       value
     } = e.target;
 
-
     setNotificationData(
-
-      (currentData) => ({
-
+      currentData => ({
         ...currentData,
-
         [name]: value
-
       })
-
     );
-
 
     setNotificationSuccess("");
 
     setNotificationError("");
-
   };
-
 
   // =========================================
   // HANDLE ADMIN BOOKING INPUT
   // =========================================
 
-  const handleAdminBookingChange = (e) => {
-
+  const handleAdminBookingChange = (
+    e
+  ) => {
     const {
       name,
       value
     } = e.target;
 
-
     setAdminBooking(
-      (currentBooking) => ({
-
+      currentBooking => ({
         ...currentBooking,
-
         [name]: value
-
       })
     );
-
 
     setBookingSuccess("");
 
     setBookingError("");
-
   };
-
 
   // =========================================
   // SEND NOTIFICATION
   // =========================================
 
-  const sendNotification = async (e) => {
-
+  const sendNotification = async (
+    e
+  ) => {
     e.preventDefault();
-
 
     setNotificationSuccess("");
 
     setNotificationError("");
 
-
-    // -----------------------------------------
-    // VALIDATION
-    // -----------------------------------------
-
     if (
       !notificationData.title.trim()
     ) {
-
       setNotificationError(
         "Please enter a notification title."
       );
 
       return;
-
     }
-
 
     if (
       !notificationData.message.trim()
     ) {
-
       setNotificationError(
         "Please enter a notification message."
       );
 
       return;
-
     }
-
 
     const token =
       localStorage.getItem("authToken");
 
-
     if (!token) {
-
       navigate("/login");
-
       return;
-
     }
 
-
     try {
-
       setSendingNotification(true);
 
-
       const api = axios.create({
-
         baseURL:
           `${API_URL}/api/admin`,
-
         headers: {
-
           Authorization:
             `Bearer ${token}`,
-
           "Content-Type":
             "application/json"
-
         }
-
       });
-
 
       const response =
         await api.post(
-
           "/notifications",
-
           {
-
             userId:
               notificationData.userId,
 
@@ -725,185 +749,120 @@ function AdminDashboard() {
 
             type:
               notificationData.type
-
           }
-
         );
 
-
       setNotificationSuccess(
-
         response.data.message ||
-
-        "Notification sent successfully."
-
+          "Notification sent successfully."
       );
-
-
-      // ---------------------------------------
-      // RESET FORM
-      // ---------------------------------------
 
       setNotificationData({
-
         userId: "all",
-
         title: "",
-
         message: "",
-
         type: "info"
-
       });
-
-
     } catch (requestError) {
-
       console.error(
-
         "SEND NOTIFICATION ERROR:",
-
         requestError
-
       );
-
 
       setNotificationError(
-
         requestError.response?.data?.message ||
-
-        "Unable to send notification."
-
+          "Unable to send notification."
       );
-
-
     } finally {
-
       setSendingNotification(false);
-
     }
-
   };
-
 
   // =========================================
   // CREATE BOOKING FROM ADMIN DASHBOARD
   // =========================================
 
-  const createAdminBooking = async (e) => {
-
+  const createAdminBooking = async (
+    e
+  ) => {
     e.preventDefault();
-
 
     setBookingSuccess("");
 
     setBookingError("");
 
-
     if (!adminBooking.userId) {
-
       setBookingError(
         "Please select a customer."
       );
 
       return;
-
     }
-
 
     if (
       !adminBooking.from ||
       !adminBooking.to
     ) {
-
       setBookingError(
         "Please select departure and destination."
       );
 
       return;
-
     }
-
 
     if (
       adminBooking.from ===
       adminBooking.to
     ) {
-
       setBookingError(
         "Departure and destination cannot be the same."
       );
 
       return;
-
     }
 
-
     if (!adminBooking.busType) {
-
       setBookingError(
         "Please select a bus type."
       );
 
       return;
-
     }
 
-
     if (!adminBooking.date) {
-
       setBookingError(
         "Please select a travel date."
       );
 
       return;
-
     }
-
 
     const token =
       localStorage.getItem("authToken");
 
-
     if (!token) {
-
       navigate("/login");
-
       return;
-
     }
 
-
     try {
-
       setCreatingBooking(true);
 
-
       const api = axios.create({
-
         baseURL:
           `${API_URL}/api/admin`,
-
         headers: {
-
           Authorization:
             `Bearer ${token}`,
-
           "Content-Type":
             "application/json"
-
         }
-
       });
-
 
       const response =
         await api.post(
-
           "/bookings",
-
           {
-
             userId:
               adminBooking.userId,
 
@@ -926,142 +885,248 @@ function AdminDashboard() {
               adminBooking.busType,
 
             seats:
-              Number(adminBooking.seats),
+              Number(
+                adminBooking.seats
+              ),
 
             date:
               adminBooking.date
-
           }
-
         );
 
-
       setBookingSuccess(
-
         response.data.message ||
-
-        "Booking created successfully."
-
+          "Booking created successfully."
       );
-
 
       setAdminBooking({
-
         userId: "",
-
         name: "",
-
         email: "",
-
         phone: "",
-
         from: "",
-
         to: "",
-
         busType: "",
-
         seats: 1,
-
         date: ""
-
       });
 
-
       await loadAdminData();
-
-
     } catch (requestError) {
-
       console.error(
-
         "CREATE ADMIN BOOKING ERROR:",
-
         requestError
-
       );
-
 
       setBookingError(
-
         requestError.response?.data?.message ||
-
-        "Unable to create booking."
-
+          "Unable to create booking."
       );
-
-
     } finally {
-
       setCreatingBooking(false);
-
     }
-
   };
-
 
   // =========================================
   // FORMAT MONEY
   // =========================================
 
-  const formatMoney = (amount) =>
-
+  const formatMoney = amount =>
     `XAF ${Number(
       amount || 0
     ).toLocaleString("en-GB")}`;
 
+  // =========================================
+  // FORMAT REPORT DATE
+  // =========================================
+
+  const formatReportDate = date => {
+    if (!date) {
+      return "N/A";
+    }
+
+    const parsedDate =
+      new Date(date);
+
+    if (
+      Number.isNaN(
+        parsedDate.getTime()
+      )
+    ) {
+      return String(date);
+    }
+
+    return parsedDate.toLocaleString(
+      "en-GB"
+    );
+  };
+
+  // =========================================
+  // NORMALIZE REPORT STATUS
+  // =========================================
+
+  const normalizeReportStatus =
+    status => {
+      if (!status) {
+        return "Pending";
+      }
+
+      const value =
+        String(status)
+          .trim()
+          .toLowerCase();
+
+      if (
+        value === "resolved" ||
+        value === "closed" ||
+        value === "completed"
+      ) {
+        return "Resolved";
+      }
+
+      if (
+        value === "rejected" ||
+        value === "declined"
+      ) {
+        return "Rejected";
+      }
+
+      if (
+        value === "in progress" ||
+        value === "in-progress" ||
+        value === "processing"
+      ) {
+        return "In Progress";
+      }
+
+      return "Pending";
+    };
+
+  // =========================================
+  // REPORT COUNTS
+  // =========================================
+
+  const pendingReports =
+    reports.filter(
+      report =>
+        normalizeReportStatus(
+          report.status
+        ) === "Pending"
+    ).length;
+
+  const inProgressReports =
+    reports.filter(
+      report =>
+        normalizeReportStatus(
+          report.status
+        ) === "In Progress"
+    ).length;
+
+  const resolvedReports =
+    reports.filter(
+      report =>
+        normalizeReportStatus(
+          report.status
+        ) === "Resolved"
+    ).length;
+
+  const rejectedReports =
+    reports.filter(
+      report =>
+        normalizeReportStatus(
+          report.status
+        ) === "Rejected"
+    ).length;
+
+  // =========================================
+  // FILTER REPORTS
+  // =========================================
+
+  const filteredReports =
+    reports.filter(report => {
+      const status =
+        normalizeReportStatus(
+          report.status
+        );
+
+      const matchesFilter =
+        reportFilter === "all" ||
+        status.toLowerCase() ===
+          reportFilter.toLowerCase();
+
+      const searchValue =
+        reportSearch
+          .trim()
+          .toLowerCase();
+
+      if (!searchValue) {
+        return matchesFilter;
+      }
+
+      const searchableText = [
+        report.id,
+        report.subject,
+        report.message,
+        report.user_name,
+        report.user_email,
+        report.name,
+        report.email,
+        report.status
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return (
+        matchesFilter &&
+        searchableText.includes(
+          searchValue
+        )
+      );
+    });
 
   // =========================================
   // CHANGE ADMIN THEME
   // =========================================
 
-  const changeTheme = (newTheme) => {
-
+  const changeTheme = newTheme => {
     setTheme(newTheme);
 
     localStorage.setItem(
       "busgo-admin-theme",
       newTheme
     );
-
   };
-
 
   // =========================================
   // CHANGE LANGUAGE
   // =========================================
 
-  const changeLanguage = (newLanguage) => {
+  const changeLanguage =
+    newLanguage => {
+      setLanguage(newLanguage);
 
-    setLanguage(newLanguage);
-
-    localStorage.setItem(
-      "busgo-admin-language",
-      newLanguage
-    );
-
-  };
-
+      localStorage.setItem(
+        "busgo-admin-language",
+        newLanguage
+      );
+    };
 
   // =========================================
   // VIEW BUSGO AS CLIENT
   // =========================================
 
   const viewSiteAsClient = () => {
-
     setSidebarOpen(false);
 
     navigate("/");
-
   };
-
 
   // =========================================
   // LOGOUT FROM SETTINGS
   // =========================================
 
   const logoutFromSettings = () => {
-
     localStorage.removeItem(
       "authToken"
     );
@@ -1075,16 +1140,13 @@ function AdminDashboard() {
     );
 
     navigate("/login");
-
   };
-
 
   // =========================================
   // SIDEBAR NAVIGATION
   // =========================================
 
   const navigationItems = [
-
     {
       id: "dashboard",
       label: "Dashboard",
@@ -1131,8 +1193,7 @@ function AdminDashboard() {
     {
       id: "reports",
       label: "Reports",
-      icon: <FiBarChart2 />,
-      future: true
+      icon: <FiBarChart2 />
     },
 
     {
@@ -1140,72 +1201,52 @@ function AdminDashboard() {
       label: "Settings",
       icon: <FiSettings />
     }
-
   ];
-
 
   // =========================================
   // HANDLE SIDEBAR NAVIGATION
   // =========================================
 
-  const handleNavigation = (item) => {
+  const handleNavigation =
+    item => {
+      if (item.future) {
+        return;
+      }
 
-    if (item.future) {
+      setActiveTab(item.id);
 
-      return;
+      setNotificationSuccess("");
 
-    }
+      setNotificationError("");
 
+      setBookingSuccess("");
 
-    setActiveTab(item.id);
+      setBookingError("");
 
-    setNotificationSuccess("");
-
-    setNotificationError("");
-
-    setBookingSuccess("");
-
-    setBookingError("");
-
-    // Close hamburger menu after selecting page
-    setSidebarOpen(false);
-
-  };
-
+      setSidebarOpen(false);
+    };
 
   // =========================================
   // ERROR SCREEN
   // =========================================
 
   if (error) {
-
     return (
-
       <main className="admin-shell">
-
         <aside className="admin-sidebar">
-
           <div className="sidebar-top">
-
             <div className="sidebar-brand">
-
               <img
                 src={logo}
                 alt="BusGo"
                 className="sidebar-logo"
               />
-
             </div>
-
           </div>
-
         </aside>
 
-
         <div className="admin-main">
-
           <div className="admin-error-card">
-
             <FiXCircle />
 
             <p>
@@ -1217,44 +1258,33 @@ function AdminDashboard() {
             >
               Try Again
             </button>
-
           </div>
-
         </div>
-
       </main>
-
     );
-
   }
-
 
   // =========================================
   // PAGE
   // =========================================
 
   return (
-
     <div
       className={`admin-shell admin-theme-${theme}`}
     >
-
 
       {/* =====================================
           MOBILE OVERLAY
       ===================================== */}
 
       {sidebarOpen && (
-
         <div
           className="admin-sidebar-overlay"
           onClick={() =>
             setSidebarOpen(false)
           }
         />
-
       )}
-
 
       {/* =====================================
           SIDEBAR
@@ -1267,7 +1297,6 @@ function AdminDashboard() {
             : ""
         }`}
       >
-
 
         {/* SIDEBAR TOP */}
 
@@ -1282,7 +1311,6 @@ function AdminDashboard() {
             />
 
           </div>
-
 
           {/* MOBILE CLOSE BUTTON */}
 
@@ -1301,14 +1329,12 @@ function AdminDashboard() {
 
         </div>
 
-
         {/* NAVIGATION */}
 
         <nav className="sidebar-navigation">
 
           {navigationItems.map(
-            (item) => (
-
+            item => (
               <button
                 type="button"
                 key={item.id}
@@ -1332,7 +1358,6 @@ function AdminDashboard() {
 
                 </span>
 
-
                 <span>
 
                   {item.label}
@@ -1340,15 +1365,12 @@ function AdminDashboard() {
                 </span>
 
               </button>
-
             )
           )}
 
         </nav>
 
-
       </aside>
-
 
       {/* =====================================
           MAIN AREA
@@ -1356,10 +1378,7 @@ function AdminDashboard() {
 
       <div className="admin-main">
 
-
-        {/* =====================================
-            MOBILE HAMBURGER MENU BUTTON
-        ===================================== */}
+        {/* MOBILE HAMBURGER */}
 
         <button
           type="button"
@@ -1379,20 +1398,15 @@ function AdminDashboard() {
 
         </button>
 
-
-        {/* =====================================
-            CONTENT
-        ===================================== */}
+        {/* CONTENT */}
 
         <main className="admin-content">
-
 
           {/* ===================================
               DASHBOARD
           =================================== */}
 
           {activeTab === "dashboard" && (
-
             <>
 
               <div className="dashboard-heading">
@@ -1410,11 +1424,12 @@ function AdminDashboard() {
 
                 </div>
 
-
                 <button
                   type="button"
                   className="refresh-btn"
-                  onClick={loadAdminData}
+                  onClick={
+                    loadAdminData
+                  }
                 >
 
                   <FiRefreshCw />
@@ -1425,11 +1440,9 @@ function AdminDashboard() {
 
               </div>
 
-
               {/* STAT CARDS */}
 
               <section className="admin-stats">
-
 
                 <div className="admin-stat-card">
 
@@ -1440,25 +1453,21 @@ function AdminDashboard() {
                     </span>
 
                     <div className="stat-icon blue">
-
                       <FiCalendar />
-
                     </div>
 
                   </div>
 
-
                   <strong>
-                    {stats?.totalBookings || 0}
+                    {stats?.totalBookings ||
+                      0}
                   </strong>
-
 
                   <small>
                     Total bookings on platform
                   </small>
 
                 </div>
-
 
                 <div className="admin-stat-card">
 
@@ -1469,25 +1478,21 @@ function AdminDashboard() {
                     </span>
 
                     <div className="stat-icon green">
-
                       <FiUsers />
-
                     </div>
 
                   </div>
 
-
                   <strong>
-                    {stats?.totalUsers || 0}
+                    {stats?.totalUsers ||
+                      0}
                   </strong>
-
 
                   <small>
                     Registered BusGo users
                   </small>
 
                 </div>
-
 
                 <div className="admin-stat-card">
 
@@ -1498,13 +1503,10 @@ function AdminDashboard() {
                     </span>
 
                     <div className="stat-icon purple">
-
                       <FiDollarSign />
-
                     </div>
 
                   </div>
-
 
                   <strong className="revenue-value">
 
@@ -1514,13 +1516,11 @@ function AdminDashboard() {
 
                   </strong>
 
-
                   <small>
                     Confirmed booking revenue
                   </small>
 
                 </div>
-
 
                 <div className="admin-stat-card">
 
@@ -1531,18 +1531,15 @@ function AdminDashboard() {
                     </span>
 
                     <div className="stat-icon orange">
-
                       <FiCheckCircle />
-
                     </div>
 
                   </div>
 
-
                   <strong>
-                    {stats?.confirmedBookings || 0}
+                    {stats?.confirmedBookings ||
+                      0}
                   </strong>
-
 
                   <small>
                     Successfully confirmed
@@ -1550,14 +1547,11 @@ function AdminDashboard() {
 
                 </div>
 
-
               </section>
-
 
               {/* QUICK OVERVIEW */}
 
               <section className="dashboard-overview-grid">
-
 
                 {/* RECENT BOOKINGS */}
 
@@ -1577,7 +1571,6 @@ function AdminDashboard() {
 
                     </div>
 
-
                     <button
                       type="button"
                       onClick={() =>
@@ -1591,55 +1584,52 @@ function AdminDashboard() {
 
                   </div>
 
-
                   <div className="recent-bookings">
 
-                    {bookings.length === 0 ? (
-
+                    {bookings.length ===
+                    0 ? (
                       <div className="dashboard-empty">
-
                         No bookings found.
-
                       </div>
-
                     ) : (
-
                       bookings
                         .slice(0, 5)
                         .map(
-                          (booking) => (
-
+                          booking => (
                             <div
                               className="recent-booking"
-                              key={booking.id}
+                              key={
+                                booking.id
+                              }
                             >
 
                               <div className="booking-avatar">
-
                                 <FiCalendar />
-
                               </div>
-
 
                               <div className="booking-summary">
 
                                 <strong>
-                                  {booking.passenger_name}
+                                  {
+                                    booking.passenger_name
+                                  }
                                 </strong>
-
 
                                 <span>
 
-                                  {booking.departure}
+                                  {
+                                    booking.departure
+                                  }
 
                                   {" → "}
 
-                                  {booking.destination}
+                                  {
+                                    booking.destination
+                                  }
 
                                 </span>
 
                               </div>
-
 
                               <div className="booking-right">
 
@@ -1651,7 +1641,6 @@ function AdminDashboard() {
 
                                 </strong>
 
-
                                 <span
                                   className={`status ${
                                     booking.booking_status
@@ -1659,27 +1648,27 @@ function AdminDashboard() {
                                       .replace(
                                         /\s+/g,
                                         "-"
-                                      ) || ""
+                                      ) ||
+                                    ""
                                   }`}
                                 >
 
-                                  {booking.booking_status}
+                                  {
+                                    booking.booking_status
+                                  }
 
                                 </span>
 
                               </div>
 
                             </div>
-
                           )
                         )
-
                     )}
 
                   </div>
 
                 </div>
-
 
                 {/* PLATFORM SUMMARY */}
 
@@ -1701,18 +1690,13 @@ function AdminDashboard() {
 
                   </div>
 
-
                   <div className="summary-list">
-
 
                     <div className="summary-item">
 
                       <div className="summary-icon">
-
                         <FiUsers />
-
                       </div>
-
 
                       <div>
 
@@ -1721,22 +1705,19 @@ function AdminDashboard() {
                         </span>
 
                         <strong>
-                          {stats?.totalUsers || 0}
+                          {stats?.totalUsers ||
+                            0}
                         </strong>
 
                       </div>
 
                     </div>
 
-
                     <div className="summary-item">
 
                       <div className="summary-icon">
-
                         <FiCalendar />
-
                       </div>
-
 
                       <div>
 
@@ -1745,22 +1726,19 @@ function AdminDashboard() {
                         </span>
 
                         <strong>
-                          {stats?.totalBookings || 0}
+                          {stats?.totalBookings ||
+                            0}
                         </strong>
 
                       </div>
 
                     </div>
 
-
                     <div className="summary-item">
 
                       <div className="summary-icon">
-
                         <FiCheckCircle />
-
                       </div>
-
 
                       <div>
 
@@ -1769,22 +1747,19 @@ function AdminDashboard() {
                         </span>
 
                         <strong>
-                          {stats?.confirmedBookings || 0}
+                          {stats?.confirmedBookings ||
+                            0}
                         </strong>
 
                       </div>
 
                     </div>
 
-
                     <div className="summary-item">
 
                       <div className="summary-icon">
-
                         <FiXCircle />
-
                       </div>
-
 
                       <div>
 
@@ -1793,31 +1768,29 @@ function AdminDashboard() {
                         </span>
 
                         <strong>
-                          {stats?.cancelledBookings || 0}
+                          {stats?.cancelledBookings ||
+                            0}
                         </strong>
 
                       </div>
 
                     </div>
 
-
                   </div>
 
                 </div>
 
-
               </section>
 
             </>
-
           )}
-
 
           {/* ===================================
               CREATE BOOKING
           =================================== */}
 
-          {activeTab === "create-booking" && (
+          {activeTab ===
+            "create-booking" && (
 
             <section className="admin-table-card create-booking-panel">
 
@@ -1835,18 +1808,13 @@ function AdminDashboard() {
 
                 </div>
 
-
                 <div className="notification-heading-icon">
-
                   <FiCalendar />
-
                 </div>
 
               </div>
 
-
               {bookingSuccess && (
-
                 <div className="admin-notification-success">
 
                   <FiCheckCircle />
@@ -1856,12 +1824,9 @@ function AdminDashboard() {
                   </span>
 
                 </div>
-
               )}
 
-
               {bookingError && (
-
                 <div className="admin-notification-error">
 
                   <FiXCircle />
@@ -1871,15 +1836,14 @@ function AdminDashboard() {
                   </span>
 
                 </div>
-
               )}
-
 
               <form
                 className="admin-notification-form"
-                onSubmit={createAdminBooking}
+                onSubmit={
+                  createAdminBooking
+                }
               >
-
 
                 {/* CUSTOMER */}
 
@@ -1889,42 +1853,48 @@ function AdminDashboard() {
                     Customer
                   </label>
 
-
                   <select
                     name="userId"
-                    value={adminBooking.userId}
-                    onChange={(e) => {
+                    value={
+                      adminBooking.userId
+                    }
+                    onChange={e => {
 
                       const selectedUser =
                         users.find(
                           user =>
-                            String(user.id) ===
-                            String(e.target.value)
+                            String(
+                              user.id
+                            ) ===
+                            String(
+                              e.target
+                                .value
+                            )
                         );
 
-
                       setAdminBooking({
-
                         ...adminBooking,
-
                         userId:
-                          e.target.value,
-
+                          e.target
+                            .value,
                         name:
-                          selectedUser?.name || "",
-
+                          selectedUser?.name ||
+                          "",
                         email:
-                          selectedUser?.email || "",
-
+                          selectedUser?.email ||
+                          "",
                         phone:
-                          selectedUser?.phone || ""
-
+                          selectedUser?.phone ||
+                          ""
                       });
 
+                      setBookingSuccess(
+                        ""
+                      );
 
-                      setBookingSuccess("");
-
-                      setBookingError("");
+                      setBookingError(
+                        ""
+                      );
 
                     }}
                   >
@@ -1933,17 +1903,18 @@ function AdminDashboard() {
                       Select customer
                     </option>
 
-
                     {users
                       .filter(
                         user =>
-                          user.role !== "admin"
+                          user.role !==
+                          "admin"
                       )
                       .map(user => (
-
                         <option
                           key={user.id}
-                          value={user.id}
+                          value={
+                            user.id
+                          }
                         >
 
                           {user.name}
@@ -1951,13 +1922,11 @@ function AdminDashboard() {
                           {user.email}
 
                         </option>
-
                       ))}
 
                   </select>
 
                 </div>
-
 
                 {/* CUSTOMER INFORMATION */}
 
@@ -1971,12 +1940,13 @@ function AdminDashboard() {
 
                     <input
                       type="text"
-                      value={adminBooking.name}
+                      value={
+                        adminBooking.name
+                      }
                       readOnly
                     />
 
                   </div>
-
 
                   <div className="admin-form-group">
 
@@ -1986,14 +1956,15 @@ function AdminDashboard() {
 
                     <input
                       type="text"
-                      value={adminBooking.phone}
+                      value={
+                        adminBooking.phone
+                      }
                       readOnly
                     />
 
                   </div>
 
                 </div>
-
 
                 {/* ROUTE */}
 
@@ -2005,17 +1976,19 @@ function AdminDashboard() {
                       Departure
                     </label>
 
-
                     <select
                       name="from"
-                      value={adminBooking.from}
-                      onChange={handleAdminBookingChange}
+                      value={
+                        adminBooking.from
+                      }
+                      onChange={
+                        handleAdminBookingChange
+                      }
                     >
 
                       <option value="">
                         Select departure
                       </option>
-
 
                       {[
                         ...new Set(
@@ -2030,9 +2003,7 @@ function AdminDashboard() {
                           key={city}
                           value={city}
                         >
-
                           {city}
-
                         </option>
 
                       ))}
@@ -2041,24 +2012,25 @@ function AdminDashboard() {
 
                   </div>
 
-
                   <div className="admin-form-group">
 
                     <label>
                       Destination
                     </label>
 
-
                     <select
                       name="to"
-                      value={adminBooking.to}
-                      onChange={handleAdminBookingChange}
+                      value={
+                        adminBooking.to
+                      }
+                      onChange={
+                        handleAdminBookingChange
+                      }
                     >
 
                       <option value="">
                         Select destination
                       </option>
-
 
                       {[
                         ...new Set(
@@ -2073,9 +2045,7 @@ function AdminDashboard() {
                           key={city}
                           value={city}
                         >
-
                           {city}
-
                         </option>
 
                       ))}
@@ -2085,7 +2055,6 @@ function AdminDashboard() {
                   </div>
 
                 </div>
-
 
                 {/* BUS + SEATS + DATE */}
 
@@ -2097,11 +2066,14 @@ function AdminDashboard() {
                       Bus Type
                     </label>
 
-
                     <select
                       name="busType"
-                      value={adminBooking.busType}
-                      onChange={handleAdminBookingChange}
+                      value={
+                        adminBooking.busType
+                      }
+                      onChange={
+                        handleAdminBookingChange
+                      }
                     >
 
                       <option value="">
@@ -2124,25 +2096,26 @@ function AdminDashboard() {
 
                   </div>
 
-
                   <div className="admin-form-group">
 
                     <label>
                       Seats
                     </label>
 
-
                     <input
                       type="number"
                       name="seats"
                       min="1"
                       max="10"
-                      value={adminBooking.seats}
-                      onChange={handleAdminBookingChange}
+                      value={
+                        adminBooking.seats
+                      }
+                      onChange={
+                        handleAdminBookingChange
+                      }
                     />
 
                   </div>
-
 
                   <div className="admin-form-group">
 
@@ -2150,23 +2123,27 @@ function AdminDashboard() {
                       Travel Date
                     </label>
 
-
                     <input
                       type="date"
                       name="date"
-                      value={adminBooking.date}
-                      onChange={handleAdminBookingChange}
+                      value={
+                        adminBooking.date
+                      }
+                      onChange={
+                        handleAdminBookingChange
+                      }
                     />
 
                   </div>
 
                 </div>
 
-
                 <button
                   type="submit"
                   className="send-notification-btn"
-                  disabled={creatingBooking}
+                  disabled={
+                    creatingBooking
+                  }
                 >
 
                   <FiCalendar />
@@ -2180,15 +2157,14 @@ function AdminDashboard() {
               </form>
 
             </section>
-
           )}
-
 
           {/* ===================================
               BOOKINGS
           =================================== */}
 
-          {activeTab === "bookings" && (
+          {activeTab ===
+            "bookings" && (
 
             <section className="admin-table-card">
 
@@ -2206,11 +2182,12 @@ function AdminDashboard() {
 
                 </div>
 
-
                 <button
                   type="button"
                   className="refresh-btn"
-                  onClick={loadAdminData}
+                  onClick={
+                    loadAdminData
+                  }
                 >
 
                   <FiRefreshCw />
@@ -2220,7 +2197,6 @@ function AdminDashboard() {
                 </button>
 
               </div>
-
 
               <div className="admin-table-scroll">
 
@@ -2262,26 +2238,18 @@ function AdminDashboard() {
 
                   </thead>
 
-
                   <tbody>
 
-                    {bookings.length === 0 ? (
-
+                    {bookings.length ===
+                    0 ? (
                       <tr>
-
                         <td colSpan="7">
-
                           No bookings found.
-
                         </td>
-
                       </tr>
-
                     ) : (
-
                       bookings.map(
-                        (booking) => (
-
+                        booking => (
                           <tr
                             key={
                               booking.id
@@ -2289,44 +2257,50 @@ function AdminDashboard() {
                           >
 
                             <td>
-
                               <strong>
-                                {booking.ticket_number}
+                                {
+                                  booking.ticket_number
+                                }
                               </strong>
-
                             </td>
-
 
                             <td>
 
                               <strong>
-                                {booking.passenger_name}
+                                {
+                                  booking.passenger_name
+                                }
                               </strong>
 
                               <small>
-                                {booking.user_email}
+                                {
+                                  booking.user_email
+                                }
                               </small>
 
                             </td>
 
-
                             <td>
 
-                              {booking.departure}
+                              {
+                                booking.departure
+                              }
 
                               <span className="route-arrow">
                                 →
                               </span>
 
-                              {booking.destination}
+                              {
+                                booking.destination
+                              }
 
                             </td>
-
 
                             <td>
-                              {booking.bus_name}
+                              {
+                                booking.bus_name
+                              }
                             </td>
-
 
                             <td>
 
@@ -2335,7 +2309,6 @@ function AdminDashboard() {
                               )}
 
                             </td>
-
 
                             <td>
 
@@ -2346,59 +2319,61 @@ function AdminDashboard() {
                                     .replace(
                                       /\s+/g,
                                       "-"
-                                    ) || ""
+                                    ) ||
+                                  ""
                                 }`}
                               >
 
-                                {booking.booking_status}
+                                {
+                                  booking.booking_status
+                                }
 
                               </span>
 
                             </td>
 
-
                             <td>
 
-                              {booking.booking_status ===
-                              "Cancelled" ? (
+                              {
+                                booking.booking_status ===
+                                "Cancelled" ? (
 
-                                <button
-                                  type="button"
-                                  className="confirm-status-btn"
-                                  onClick={() =>
-                                    updateBookingStatus(
-                                      booking.id,
-                                      "Confirmed"
-                                    )
-                                  }
-                                >
-                                  Restore
-                                </button>
+                                  <button
+                                    type="button"
+                                    className="confirm-status-btn"
+                                    onClick={() =>
+                                      updateBookingStatus(
+                                        booking.id,
+                                        "Confirmed"
+                                      )
+                                    }
+                                  >
+                                    Restore
+                                  </button>
 
-                              ) : (
+                                ) : (
 
-                                <button
-                                  type="button"
-                                  className="cancel-status-btn"
-                                  onClick={() =>
-                                    updateBookingStatus(
-                                      booking.id,
-                                      "Cancelled"
-                                    )
-                                  }
-                                >
-                                  Cancel
-                                </button>
+                                  <button
+                                    type="button"
+                                    className="cancel-status-btn"
+                                    onClick={() =>
+                                      updateBookingStatus(
+                                        booking.id,
+                                        "Cancelled"
+                                      )
+                                    }
+                                  >
+                                    Cancel
+                                  </button>
 
-                              )}
+                                )
+                              }
 
                             </td>
 
                           </tr>
-
                         )
                       )
-
                     )}
 
                   </tbody>
@@ -2408,15 +2383,14 @@ function AdminDashboard() {
               </div>
 
             </section>
-
           )}
-
 
           {/* ===================================
               USERS
           =================================== */}
 
-          {activeTab === "users" && (
+          {activeTab ===
+            "users" && (
 
             <section className="admin-table-card">
 
@@ -2434,7 +2408,6 @@ function AdminDashboard() {
 
                 </div>
 
-
                 <div className="section-count">
 
                   <FiUserPlus />
@@ -2444,7 +2417,6 @@ function AdminDashboard() {
                 </div>
 
               </div>
-
 
               <div className="admin-table-scroll">
 
@@ -2478,17 +2450,15 @@ function AdminDashboard() {
 
                   </thead>
 
-
                   <tbody>
 
-                    {users.length === 0 ? (
+                    {users.length ===
+                    0 ? (
 
                       <tr>
 
                         <td colSpan="5">
-
                           No users found.
-
                         </td>
 
                       </tr>
@@ -2496,7 +2466,7 @@ function AdminDashboard() {
                     ) : (
 
                       users.map(
-                        (user) => (
+                        user => (
 
                           <tr
                             key={
@@ -2511,30 +2481,34 @@ function AdminDashboard() {
                                 <div className="user-avatar">
 
                                   {user.name
-                                    ?.charAt(0)
+                                    ?.charAt(
+                                      0
+                                    )
                                     ?.toUpperCase()}
 
                                 </div>
 
-
                                 <strong>
-                                  {user.name}
+                                  {
+                                    user.name
+                                  }
                                 </strong>
 
                               </div>
 
                             </td>
 
-
                             <td>
-                              {user.email}
+                              {
+                                user.email
+                              }
                             </td>
 
-
                             <td>
-                              {user.phone}
+                              {
+                                user.phone
+                              }
                             </td>
-
 
                             <td>
 
@@ -2547,24 +2521,23 @@ function AdminDashboard() {
                                 }`}
                               >
 
-                                {user.role}
+                                {
+                                  user.role
+                                }
 
                               </span>
 
                             </td>
 
-
                             <td>
 
                               {user.created_at
-
                                 ? String(
                                     user.created_at
                                   ).slice(
                                     0,
                                     10
                                   )
-
                                 : "N/A"}
 
                             </td>
@@ -2583,15 +2556,14 @@ function AdminDashboard() {
               </div>
 
             </section>
-
           )}
-
 
           {/* ===================================
               NOTIFICATIONS
           =================================== */}
 
-          {activeTab === "notifications" && (
+          {activeTab ===
+            "notifications" && (
 
             <section className="admin-table-card notification-panel">
 
@@ -2610,7 +2582,6 @@ function AdminDashboard() {
 
                 </div>
 
-
                 <div className="notification-heading-icon">
 
                   <FiBell />
@@ -2619,36 +2590,33 @@ function AdminDashboard() {
 
               </div>
 
-
               {notificationSuccess && (
-
                 <div className="admin-notification-success">
 
                   <FiCheckCircle />
 
                   <span>
-                    {notificationSuccess}
+                    {
+                      notificationSuccess
+                    }
                   </span>
 
                 </div>
-
               )}
 
-
               {notificationError && (
-
                 <div className="admin-notification-error">
 
                   <FiXCircle />
 
                   <span>
-                    {notificationError}
+                    {
+                      notificationError
+                    }
                   </span>
 
                 </div>
-
               )}
-
 
               <form
                 className="admin-notification-form"
@@ -2657,16 +2625,13 @@ function AdminDashboard() {
                 }
               >
 
-
                 <div className="form-grid">
-
 
                   <div className="admin-form-group">
 
                     <label>
                       Send To
                     </label>
-
 
                     <select
                       name="userId"
@@ -2682,27 +2647,32 @@ function AdminDashboard() {
                         📢 All Users
                       </option>
 
-
                       {users
                         .filter(
-                          (user) =>
+                          user =>
                             user.role !==
                             "admin"
                         )
                         .map(
-                          (user) => (
-
+                          user => (
                             <option
-                              key={user.id}
-                              value={user.id}
+                              key={
+                                user.id
+                              }
+                              value={
+                                user.id
+                              }
                             >
 
-                              {user.name}
+                              {
+                                user.name
+                              }
                               {" — "}
-                              {user.email}
+                              {
+                                user.email
+                              }
 
                             </option>
-
                           )
                         )}
 
@@ -2710,13 +2680,11 @@ function AdminDashboard() {
 
                   </div>
 
-
                   <div className="admin-form-group">
 
                     <label>
                       Notification Type
                     </label>
-
 
                     <select
                       name="type"
@@ -2748,16 +2716,13 @@ function AdminDashboard() {
 
                   </div>
 
-
                 </div>
-
 
                 <div className="admin-form-group">
 
                   <label>
                     Notification Title
                   </label>
-
 
                   <input
                     type="text"
@@ -2774,13 +2739,11 @@ function AdminDashboard() {
 
                 </div>
 
-
                 <div className="admin-form-group">
 
                   <label>
                     Message
                   </label>
-
 
                   <textarea
                     name="message"
@@ -2796,7 +2759,6 @@ function AdminDashboard() {
                   />
 
                 </div>
-
 
                 <button
                   type="submit"
@@ -2814,19 +2776,17 @@ function AdminDashboard() {
 
                 </button>
 
-
               </form>
 
             </section>
-
           )}
-
 
           {/* ===================================
               PAYMENTS
           =================================== */}
 
-          {activeTab === "payments" && (
+          {activeTab ===
+            "payments" && (
 
             <section className="admin-table-card payments-panel">
 
@@ -2844,11 +2804,12 @@ function AdminDashboard() {
 
                 </div>
 
-
                 <button
                   type="button"
                   className="refresh-btn"
-                  onClick={loadAdminData}
+                  onClick={
+                    loadAdminData
+                  }
                 >
 
                   <FiRefreshCw />
@@ -2858,9 +2819,6 @@ function AdminDashboard() {
                 </button>
 
               </div>
-
-
-              {/* PAYMENT SUMMARY */}
 
               <div className="payment-summary">
 
@@ -2884,7 +2842,6 @@ function AdminDashboard() {
 
                 </div>
 
-
                 <div className="payment-summary-card reversal">
 
                   <span>
@@ -2905,7 +2862,6 @@ function AdminDashboard() {
 
                 </div>
 
-
                 <div className="payment-summary-card reversed">
 
                   <span>
@@ -2925,7 +2881,6 @@ function AdminDashboard() {
                   </strong>
 
                 </div>
-
 
                 <div className="payment-summary-card failed">
 
@@ -2948,9 +2903,6 @@ function AdminDashboard() {
                 </div>
 
               </div>
-
-
-              {/* PAYMENT TABLE */}
 
               <div className="admin-table-scroll">
 
@@ -2996,10 +2948,10 @@ function AdminDashboard() {
 
                   </thead>
 
-
                   <tbody>
 
-                    {payments.length === 0 ? (
+                    {payments.length ===
+                    0 ? (
 
                       <tr>
 
@@ -3020,51 +2972,50 @@ function AdminDashboard() {
                         payment => (
 
                           <tr
-                            key={payment.id}
+                            key={
+                              payment.id
+                            }
                           >
-
-                            {/* TRANSACTION */}
 
                             <td>
 
                               <strong>
-                                {payment.transaction_id}
+                                {
+                                  payment.transaction_id
+                                }
                               </strong>
 
                             </td>
-
-
-                            {/* USER */}
 
                             <td>
 
                               <div className="payment-user">
 
                                 <strong>
-                                  {payment.user_name ||
-                                    "Unknown User"}
+                                  {
+                                    payment.user_name ||
+                                    "Unknown User"
+                                  }
                                 </strong>
 
                                 <small>
-                                  {payment.user_email}
+                                  {
+                                    payment.user_email
+                                  }
                                 </small>
 
                               </div>
 
                             </td>
 
-
-                            {/* TICKET */}
-
                             <td>
 
-                              {payment.ticket_number ||
-                                "N/A"}
+                              {
+                                payment.ticket_number ||
+                                "N/A"
+                              }
 
                             </td>
-
-
-                            {/* AMOUNT */}
 
                             <td>
 
@@ -3076,17 +3027,11 @@ function AdminDashboard() {
 
                             </td>
 
-
-                            {/* METHOD */}
-
                             <td>
-
-                              {payment.payment_method}
-
+                              {
+                                payment.payment_method
+                              }
                             </td>
-
-
-                            {/* DATE */}
 
                             <td>
 
@@ -3099,9 +3044,6 @@ function AdminDashboard() {
                                 : "N/A"}
 
                             </td>
-
-
-                            {/* STATUS */}
 
                             <td>
 
@@ -3116,66 +3058,64 @@ function AdminDashboard() {
                                 }`}
                               >
 
-                                {payment.status}
+                                {
+                                  payment.status
+                                }
 
                               </span>
 
                             </td>
 
-
-                            {/* ACTION */}
-
                             <td>
 
-                              {payment.status ===
-                              "Requested Reversal" ? (
+                              {
+                                payment.status ===
+                                "Requested Reversal" ? (
 
-                                <div className="payment-actions">
+                                  <div className="payment-actions">
 
-                                  <button
-                                    type="button"
-                                    className="accept-reversal-btn"
-                                    onClick={() =>
-                                      acceptPaymentReversal(
-                                        payment.id
-                                      )
-                                    }
-                                  >
+                                    <button
+                                      type="button"
+                                      className="accept-reversal-btn"
+                                      onClick={() =>
+                                        acceptPaymentReversal(
+                                          payment.id
+                                        )
+                                      }
+                                    >
 
-                                    <FiCheckCircle />
+                                      <FiCheckCircle />
 
-                                    Accept
+                                      Accept
 
-                                  </button>
+                                    </button>
 
+                                    <button
+                                      type="button"
+                                      className="deny-reversal-btn"
+                                      onClick={() =>
+                                        denyPaymentReversal(
+                                          payment.id
+                                        )
+                                      }
+                                    >
 
-                                  <button
-                                    type="button"
-                                    className="deny-reversal-btn"
-                                    onClick={() =>
-                                      denyPaymentReversal(
-                                        payment.id
-                                      )
-                                    }
-                                  >
+                                      <FiXCircle />
 
-                                    <FiXCircle />
+                                      Deny
 
-                                    Deny
+                                    </button>
 
-                                  </button>
+                                  </div>
 
-                                </div>
+                                ) : (
 
-                              ) : (
+                                  <span className="no-payment-action">
+                                    —
+                                  </span>
 
-                                <span className="no-payment-action">
-
-                                  —
-
-                                </span>
-
-                              )}
+                                )
+                              }
 
                             </td>
 
@@ -3193,15 +3133,963 @@ function AdminDashboard() {
               </div>
 
             </section>
-
           )}
 
+          {/* ===================================
+              REPORTS
+          =================================== */}
+
+          {activeTab ===
+            "reports" && (
+
+            <section className="admin-table-card reports-panel">
+
+              {/* REPORT HEADER */}
+
+              <div className="section-heading">
+
+                <div>
+
+                  <h1>
+                    Reports
+                  </h1>
+
+                  <p>
+                    Review and manage reports submitted by BusGo users.
+                  </p>
+
+                </div>
+
+                <button
+                  type="button"
+                  className="refresh-btn"
+                  onClick={
+                    loadReports
+                  }
+                  disabled={
+                    reportsLoading
+                  }
+                >
+
+                  <FiRefreshCw />
+
+                  {reportsLoading
+                    ? "Loading..."
+                    : "Refresh"}
+
+                </button>
+
+              </div>
+
+              {/* REPORT ERROR */}
+
+              {reportsError && (
+
+                <div className="admin-notification-error">
+
+                  <FiXCircle />
+
+                  <span>
+                    {reportsError}
+                  </span>
+
+                </div>
+
+              )}
+
+              {/* REPORT SUMMARY */}
+
+              <div className="payment-summary report-summary">
+
+                <div className="payment-summary-card">
+
+                  <span>
+                    Total Reports
+                  </span>
+
+                  <strong>
+                    {reports.length}
+                  </strong>
+
+                </div>
+
+                <div className="payment-summary-card reversal">
+
+                  <span>
+                    Pending
+                  </span>
+
+                  <strong>
+                    {pendingReports}
+                  </strong>
+
+                </div>
+
+                <div className="payment-summary-card">
+
+                  <span>
+                    In Progress
+                  </span>
+
+                  <strong>
+                    {inProgressReports}
+                  </strong>
+
+                </div>
+
+                <div className="payment-summary-card reversed">
+
+                  <span>
+                    Resolved
+                  </span>
+
+                  <strong>
+                    {resolvedReports}
+                  </strong>
+
+                </div>
+
+                <div className="payment-summary-card failed">
+
+                  <span>
+                    Rejected
+                  </span>
+
+                  <strong>
+                    {rejectedReports}
+                  </strong>
+
+                </div>
+
+              </div>
+
+              {/* REPORT TOOLBAR */}
+
+              <div className="reports-toolbar">
+
+                <div className="reports-search">
+
+                  <FiSearch />
+
+                  <input
+                    type="text"
+                    value={
+                      reportSearch
+                    }
+                    onChange={e =>
+                      setReportSearch(
+                        e.target.value
+                      )
+                    }
+                    placeholder="Search reports..."
+                  />
+
+                </div>
+
+                <div className="reports-filter">
+
+                  <label htmlFor="report-status-filter">
+                    Status
+                  </label>
+
+                  <select
+                    id="report-status-filter"
+                    value={
+                      reportFilter
+                    }
+                    onChange={e =>
+                      setReportFilter(
+                        e.target.value
+                      )
+                    }
+                  >
+
+                    <option value="all">
+                      All Reports
+                    </option>
+
+                    <option value="pending">
+                      Pending
+                    </option>
+
+                    <option value="in progress">
+                      In Progress
+                    </option>
+
+                    <option value="resolved">
+                      Resolved
+                    </option>
+
+                    <option value="rejected">
+                      Rejected
+                    </option>
+
+                  </select>
+
+                </div>
+
+              </div>
+
+              {/* REPORT TABLE */}
+
+              <div className="admin-table-scroll">
+
+                <table>
+
+                  <thead>
+
+                    <tr>
+
+                      <th>
+                        Report
+                      </th>
+
+                      <th>
+                        Reporter
+                      </th>
+
+                      <th>
+                        Message
+                      </th>
+
+                      <th>
+                        Status
+                      </th>
+
+                      <th>
+                        Submitted
+                      </th>
+
+                      <th>
+                        Action
+                      </th>
+
+                    </tr>
+
+                  </thead>
+
+                  <tbody>
+
+                    {reportsLoading ? (
+
+                      <tr>
+
+                        <td
+                          colSpan="6"
+                          className="reports-loading-cell"
+                        >
+
+                          <FiRefreshCw />
+
+                          Loading reports...
+
+                        </td>
+
+                      </tr>
+
+                    ) : filteredReports.length ===
+                      0 ? (
+
+                      <tr>
+
+                        <td
+                          colSpan="6"
+                          className="reports-empty-cell"
+                        >
+
+                          <FiAlertCircle />
+
+                          <span>
+
+                            {reports.length ===
+                            0
+                              ? "No reports have been submitted yet."
+                              : "No reports match your current search or filter."}
+
+                          </span>
+
+                        </td>
+
+                      </tr>
+
+                    ) : (
+
+                      filteredReports.map(
+                        report => {
+
+                          const reportStatus =
+                            normalizeReportStatus(
+                              report.status
+                            );
+
+                          return (
+                            <tr
+                              key={
+                                report.id
+                              }
+                            >
+
+                              {/* REPORT */}
+
+                              <td>
+
+                                <div className="report-title-cell">
+
+                                  <strong>
+
+                                    {
+                                      report.subject ||
+                                      "User Report"
+                                    }
+
+                                  </strong>
+
+                                  <small>
+
+                                    #
+                                    {
+                                      report.id
+                                    }
+
+                                  </small>
+
+                                </div>
+
+                              </td>
+
+                              {/* REPORTER */}
+
+                              <td>
+
+                                <div className="report-user-cell">
+
+                                  <div className="report-user-avatar">
+
+                                    <FiUser />
+
+                                  </div>
+
+                                  <div>
+
+                                    <strong>
+
+                                      {
+                                        report.user_name ||
+                                        report.name ||
+                                        "Unknown User"
+                                      }
+
+                                    </strong>
+
+                                    <small>
+
+                                      {
+                                        report.user_email ||
+                                        report.email ||
+                                        "No email available"
+                                      }
+
+                                    </small>
+
+                                  </div>
+
+                                </div>
+
+                              </td>
+
+                              {/* MESSAGE */}
+
+                              <td>
+
+                                <div className="report-message-preview">
+
+                                  {
+                                    report.message
+                                      ? String(
+                                          report.message
+                                        ).length >
+                                        90
+                                        ? `${String(
+                                            report.message
+                                          ).slice(
+                                            0,
+                                            90
+                                          )}...`
+                                        : report.message
+                                      : "No message provided."
+                                  }
+
+                                </div>
+
+                              </td>
+
+                              {/* STATUS */}
+
+                              <td>
+
+                                <span
+                                  className={`report-status-badge report-status-${reportStatus
+                                    .toLowerCase()
+                                    .replace(
+                                      /\s+/g,
+                                      "-"
+                                    )}`}
+                                >
+
+                                  {reportStatus ===
+                                    "Pending" && (
+                                    <FiClock />
+                                  )}
+
+                                  {reportStatus ===
+                                    "In Progress" && (
+                                    <FiRefreshCw />
+                                  )}
+
+                                  {reportStatus ===
+                                    "Resolved" && (
+                                    <FiCheckCircle />
+                                  )}
+
+                                  {reportStatus ===
+                                    "Rejected" && (
+                                    <FiXCircle />
+                                  )}
+
+                                  {
+                                    reportStatus
+                                  }
+
+                                </span>
+
+                              </td>
+
+                              {/* DATE */}
+
+                              <td>
+
+                                {formatReportDate(
+                                  report.created_at ||
+                                    report.createdAt ||
+                                    report.date
+                                )}
+
+                              </td>
+
+                              {/* ACTION */}
+
+                              <td>
+
+                                <button
+                                  type="button"
+                                  className="view-report-btn"
+                                  onClick={() =>
+                                    setSelectedReport(
+                                      report
+                                    )
+                                  }
+                                >
+
+                                  <FiEye />
+
+                                  View
+
+                                </button>
+
+                              </td>
+
+                            </tr>
+                          );
+                        }
+                      )
+
+                    )}
+
+                  </tbody>
+
+                </table>
+
+              </div>
+
+            </section>
+          )}
+
+          {/* ===================================
+              REPORT DETAILS MODAL
+          =================================== */}
+
+          {selectedReport && (
+
+            <div
+              className="report-modal-overlay"
+              onClick={e => {
+
+                if (
+                  e.target ===
+                  e.currentTarget
+                ) {
+                  setSelectedReport(
+                    null
+                  );
+                }
+
+              }}
+            >
+
+              <div className="report-modal">
+
+                {/* MODAL HEADER */}
+
+                <div className="report-modal-header">
+
+                  <div>
+
+                    <span className="report-modal-eyebrow">
+
+                      REPORT #
+
+                      {
+                        selectedReport.id
+                      }
+
+                    </span>
+
+                    <h2>
+
+                      {
+                        selectedReport.subject ||
+                        "User Report"
+                      }
+
+                    </h2>
+
+                  </div>
+
+                  <button
+                    type="button"
+                    className="report-modal-close"
+                    onClick={() =>
+                      setSelectedReport(
+                        null
+                      )
+                    }
+                    aria-label="Close report"
+                  >
+
+                    <FiX />
+
+                  </button>
+
+                </div>
+
+                {/* MODAL BODY */}
+
+                <div className="report-modal-body">
+
+                  {/* REPORTER */}
+
+                  <div className="report-detail-section">
+
+                    <div className="report-detail-heading">
+
+                      <FiUser />
+
+                      <h3>
+                        Reporter
+                      </h3>
+
+                    </div>
+
+                    <div className="report-detail-user">
+
+                      <div className="report-detail-avatar">
+
+                        <FiUser />
+
+                      </div>
+
+                      <div>
+
+                        <strong>
+
+                          {
+                            selectedReport.user_name ||
+                            selectedReport.name ||
+                            "Unknown User"
+                          }
+
+                        </strong>
+
+                        <span>
+
+                          {
+                            selectedReport.user_email ||
+                            selectedReport.email ||
+                            "No email available"
+                          }
+
+                        </span>
+
+                        {selectedReport.user_id && (
+                          <small>
+
+                            User ID:{" "}
+                            {
+                              selectedReport.user_id
+                            }
+
+                          </small>
+                        )}
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                  {/* REPORT DATE */}
+
+                  <div className="report-detail-grid">
+
+                    <div className="report-detail-box">
+
+                      <span>
+                        Submitted
+                      </span>
+
+                      <strong>
+
+                        {formatReportDate(
+                          selectedReport.created_at ||
+                            selectedReport.createdAt ||
+                            selectedReport.date
+                        )}
+
+                      </strong>
+
+                    </div>
+
+                    <div className="report-detail-box">
+
+                      <span>
+                        Current Status
+                      </span>
+
+                      <strong>
+
+                        {
+                          normalizeReportStatus(
+                            selectedReport.status
+                          )
+                        }
+
+                      </strong>
+
+                    </div>
+
+                  </div>
+
+                  {/* MESSAGE */}
+
+                  <div className="report-detail-section">
+
+                    <div className="report-detail-heading">
+
+                      <FiMessageSquare />
+
+                      <h3>
+                        Full Report Message
+                      </h3>
+
+                    </div>
+
+                    <div className="report-full-message">
+
+                      {
+                        selectedReport.message ||
+                        "No message was provided."
+                      }
+
+                    </div>
+
+                  </div>
+
+                  {/* ADDITIONAL INFORMATION */}
+
+                  {(selectedReport.booking_id ||
+                    selectedReport.ticket_number ||
+                    selectedReport.route ||
+                    selectedReport.phone) && (
+
+                    <div className="report-detail-section">
+
+                      <div className="report-detail-heading">
+
+                        <FiInfo />
+
+                        <h3>
+                          Additional Information
+                        </h3>
+
+                      </div>
+
+                      <div className="report-detail-extra">
+
+                        {selectedReport.booking_id && (
+                          <div>
+
+                            <span>
+                              Booking ID
+                            </span>
+
+                            <strong>
+                              {
+                                selectedReport.booking_id
+                              }
+                            </strong>
+
+                          </div>
+                        )}
+
+                        {selectedReport.ticket_number && (
+                          <div>
+
+                            <span>
+                              Ticket
+                            </span>
+
+                            <strong>
+                              {
+                                selectedReport.ticket_number
+                              }
+                            </strong>
+
+                          </div>
+                        )}
+
+                        {selectedReport.route && (
+                          <div>
+
+                            <span>
+                              Route
+                            </span>
+
+                            <strong>
+                              {
+                                selectedReport.route
+                              }
+                            </strong>
+
+                          </div>
+                        )}
+
+                        {selectedReport.phone && (
+                          <div>
+
+                            <span>
+                              Phone
+                            </span>
+
+                            <strong>
+                              {
+                                selectedReport.phone
+                              }
+                            </strong>
+
+                          </div>
+                        )}
+
+                      </div>
+
+                    </div>
+
+                  )}
+
+                  {/* STATUS MANAGEMENT */}
+
+                  <div className="report-detail-section">
+
+                    <div className="report-detail-heading">
+
+                      <FiBarChart2 />
+
+                      <h3>
+                        Manage Report
+                      </h3>
+
+                    </div>
+
+                    <p className="report-status-help">
+
+                      Update the report status after reviewing the user's message.
+
+                    </p>
+
+                    <div className="report-status-actions">
+
+                      <button
+                        type="button"
+                        className={`report-status-action pending ${
+                          normalizeReportStatus(
+                            selectedReport.status
+                          ) ===
+                          "Pending"
+                            ? "active"
+                            : ""
+                        }`}
+                        disabled={
+                          updatingReportId ===
+                          selectedReport.id
+                        }
+                        onClick={() =>
+                          updateReportStatus(
+                            selectedReport.id,
+                            "Pending"
+                          )
+                        }
+                      >
+
+                        <FiClock />
+
+                        Pending
+
+                      </button>
+
+                      <button
+                        type="button"
+                        className={`report-status-action progress ${
+                          normalizeReportStatus(
+                            selectedReport.status
+                          ) ===
+                          "In Progress"
+                            ? "active"
+                            : ""
+                        }`}
+                        disabled={
+                          updatingReportId ===
+                          selectedReport.id
+                        }
+                        onClick={() =>
+                          updateReportStatus(
+                            selectedReport.id,
+                            "In Progress"
+                          )
+                        }
+                      >
+
+                        <FiRefreshCw />
+
+                        In Progress
+
+                      </button>
+
+                      <button
+                        type="button"
+                        className={`report-status-action resolved ${
+                          normalizeReportStatus(
+                            selectedReport.status
+                          ) ===
+                          "Resolved"
+                            ? "active"
+                            : ""
+                        }`}
+                        disabled={
+                          updatingReportId ===
+                          selectedReport.id
+                        }
+                        onClick={() =>
+                          updateReportStatus(
+                            selectedReport.id,
+                            "Resolved"
+                          )
+                        }
+                      >
+
+                        <FiCheckCircle />
+
+                        Resolved
+
+                      </button>
+
+                      <button
+                        type="button"
+                        className={`report-status-action rejected ${
+                          normalizeReportStatus(
+                            selectedReport.status
+                          ) ===
+                          "Rejected"
+                            ? "active"
+                            : ""
+                        }`}
+                        disabled={
+                          updatingReportId ===
+                          selectedReport.id
+                        }
+                        onClick={() =>
+                          updateReportStatus(
+                            selectedReport.id,
+                            "Rejected"
+                          )
+                        }
+                      >
+
+                        <FiXCircle />
+
+                        Rejected
+
+                      </button>
+
+                    </div>
+
+                    {updatingReportId ===
+                      selectedReport.id && (
+
+                      <div className="report-updating-message">
+
+                        <FiRefreshCw />
+
+                        Updating report status...
+
+                      </div>
+
+                    )}
+
+                  </div>
+
+                </div>
+
+                {/* MODAL FOOTER */}
+
+                <div className="report-modal-footer">
+
+                  <button
+                    type="button"
+                    className="report-close-btn"
+                    onClick={() =>
+                      setSelectedReport(
+                        null
+                      )
+                    }
+                  >
+
+                    Close Report
+
+                  </button>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          )}
 
           {/* ===================================
               SETTINGS
           =================================== */}
 
-          {activeTab === "settings" && (
+          {activeTab ===
+            "settings" && (
 
             <section className="admin-settings">
 
@@ -3229,10 +4117,7 @@ function AdminDashboard() {
 
               </div>
 
-
-              {/* =================================
-                  APPEARANCE
-              ================================= */}
+              {/* APPEARANCE */}
 
               <div className="settings-card">
 
@@ -3258,25 +4143,25 @@ function AdminDashboard() {
 
                 </div>
 
-
                 <div className="settings-options">
 
                   <button
                     type="button"
                     className={`settings-option ${
-                      theme === "light"
+                      theme ===
+                      "light"
                         ? "selected"
                         : ""
                     }`}
                     onClick={() =>
-                      changeTheme("light")
+                      changeTheme(
+                        "light"
+                      )
                     }
                   >
 
                     <span className="settings-option-icon">
-
                       <FiSun />
-
                     </span>
 
                     <span className="settings-option-text">
@@ -3293,7 +4178,8 @@ function AdminDashboard() {
 
                     <span className="settings-radio">
 
-                      {theme === "light"
+                      {theme ===
+                      "light"
                         ? "✓"
                         : ""}
 
@@ -3301,23 +4187,23 @@ function AdminDashboard() {
 
                   </button>
 
-
                   <button
                     type="button"
                     className={`settings-option ${
-                      theme === "dark"
+                      theme ===
+                      "dark"
                         ? "selected"
                         : ""
                     }`}
                     onClick={() =>
-                      changeTheme("dark")
+                      changeTheme(
+                        "dark"
+                      )
                     }
                   >
 
                     <span className="settings-option-icon">
-
                       <FiMoon />
-
                     </span>
 
                     <span className="settings-option-text">
@@ -3334,7 +4220,8 @@ function AdminDashboard() {
 
                     <span className="settings-radio">
 
-                      {theme === "dark"
+                      {theme ===
+                      "dark"
                         ? "✓"
                         : ""}
 
@@ -3346,10 +4233,7 @@ function AdminDashboard() {
 
               </div>
 
-
-              {/* =================================
-                  LANGUAGE
-              ================================= */}
+              {/* LANGUAGE */}
 
               <div className="settings-card">
 
@@ -3375,22 +4259,21 @@ function AdminDashboard() {
 
                 </div>
 
-
                 <div className="settings-language">
 
                   <label htmlFor="admin-language">
-
                     Dashboard Language
-
                   </label>
-
 
                   <select
                     id="admin-language"
-                    value={language}
-                    onChange={(e) =>
+                    value={
+                      language
+                    }
+                    onChange={e =>
                       changeLanguage(
-                        e.target.value
+                        e.target
+                          .value
                       )
                     }
                   >
@@ -3405,21 +4288,15 @@ function AdminDashboard() {
 
                   </select>
 
-
                   <small>
-
                     Language preference is saved on this device.
-
                   </small>
 
                 </div>
 
               </div>
 
-
-              {/* =================================
-                  CLIENT VIEW
-              ================================= */}
+              {/* CLIENT VIEW */}
 
               <div className="settings-card">
 
@@ -3445,11 +4322,12 @@ function AdminDashboard() {
 
                 </div>
 
-
                 <button
                   type="button"
                   className="settings-action-btn client-view-btn"
-                  onClick={viewSiteAsClient}
+                  onClick={
+                    viewSiteAsClient
+                  }
                 >
 
                   <FiExternalLink />
@@ -3460,10 +4338,7 @@ function AdminDashboard() {
 
               </div>
 
-
-              {/* =================================
-                  ABOUT APP
-              ================================= */}
+              {/* ABOUT APP */}
 
               <div className="settings-card">
 
@@ -3489,7 +4364,6 @@ function AdminDashboard() {
 
                 </div>
 
-
                 <div className="about-app-info">
 
                   <div className="about-app-row">
@@ -3504,7 +4378,6 @@ function AdminDashboard() {
 
                   </div>
 
-
                   <div className="about-app-row">
 
                     <span>
@@ -3512,11 +4385,12 @@ function AdminDashboard() {
                     </span>
 
                     <strong>
-                      v{packageJson.version}
+                      v{
+                        packageJson.version
+                      }
                     </strong>
 
                   </div>
-
 
                   <div className="about-app-row">
 
@@ -3529,7 +4403,6 @@ function AdminDashboard() {
                     </strong>
 
                   </div>
-
 
                   <div className="about-app-row">
 
@@ -3547,10 +4420,7 @@ function AdminDashboard() {
 
               </div>
 
-
-              {/* =================================
-                  ACCOUNT
-              ================================= */}
+              {/* ACCOUNT */}
 
               <div className="settings-card settings-danger-card">
 
@@ -3576,11 +4446,12 @@ function AdminDashboard() {
 
                 </div>
 
-
                 <button
                   type="button"
                   className="settings-action-btn logout-settings-btn"
-                  onClick={logoutFromSettings}
+                  onClick={
+                    logoutFromSettings
+                  }
                 >
 
                   <FiLogOut />
@@ -3592,53 +4463,34 @@ function AdminDashboard() {
               </div>
 
             </section>
-
           )}
 
-
           {/* ===================================
-              FUTURE ADMIN SECTIONS
+              FUTURE ROUTES ONLY
           =================================== */}
 
-          {[
-            "routes",
-            "reports"
-          ].includes(activeTab) && (
+          {activeTab ===
+            "routes" && (
 
             <section className="coming-soon-card">
 
               <div className="coming-soon-icon">
-
-                {activeTab === "routes" &&
-                  <FiMap />}
-
-                {activeTab === "reports" &&
-                  <FiBarChart2 />}
-
+                <FiMap />
               </div>
 
-
               <h1>
-
-                {activeTab.charAt(0).toUpperCase() +
-                  activeTab.slice(1)}
-
+                Routes
               </h1>
 
-
               <p>
-
                 This section is ready for the existing
                 BusGo functionality to be connected.
-
               </p>
 
             </section>
-
           )}
 
         </main>
-
 
         {/* =====================================
             FOOTER
@@ -3647,28 +4499,19 @@ function AdminDashboard() {
         <footer className="admin-footer">
 
           <span>
-
             © {new Date().getFullYear()} BusGo
-
           </span>
 
-
           <span>
-
             Admin Dashboard
-
           </span>
 
         </footer>
 
-
       </div>
 
     </div>
-
   );
-
 }
-
 
 export default AdminDashboard;
