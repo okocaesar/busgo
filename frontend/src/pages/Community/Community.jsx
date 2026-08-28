@@ -1,24 +1,16 @@
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState
-} from "react";
-
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
-
 import {
   FiArrowLeft,
   FiSend,
   FiUsers,
   FiWifi,
-  FiWifiOff
+  FiWifiOff,
+  FiMessageCircle,
+  FiCheckCircle,
+  FiX,
 } from "react-icons/fi";
-
-import {
-  useNavigate
-} from "react-router-dom";
-
+import { useNavigate } from "react-router-dom";
 import "./Community.css";
 
 // =========================================================
@@ -35,642 +27,419 @@ const API_URL =
 // =========================================================
 
 function Community() {
+  const navigate = useNavigate();
 
-  const navigate =
-    useNavigate();
-
-  // =======================================================
+  // -------------------------------------------------------
   // STATE
-  // =======================================================
+  // -------------------------------------------------------
 
-  const [messages, setMessages] =
-    useState([]);
+  const [messages, setMessages] = useState([]);
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [connected, setConnected] = useState(false);
+  const [onlineCount, setOnlineCount] = useState(0);
+  const [error, setError] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
 
-  const [message, setMessage] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [sending, setSending] =
-    useState(false);
-
-  const [connected, setConnected] =
-    useState(false);
-
-  const [onlineCount, setOnlineCount] =
-    useState(0);
-
-  const [error, setError] =
-    useState("");
-
-  const [currentUser, setCurrentUser] =
-    useState(null);
-
-  // =======================================================
+  // -------------------------------------------------------
   // REFS
-  // =======================================================
+  // -------------------------------------------------------
 
-  const socketRef =
-    useRef(null);
+  const socketRef = useRef(null);
+  const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
 
-  const messagesEndRef =
-    useRef(null);
-
-  const textareaRef =
-    useRef(null);
-
-  // =======================================================
-  // GET CURRENT USER
-  // =======================================================
+  // -------------------------------------------------------
+  // CURRENT USER
+  // -------------------------------------------------------
 
   useEffect(() => {
-
     try {
-
-      const storedUser =
-        localStorage.getItem(
-          "currentUser"
-        );
+      const storedUser = localStorage.getItem("currentUser");
 
       if (storedUser) {
-
-        const parsedUser =
-          JSON.parse(storedUser);
-
-        setCurrentUser(
-          parsedUser
-        );
+        setCurrentUser(JSON.parse(storedUser));
       }
-
-    } catch (error) {
-
-      console.error(
-        "Unable to read current user:",
-        error
-      );
+    } catch (err) {
+      console.error("Unable to read current user:", err);
     }
-
   }, []);
 
-  // =======================================================
-  // GET TOKEN
-  // =======================================================
+  // -------------------------------------------------------
+  // TOKEN
+  // -------------------------------------------------------
 
-  const getToken =
-    useCallback(() => {
-
-      return (
-        localStorage.getItem("token") ||
-        localStorage.getItem("authToken") ||
-        localStorage.getItem("accessToken") ||
-        localStorage.getItem("jwt")
-      );
-
-    }, []);
-
-  // =======================================================
-  // SCROLL TO BOTTOM
-  // =======================================================
-
-  const scrollToBottom =
-    useCallback(
-      (smooth = true) => {
-
-        if (
-          !messagesEndRef.current
-        ) {
-          return;
-        }
-
-        messagesEndRef.current.scrollIntoView({
-          behavior:
-            smooth
-              ? "smooth"
-              : "auto"
-        });
-
-      },
-      []
+  const getToken = useCallback(() => {
+    return (
+      localStorage.getItem("token") ||
+      localStorage.getItem("authToken") ||
+      localStorage.getItem("accessToken") ||
+      localStorage.getItem("jwt")
     );
+  }, []);
 
-  // =======================================================
-  // CONNECT SOCKET
-  // =======================================================
+  // -------------------------------------------------------
+  // SCROLL
+  // -------------------------------------------------------
+
+  const scrollToBottom = useCallback((smooth = true) => {
+    if (!messagesEndRef.current) return;
+
+    messagesEndRef.current.scrollIntoView({
+      behavior: smooth ? "smooth" : "auto",
+      block: "end",
+    });
+  }, []);
+
+  // -------------------------------------------------------
+  // SOCKET LIFECYCLE
+  // -------------------------------------------------------
 
   useEffect(() => {
-
-    const token =
-      getToken();
+    const token = getToken();
 
     if (!token) {
+      setLoading(false);
+      setError("Please login to join the community.");
+      return;
+    }
 
+    const socket = io(API_URL, {
+      auth: {
+        token,
+      },
+
+      transports: ["websocket", "polling"],
+
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+    });
+
+    socketRef.current = socket;
+
+    // -----------------------------------------------------
+    // CONNECT
+    // -----------------------------------------------------
+
+    socket.on("connect", () => {
+      console.log("Community socket connected:", socket.id);
+
+      setConnected(true);
+      setLoading(false);
+      setError("");
+
+      socket.emit("community:join", {
+        id:
+          currentUser?.id ||
+          currentUser?.userId ||
+          currentUser?.user_id,
+
+        name:
+          currentUser?.name ||
+          currentUser?.fullName ||
+          currentUser?.username ||
+          "BusGo User",
+      });
+    });
+
+    // -----------------------------------------------------
+    // DISCONNECT
+    // -----------------------------------------------------
+
+    socket.on("disconnect", (reason) => {
+      console.log("Community socket disconnected:", reason);
+
+      setConnected(false);
+    });
+
+    // -----------------------------------------------------
+    // CONNECTION ERROR
+    // -----------------------------------------------------
+
+    socket.on("connect_error", (err) => {
+      console.error("Community socket error:", err.message);
+
+      setConnected(false);
       setLoading(false);
 
       setError(
-        "Please login to join the community."
+        "Community connection unavailable. Reconnecting..."
+      );
+    });
+
+    // -----------------------------------------------------
+    // HISTORY
+    // -----------------------------------------------------
+
+    socket.on("community-history", (history) => {
+      console.log("Community history received:", history);
+
+      setMessages(Array.isArray(history) ? history : []);
+      setLoading(false);
+
+      setTimeout(() => {
+        scrollToBottom(false);
+      }, 100);
+    });
+
+    // -----------------------------------------------------
+    // NEW MESSAGE
+    // -----------------------------------------------------
+
+    socket.on("community-new-message", (newMessage) => {
+      console.log("New community message:", newMessage);
+
+      setMessages((previousMessages) => {
+        const alreadyExists = previousMessages.some(
+          (item) =>
+            String(item.id) === String(newMessage.id)
+        );
+
+        if (alreadyExists) {
+          return previousMessages;
+        }
+
+        return [...previousMessages, newMessage];
+      });
+
+      setSending(false);
+
+      setTimeout(() => {
+        scrollToBottom(true);
+      }, 50);
+    });
+
+    // -----------------------------------------------------
+    // ONLINE COUNT
+    // -----------------------------------------------------
+
+    socket.on("community-online-count", (count) => {
+      setOnlineCount(Number(count) || 0);
+    });
+
+    // -----------------------------------------------------
+    // MESSAGE ERROR
+    // -----------------------------------------------------
+
+    socket.on("community-message-error", (data) => {
+      setSending(false);
+
+      setError(
+        data?.message || "Unable to send message."
+      );
+    });
+
+    // -----------------------------------------------------
+    // CLEANUP
+    // -----------------------------------------------------
+
+    return () => {
+      socket.removeAllListeners();
+      socket.disconnect();
+
+      socketRef.current = null;
+    };
+  }, [getToken, scrollToBottom, currentUser]);
+
+  // -------------------------------------------------------
+  // SEND MESSAGE
+  // -------------------------------------------------------
+
+  const sendMessage = () => {
+    const trimmedMessage = message.trim();
+
+    if (!trimmedMessage) return;
+
+    if (trimmedMessage.length > 1000) {
+      setError(
+        "Message cannot exceed 1000 characters."
       );
 
       return;
     }
 
-    // =============================================
-    // CREATE SOCKET CONNECTION
-    // =============================================
+    const socket = socketRef.current;
 
-    const socket =
-      io(
-        API_URL,
-        {
-          auth: {
-            token
-          },
-
-          transports: [
-            "websocket",
-            "polling"
-          ],
-
-          reconnection: true,
-
-          reconnectionAttempts:
-            Infinity,
-
-          reconnectionDelay:
-            1000,
-
-          reconnectionDelayMax:
-            5000
-        }
+    if (!socket || !socket.connected) {
+      setError(
+        "You are currently offline. Please wait for reconnection."
       );
 
-    socketRef.current =
-      socket;
+      return;
+    }
 
-    // =============================================
-    // CONNECTED
-    // =============================================
+    setSending(true);
+    setError("");
 
-    socket.on(
-      "connect",
-      () => {
-
-        console.log(
-          "Community socket connected:",
-          socket.id
-        );
-
-        setConnected(true);
-
-        setLoading(false);
-
-        setError("");
-
-        // =========================================
-        // JOIN COMMUNITY
-        // =========================================
-
-        socket.emit(
-          "community:join",
-          {
-            id:
-              currentUser?.id ||
-              currentUser?.userId ||
-              currentUser?.user_id,
-
-            name:
-              currentUser?.name ||
-              currentUser?.fullName ||
-              currentUser?.username ||
-              "BusGo User"
-          }
-        );
-      }
-    );
-
-    // =============================================
-    // DISCONNECTED
-    // =============================================
-
-    socket.on(
-      "disconnect",
-      (reason) => {
-
-        console.log(
-          "Community socket disconnected:",
-          reason
-        );
-
-        setConnected(false);
-      }
-    );
-
-    // =============================================
-    // CONNECTION ERROR
-    // =============================================
-
-    socket.on(
-      "connect_error",
-      (err) => {
-
-        console.error(
-          "Community socket error:",
-          err.message
-        );
-
-        setConnected(false);
-
-        setLoading(false);
-
-        setError(
-          "Community connection unavailable. Reconnecting..."
-        );
-      }
-    );
-
-    // =============================================
-    // MESSAGE HISTORY
-    // =============================================
-
-    socket.on(
-      "community-history",
-      (history) => {
-
-        console.log(
-          "Community history received:",
-          history
-        );
-
-        setMessages(
-          Array.isArray(history)
-            ? history
-            : []
-        );
-
-        setLoading(false);
-
-        setTimeout(() => {
-
-          scrollToBottom(false);
-
-        }, 100);
-      }
-    );
-
-    // =============================================
-    // NEW MESSAGE
-    // =============================================
-
-    socket.on(
-      "community-new-message",
-      (newMessage) => {
-
-        console.log(
-          "New community message:",
-          newMessage
-        );
-
-        setMessages(
-          previousMessages => {
-
-            const alreadyExists =
-              previousMessages.some(
-                item =>
-                  String(item.id) ===
-                  String(newMessage.id)
-              );
-
-            if (
-              alreadyExists
-            ) {
-              return previousMessages;
-            }
-
-            return [
-              ...previousMessages,
-              newMessage
-            ];
-          }
-        );
-
+    socket.emit(
+      "community-send-message",
+      {
+        message: trimmedMessage,
+      },
+      (response) => {
         setSending(false);
 
-        setTimeout(() => {
-
-          scrollToBottom(true);
-
-        }, 50);
-      }
-    );
-
-    // =============================================
-    // ONLINE COUNT
-    // =============================================
-
-    socket.on(
-      "community-online-count",
-      (count) => {
-
-        setOnlineCount(
-          Number(count) || 0
-        );
-      }
-    );
-
-    // =============================================
-    // MESSAGE ERROR
-    // =============================================
-
-    socket.on(
-      "community-message-error",
-      (data) => {
-
-        setSending(false);
-
-        setError(
-          data?.message ||
-          "Unable to send message."
-        );
-      }
-    );
-
-    // =============================================
-    // CLEANUP
-    // =============================================
-
-    return () => {
-
-      socket.removeAllListeners();
-
-      socket.disconnect();
-
-      socketRef.current =
-        null;
-    };
-
-  }, [
-    getToken,
-    scrollToBottom,
-    currentUser
-  ]);
-
-  // =======================================================
-  // SEND MESSAGE
-  // =======================================================
-
-  const sendMessage =
-    () => {
-
-      const trimmedMessage =
-        message.trim();
-
-      if (!trimmedMessage) {
-        return;
-      }
-
-      if (
-        trimmedMessage.length >
-        1000
-      ) {
-
-        setError(
-          "Message cannot exceed 1000 characters."
-        );
-
-        return;
-      }
-
-      const socket =
-        socketRef.current;
-
-      if (
-        !socket ||
-        !socket.connected
-      ) {
-
-        setError(
-          "You are currently offline. Please wait for reconnection."
-        );
-
-        return;
-      }
-
-      setSending(true);
-
-      setError("");
-
-      socket.emit(
-        "community-send-message",
-        {
-          message:
-            trimmedMessage
-        },
-        (response) => {
-
-          if (
-            response?.success
-          ) {
-
-            setSending(false);
-
-          } else {
-
-            setSending(false);
-
-            setError(
-              response?.message ||
+        if (!response?.success) {
+          setError(
+            response?.message ||
               "Unable to send message."
-            );
-          }
+          );
         }
-      );
-
-      setMessage("");
-
-      if (
-        textareaRef.current
-      ) {
-
-        textareaRef.current.style.height =
-          "auto";
       }
+    );
 
-      textareaRef.current?.focus();
-    };
+    setMessage("");
 
-  // =======================================================
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
+
+    textareaRef.current?.focus();
+  };
+
+  // -------------------------------------------------------
   // KEYBOARD
-  // =======================================================
+  // -------------------------------------------------------
 
-  const handleKeyDown =
-    (event) => {
+  const handleKeyDown = (event) => {
+    if (
+      event.key === "Enter" &&
+      !event.shiftKey
+    ) {
+      event.preventDefault();
 
-      if (
-        event.key === "Enter" &&
-        !event.shiftKey
-      ) {
+      sendMessage();
+    }
+  };
 
-        event.preventDefault();
-
-        sendMessage();
-      }
-    };
-
-  // =======================================================
+  // -------------------------------------------------------
   // TEXTAREA
-  // =======================================================
+  // -------------------------------------------------------
 
-  const handleMessageChange =
-    (event) => {
+  const handleMessageChange = (event) => {
+    setMessage(event.target.value);
 
-      setMessage(
-        event.target.value
-      );
+    event.target.style.height = "auto";
 
-      event.target.style.height =
-        "auto";
+    event.target.style.height = `${Math.min(
+      event.target.scrollHeight,
+      140
+    )}px`;
+  };
 
-      event.target.style.height =
-        `${Math.min(
-          event.target.scrollHeight,
-          130
-        )}px`;
-    };
-
-  // =======================================================
+  // -------------------------------------------------------
   // FORMAT TIME
-  // =======================================================
+  // -------------------------------------------------------
 
-  const formatTime =
-    (value) => {
+  const formatTime = (value) => {
+    if (!value) return "";
 
-      if (!value) {
-        return "";
-      }
+    const date = new Date(value);
 
-      const date =
-        new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
 
-      if (
-        Number.isNaN(
-          date.getTime()
-        )
-      ) {
-        return "";
-      }
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
-      return date.toLocaleTimeString(
-        [],
-        {
-          hour: "2-digit",
-          minute: "2-digit"
-        }
-      );
-    };
-
-  // =======================================================
+  // -------------------------------------------------------
   // FORMAT DATE
-  // =======================================================
+  // -------------------------------------------------------
 
-  const formatDate =
-    (value) => {
+  const formatDate = (value) => {
+    if (!value) return "";
 
-      if (!value) {
-        return "";
-      }
+    const date = new Date(value);
 
-      const date =
-        new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
 
-      if (
-        Number.isNaN(
-          date.getTime()
-        )
-      ) {
-        return "";
-      }
+    return date.toLocaleDateString([], {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
-      return date.toLocaleDateString(
-        [],
-        {
-          day: "numeric",
-          month: "short",
-          year: "numeric"
-        }
-      );
-    };
+  // -------------------------------------------------------
+  // OWN MESSAGE
+  // -------------------------------------------------------
 
-  // =======================================================
-  // CHECK OWN MESSAGE
-  // =======================================================
+  const isOwnMessage = (item) => {
+    const currentId =
+      currentUser?.id ??
+      currentUser?.userId ??
+      currentUser?.user_id;
 
-  const isOwnMessage =
-    (item) => {
+    if (!currentId) {
+      return false;
+    }
 
-      const currentId =
-        currentUser?.id ??
-        currentUser?.userId ??
-        currentUser?.user_id;
+    return (
+      String(item.user_id) ===
+      String(currentId)
+    );
+  };
 
-      if (!currentId) {
-        return false;
-      }
+  // -------------------------------------------------------
+  // DATE DIVIDER
+  // -------------------------------------------------------
 
-      return (
-        String(item.user_id) ===
-        String(currentId)
-      );
-    };
+  const shouldShowDate = (index) => {
+    if (index === 0) {
+      return true;
+    }
 
-  // =======================================================
-  // GROUP DATE
-  // =======================================================
+    const current = formatDate(
+      messages[index]?.created_at
+    );
 
-  const shouldShowDate =
-    (index) => {
+    const previous = formatDate(
+      messages[index - 1]?.created_at
+    );
 
-      if (index === 0) {
-        return true;
-      }
+    return current !== previous;
+  };
 
-      const current =
-        formatDate(
-          messages[index]
-            ?.created_at
-        );
+  // -------------------------------------------------------
+  // USER INITIAL
+  // -------------------------------------------------------
 
-      const previous =
-        formatDate(
-          messages[index - 1]
-            ?.created_at
-        );
+  const getInitial = (name) => {
+    if (!name) return "U";
 
-      return (
-        current !== previous
-      );
-    };
+    return name
+      .trim()
+      .charAt(0)
+      .toUpperCase();
+  };
 
-  // =======================================================
+  // -------------------------------------------------------
   // BACK
-  // =======================================================
+  // -------------------------------------------------------
 
-  const handleBack =
-    () => {
-
-      navigate(-1);
-    };
+  const handleBack = () => {
+    navigate(-1);
+  };
 
   // =======================================================
   // RENDER
   // =======================================================
 
   return (
-
     <div className="community-page">
 
-      {/* =========================================
+      {/* ===================================================
           HEADER
-      ========================================= */}
+      =================================================== */}
 
       <header className="community-header">
 
@@ -687,35 +456,41 @@ function Community() {
 
           <div className="community-title-row">
 
-            <h1>
-              Community
-            </h1>
+            <div className="community-title-icon">
+              <FiMessageCircle />
+            </div>
 
-            <span
-              className={
-                connected
-                  ? "community-status-dot online"
-                  : "community-status-dot offline"
-              }
-            />
+            <div className="community-title-content">
 
-          </div>
+              <div className="community-title-line">
 
-          <div className="community-subtitle">
+                <h1>Community</h1>
 
-            <FiUsers />
+                <span
+                  className={
+                    connected
+                      ? "community-status-dot online"
+                      : "community-status-dot offline"
+                  }
+                />
 
-            <span>
+              </div>
 
-              {onlineCount}{" "}
+              <div className="community-subtitle">
 
-              {onlineCount === 1
-                ? "user"
-                : "users"}{" "}
+                <FiUsers />
 
-              online
+                <span>
+                  {onlineCount}{" "}
+                  {onlineCount === 1
+                    ? "person"
+                    : "people"}{" "}
+                  online
+                </span>
 
-            </span>
+              </div>
+
+            </div>
 
           </div>
 
@@ -733,65 +508,70 @@ function Community() {
               : "Reconnecting..."
           }
         >
-
           {connected ? (
             <FiWifi />
           ) : (
             <FiWifiOff />
           )}
 
+          <span>
+            {connected
+              ? "Online"
+              : "Offline"}
+          </span>
         </div>
 
       </header>
 
+      {/* ===================================================
+          OFFLINE BANNER
+      =================================================== */}
 
-      {/* =========================================
-          OFFLINE
-      ========================================= */}
+      {!connected && !loading && (
+        <div className="community-offline-banner">
 
-      {!connected &&
-        !loading && (
-
-          <div className="community-offline-banner">
-
+          <div className="community-offline-icon">
             <FiWifiOff />
+          </div>
+
+          <div>
+            <strong>Connection lost</strong>
 
             <span>
-              Reconnecting to community...
+              Reconnecting to the community...
             </span>
-
           </div>
-        )}
 
+        </div>
+      )}
 
-      {/* =========================================
+      {/* ===================================================
           ERROR
-      ========================================= */}
+      =================================================== */}
 
       {error && (
-
         <div className="community-error">
 
-          <span>
-            {error}
-          </span>
+          <div className="community-error-icon">
+            <FiWifiOff />
+          </div>
+
+          <span>{error}</span>
 
           <button
             type="button"
-            onClick={() =>
-              setError("")
-            }
+            onClick={() => setError("")}
+            aria-label="Dismiss"
           >
-            ×
+            <FiX />
           </button>
 
         </div>
       )}
 
-
-      {/* =========================================
-          MESSAGES
-      ========================================= */}
+      {/* ===================================================
+          MESSAGE AREA
+      =================================================== */}
 
       <main className="community-messages">
 
@@ -799,11 +579,19 @@ function Community() {
 
           <div className="community-loading">
 
-            <div className="community-spinner" />
+            <div className="community-loading-card">
 
-            <p>
-              Connecting to Community...
-            </p>
+              <div className="community-spinner" />
+
+              <h2>
+                Connecting to Community
+              </h2>
+
+              <p>
+                Getting everything ready for you...
+              </p>
+
+            </div>
 
           </div>
 
@@ -811,8 +599,16 @@ function Community() {
 
           <div className="community-empty">
 
+            <div className="community-empty-decoration community-empty-decoration-one" />
+            <div className="community-empty-decoration community-empty-decoration-two" />
+
             <div className="community-empty-icon">
-              💬
+              <FiMessageCircle />
+            </div>
+
+            <div className="community-empty-badge">
+              <FiCheckCircle />
+              <span>Community is ready</span>
             </div>
 
             <h2>
@@ -820,10 +616,17 @@ function Community() {
             </h2>
 
             <p>
-              Be the first to say hello.
-              Everyone using BusGo can see
-              messages sent here.
+              Connect with fellow BusGo travelers,
+              share experiences, ask questions,
+              and keep the conversation moving.
             </p>
+
+            <div className="community-empty-hint">
+              <FiSend />
+              <span>
+                Send the first message
+              </span>
+            </div>
 
           </div>
 
@@ -831,143 +634,136 @@ function Community() {
 
           <div className="community-message-list">
 
-            {messages.map(
-              (item, index) => {
+            {messages.map((item, index) => {
 
-                const own =
-                  isOwnMessage(item);
+              const own = isOwnMessage(item);
 
-                return (
+              return (
+                <React.Fragment
+                  key={
+                    item.id ||
+                    `${item.user_id}-${index}`
+                  }
+                >
 
-                  <React.Fragment
-                    key={
-                      item.id ||
-                      `${item.user_id}-${index}`
+                  {/* DATE */}
+
+                  {shouldShowDate(index) && (
+                    <div className="community-date-divider">
+
+                      <span>
+                        {formatDate(
+                          item.created_at
+                        )}
+                      </span>
+
+                    </div>
+                  )}
+
+                  {/* MESSAGE */}
+
+                  <div
+                    className={
+                      own
+                        ? "community-message-row own"
+                        : "community-message-row"
                     }
                   >
 
-                    {shouldShowDate(index) && (
-
-                      <div className="community-date-divider">
-
-                        <span>
-                          {formatDate(
-                            item.created_at
-                          )}
-                        </span>
-
+                    {!own && (
+                      <div
+                        className="community-avatar"
+                        aria-hidden="true"
+                      >
+                        {getInitial(
+                          item.user_name
+                        )}
                       </div>
                     )}
 
                     <div
                       className={
                         own
-                          ? "community-message-row own"
-                          : "community-message-row"
+                          ? "community-message-bubble own"
+                          : "community-message-bubble"
                       }
                     >
 
                       {!own && (
-
-                        <div className="community-avatar">
-
-                          {(
-                            item.user_name ||
-                            "U"
-                          )
-                            .charAt(0)
-                            .toUpperCase()}
-
+                        <div className="community-sender-name">
+                          {item.user_name ||
+                            "BusGo User"}
                         </div>
                       )}
 
-                      <div
-                        className={
-                          own
-                            ? "community-message-bubble own"
-                            : "community-message-bubble"
-                        }
-                      >
+                      <div className="community-message-text">
+                        {item.message}
+                      </div>
 
-                        {!own && (
+                      <div className="community-message-meta">
 
-                          <div className="community-sender-name">
-
-                            {item.user_name ||
-                              "BusGo User"}
-
-                          </div>
-                        )}
-
-                        <div className="community-message-text">
-
-                          {item.message}
-
-                        </div>
-
-                        <div className="community-message-time">
-
+                        <span>
                           {formatTime(
                             item.created_at
                           )}
+                        </span>
 
-                        </div>
+                        {own && (
+                          <FiCheckCircle />
+                        )}
 
                       </div>
 
                     </div>
 
-                  </React.Fragment>
-                );
-              }
-            )}
+                  </div>
 
-            <div
-              ref={messagesEndRef}
-            />
+                </React.Fragment>
+              );
+            })}
+
+            <div ref={messagesEndRef} />
 
           </div>
+
         )}
 
       </main>
 
-
-      {/* =========================================
+      {/* ===================================================
           COMPOSER
-      ========================================= */}
+      =================================================== */}
 
       <div className="community-composer-wrapper">
 
         <div className="community-composer">
 
+          <div className="community-input-icon">
+            <FiMessageCircle />
+          </div>
+
           <textarea
             ref={textareaRef}
             value={message}
-            onChange={
-              handleMessageChange
-            }
-            onKeyDown={
-              handleKeyDown
-            }
+            onChange={handleMessageChange}
+            onKeyDown={handleKeyDown}
             placeholder={
               connected
-                ? "Message everyone..."
-                : "Connecting..."
+                ? "Write a message to the community..."
+                : "Waiting for connection..."
             }
             disabled={
-              !connected ||
-              sending
+              !connected || sending
             }
             maxLength={1000}
             rows={1}
+            aria-label="Community message"
           />
 
           <button
             type="button"
             className="community-send-button"
-            onClick={
-              sendMessage
-            }
+            onClick={sendMessage}
             disabled={
               !message.trim() ||
               !connected ||
@@ -977,29 +773,40 @@ function Community() {
           >
 
             {sending ? (
-
               <span className="community-send-spinner" />
-
             ) : (
-
               <FiSend />
-
             )}
 
           </button>
 
         </div>
 
-        <div className="community-composer-hint">
+        <div className="community-composer-bottom">
 
-          <span>
-            Everyone in BusGo can see your message
-          </span>
+          <div className="community-composer-hint">
 
-          <span>
+            <span>
+              Everyone in the BusGo community can see your message.
+            </span>
+
+          </div>
+
+          <div
+            className={
+              message.length > 900
+                ? "community-character-count warning"
+                : "community-character-count"
+            }
+          >
             {message.length}/1000
-          </span>
+          </div>
 
+        </div>
+
+        <div className="community-powered-line">
+          <span className="community-powered-dot" />
+          Community chat is live
         </div>
 
       </div>

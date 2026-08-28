@@ -16,22 +16,12 @@ import { API_URL } from "../../api";
 
 import packageJson from "../../../package.json";
 
+import Navbar from "../../components/Navbar/Navbar";
+
 
 /* =========================================================
-   BUSGO APP VERSION
-   =========================================================
-   The version comes directly from package.json.
-
-   Example:
-   package.json
-   "version": "1.0.0"
-
-   If you change it to:
-   "version": "1.1.0"
-
-   the Profile page automatically displays:
-   BusGo v1.1.0
-   ========================================================= */
+  BUSGO APP VERSION
+========================================================= */
 
 const APP_VERSION =
   packageJson.version || "0.1.0";
@@ -235,9 +225,6 @@ function Profile() {
       }
 
 
-      // Notify other BusGo components
-      // that the theme has changed.
-
       window.dispatchEvent(
         new CustomEvent(
           "busgo-theme-change",
@@ -269,10 +256,6 @@ function Profile() {
             );
 
 
-          // =================================================
-          // BUSGO JWT
-          // =================================================
-
           const token =
             localStorage.getItem(
               "authToken"
@@ -300,10 +283,6 @@ function Profile() {
           }
 
 
-          // =================================================
-          // CHECK LOGIN SESSION
-          // =================================================
-
           if (
             !loggedIn ||
             !token ||
@@ -318,10 +297,6 @@ function Profile() {
 
           }
 
-
-          // =================================================
-          // GET PROFILE
-          // =================================================
 
           const response =
             await axios.get(
@@ -348,10 +323,6 @@ function Profile() {
           }
 
 
-          // =================================================
-          // NORMALISE USER
-          // =================================================
-
           const updatedUser = {
 
             ...profile,
@@ -369,10 +340,6 @@ function Profile() {
           );
 
 
-          // =================================================
-          // KEEP LOCAL USER DATA IN SYNC
-          // =================================================
-
           localStorage.setItem(
             "currentUser",
             JSON.stringify(
@@ -387,10 +354,6 @@ function Profile() {
             err
           );
 
-
-          // =================================================
-          // TOKEN EXPIRED
-          // =================================================
 
           if (
             err.response?.status === 401
@@ -441,12 +404,6 @@ function Profile() {
 
   // =======================================================
   // HANDLE URL HASHES
-  //
-  // #settings
-  //     Opens the Settings section.
-  //
-  // #report
-  //     Opens the Report section.
   // =======================================================
 
   useEffect(() => {
@@ -531,11 +488,15 @@ function Profile() {
 
     return (
 
-      <div className="profile-loading">
+      <>
+        <Navbar />
 
-        Loading profile...
+        <div className="profile-loading">
 
-      </div>
+          Loading profile...
+
+        </div>
+      </>
 
     );
 
@@ -550,28 +511,32 @@ function Profile() {
 
     return (
 
-      <div className="profile-loading">
+      <>
+        <Navbar />
 
-        <p>
+        <div className="profile-loading">
 
-          {error ||
-            "Unable to load profile."}
+          <p>
 
-        </p>
+            {error ||
+              "Unable to load profile."}
+
+          </p>
 
 
-        <button
-          type="button"
-          onClick={() =>
-            navigate("/login")
-          }
-        >
+          <button
+            type="button"
+            onClick={() =>
+              navigate("/login")
+            }
+          >
 
-          Go to Login
+            Go to Login
 
-        </button>
+          </button>
 
-      </div>
+        </div>
+      </>
 
     );
 
@@ -648,9 +613,6 @@ function Profile() {
 
     setError("");
 
-
-    // Reload the profile from the server
-    // so unsaved changes disappear.
 
     const reloadProfile =
       async () => {
@@ -744,15 +706,9 @@ function Profile() {
     async () => {
 
       if (saving) {
-
         return;
-
       }
 
-
-      // =================================================
-      // BASIC VALIDATION
-      // =================================================
 
       const name =
         String(
@@ -826,10 +782,6 @@ function Profile() {
         }
 
 
-        // =================================================
-        // UPDATE PROFILE
-        // =================================================
-
         const response =
           await axios.put(
             `${API_URL}/api/auth/profile`,
@@ -860,10 +812,6 @@ function Profile() {
         }
 
 
-        // =================================================
-        // NORMALISE USER
-        // =================================================
-
         const normalizedUser = {
 
           ...updatedUser,
@@ -880,10 +828,6 @@ function Profile() {
           normalizedUser
         );
 
-
-        // =================================================
-        // UPDATE LOCAL STORAGE
-        // =================================================
 
         localStorage.setItem(
           "currentUser",
@@ -907,10 +851,6 @@ function Profile() {
           err
         );
 
-
-        // =================================================
-        // AUTH ERROR
-        // =================================================
 
         if (
           err.response?.status === 401
@@ -961,15 +901,9 @@ function Profile() {
     async () => {
 
       if (sendingReport) {
-
         return;
-
       }
 
-
-      // =================================================
-      // VALIDATE REPORT
-      // =================================================
 
       const trimmedReport =
         reportMessage.trim();
@@ -987,10 +921,6 @@ function Profile() {
 
       }
 
-
-      // =================================================
-      // GET AUTH TOKEN
-      // =================================================
 
       const token =
         localStorage.getItem(
@@ -1031,10 +961,6 @@ function Profile() {
 
       try {
 
-        // =================================================
-        // SEND REPORT TO BUSGO SERVER
-        // =================================================
-
         const response =
           await axios.post(
             `${API_URL}/api/reports`,
@@ -1060,10 +986,6 @@ function Profile() {
         );
 
 
-        // =================================================
-        // SUCCESS
-        // =================================================
-
         setReportMessage("");
 
 
@@ -1081,10 +1003,6 @@ function Profile() {
           err
         );
 
-
-        // =================================================
-        // AUTH ERROR
-        // =================================================
 
         if (
           err.response?.status === 401
@@ -1112,10 +1030,6 @@ function Profile() {
         }
 
 
-        // =================================================
-        // SERVER ERROR
-        // =================================================
-
         setReportError(
           err.response?.data?.message ||
           "Unable to deliver your report. Please try again."
@@ -1139,673 +1053,620 @@ function Profile() {
 
   return (
 
-    <section className="profile-page">
+    <>
 
-      <div className="profile-container">
+      {/* =================================================
+          BUSGO NAVIGATION
+          
+          The existing Navbar contains:
+          - BusGo logo
+          - Hamburger menu
+          - Mobile BottomNav
+          - Desktop navigation
+          
+          Its own CSS controls when each appears,
+          so the Profile layout is not changed.
+      ================================================= */}
 
-
-        {/* =================================================
-            HEADER
-        ================================================= */}
-
-        <div className="profile-header">
-
-          <div>
-
-            <span className="profile-eyebrow">
-
-              MY BUSGO ACCOUNT
-
-            </span>
+      <Navbar />
 
 
-            <h1>
+      <section className="profile-page">
 
-              Profile & Settings
-
-            </h1>
+        <div className="profile-container">
 
 
-            <p>
+          {/* =================================================
+              HEADER
+          ================================================= */}
 
-              Manage your personal information,
-              appearance and BusGo account.
-
-            </p>
-
-          </div>
-
-
-          {/* ===============================================
-              DESKTOP ONLY VIA CSS
-          =============================================== */}
-
-          <button
-            className="profile-back-btn"
-            type="button"
-            onClick={() =>
-              navigate("/dashboard")
-            }
-          >
-
-            ← Dashboard
-
-          </button>
-
-        </div>
-
-
-        {/* =================================================
-            ERROR MESSAGE
-        ================================================= */}
-
-        {error && (
-
-          <div className="profile-error">
-
-            {error}
-
-          </div>
-
-        )}
-
-
-        {/* =================================================
-            SUCCESS MESSAGE
-        ================================================= */}
-
-        {message && (
-
-          <div className="profile-success">
-
-            {message}
-
-          </div>
-
-        )}
-
-
-        {/* =================================================
-            PERSONAL INFORMATION
-        ================================================= */}
-
-        <div className="profile-card">
-
-          <div className="profile-card-title">
-
-            <span>
-              ACCOUNT
-            </span>
-
-
-            <h2>
-              Personal Information
-            </h2>
-
-          </div>
-
-
-          {/* ===============================================
-              USER PREVIEW
-          =============================================== */}
-
-          <div className="profile-user-preview">
-
-            <div className="profile-avatar">
-
-              {user.profilePicture ? (
-
-                <img
-                  src={
-                    user.profilePicture
-                  }
-                  alt="Profile"
-                />
-
-              ) : (
-
-                initials
-
-              )}
-
-            </div>
-
+          <div className="profile-header">
 
             <div>
 
-              <h3>
+              <span className="profile-eyebrow">
 
-                {user.name ||
-                  "Traveller"}
+                MY BUSGO ACCOUNT
 
-              </h3>
+              </span>
 
-
-              <p>
-
-                {user.email ||
-                  "No email available"}
-
-              </p>
 
             </div>
 
-          </div>
-
-
-          {/* ===============================================
-              PROFILE FIELDS
-          =============================================== */}
-
-          <div className="profile-form-grid">
-
-
-            {/* =============================================
-                FULL NAME
-            ============================================= */}
-
-            <div className="profile-field">
-
-              <label>
-                Full Name
-              </label>
-
-
-              <input
-                type="text"
-                value={
-                  user.name || ""
-                }
-                readOnly={!editing}
-                onChange={(e) =>
-                  setUser({
-                    ...user,
-                    name:
-                      e.target.value
-                  })
-                }
-              />
-
-            </div>
-
-
-            {/* =============================================
-                PHONE
-            ============================================= */}
-
-            <div className="profile-field">
-
-              <label>
-                Phone Number
-              </label>
-
-
-              <input
-                type="text"
-                value={
-                  user.phone || ""
-                }
-                readOnly={!editing}
-                onChange={(e) =>
-                  setUser({
-                    ...user,
-                    phone:
-                      e.target.value
-                  })
-                }
-              />
-
-            </div>
-
-
-            {/* =============================================
-                EMAIL
-            ============================================= */}
-
-            <div className="profile-field profile-field-full">
-
-              <label>
-                Email Address
-              </label>
-
-
-              <input
-                type="email"
-                value={
-                  user.email || ""
-                }
-                readOnly={!editing}
-                onChange={(e) =>
-                  setUser({
-                    ...user,
-                    email:
-                      e.target.value
-                  })
-                }
-              />
-
-            </div>
-
-          </div>
-
-
-          {/* ===============================================
-              EDIT BUTTON
-          =============================================== */}
-
-          {!editing && (
 
             <button
-              className="edit-profile-btn"
+              className="profile-back-btn"
               type="button"
-              onClick={
-                handleStartEditing
+              onClick={() =>
+                navigate("/dashboard")
               }
             >
 
-              Edit Profile
+              ← Dashboard
 
             </button>
+
+          </div>
+
+
+          {/* =================================================
+              ERROR MESSAGE
+          ================================================= */}
+
+          {error && (
+
+            <div className="profile-error">
+
+              {error}
+
+            </div>
 
           )}
 
 
-          {/* ===============================================
-              EDIT ACTIONS
-          =============================================== */}
+          {/* =================================================
+              SUCCESS MESSAGE
+          ================================================= */}
 
-          {editing && (
+          {message && (
 
-            <div className="profile-edit-actions">
+            <div className="profile-success">
+
+              {message}
+
+            </div>
+
+          )}
+
+
+          {/* =================================================
+              PERSONAL INFORMATION
+          ================================================= */}
+
+          <div className="profile-card">
+
+            <div className="profile-card-title">
+
+              <span>
+                ACCOUNT
+              </span>
+
+              <h2>
+                Personal Information
+              </h2>
+
+            </div>
+
+
+            <div className="profile-user-preview">
+
+              <div className="profile-avatar">
+
+                {user.profilePicture ? (
+
+                  <img
+                    src={
+                      user.profilePicture
+                    }
+                    alt="Profile"
+                  />
+
+                ) : (
+
+                  initials
+
+                )}
+
+              </div>
+
+
+              <div>
+
+                <h3>
+
+                  {user.name ||
+                    "Traveller"}
+
+                </h3>
+
+
+                <p>
+
+                  {user.email ||
+                    "No email available"}
+
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div className="profile-form-grid">
+
+              <div className="profile-field">
+
+                <label>
+                  Full Name
+                </label>
+
+
+                <input
+                  type="text"
+                  value={
+                    user.name || ""
+                  }
+                  readOnly={!editing}
+                  onChange={(e) =>
+                    setUser({
+                      ...user,
+                      name:
+                        e.target.value
+                    })
+                  }
+                />
+
+              </div>
+
+
+              <div className="profile-field">
+
+                <label>
+                  Phone Number
+                </label>
+
+
+                <input
+                  type="text"
+                  value={
+                    user.phone || ""
+                  }
+                  readOnly={!editing}
+                  onChange={(e) =>
+                    setUser({
+                      ...user,
+                      phone:
+                        e.target.value
+                    })
+                  }
+                />
+
+              </div>
+
+
+              <div className="profile-field profile-field-full">
+
+                <label>
+                  Email Address
+                </label>
+
+
+                <input
+                  type="email"
+                  value={
+                    user.email || ""
+                  }
+                  readOnly={!editing}
+                  onChange={(e) =>
+                    setUser({
+                      ...user,
+                      email:
+                        e.target.value
+                    })
+                  }
+                />
+
+              </div>
+
+            </div>
+
+
+            {!editing && (
 
               <button
                 className="edit-profile-btn"
                 type="button"
-                disabled={saving}
                 onClick={
-                  handleCancelEditing
+                  handleStartEditing
                 }
               >
 
-                Cancel
+                Edit Profile
+
+              </button>
+
+            )}
+
+
+            {editing && (
+
+              <div className="profile-edit-actions">
+
+                <button
+                  className="edit-profile-btn"
+                  type="button"
+                  disabled={saving}
+                  onClick={
+                    handleCancelEditing
+                  }
+                >
+
+                  Cancel
+
+                </button>
+
+
+                <button
+                  className="save-profile-btn"
+                  type="button"
+                  disabled={saving}
+                  onClick={
+                    handleSaveProfile
+                  }
+                >
+
+                  {saving
+                    ? "Saving..."
+                    : "Save Changes"}
+
+                </button>
+
+              </div>
+
+            )}
+
+          </div>
+
+
+          {/* =================================================
+              SETTINGS / APPEARANCE
+          ================================================= */}
+
+          <div
+            id="busgo-settings-section"
+            className="profile-card"
+          >
+
+            <div className="profile-card-title">
+
+              <span>
+                SETTINGS
+              </span>
+
+
+              <h2>
+                Light & Dark Mode
+              </h2>
+
+
+              <p>
+                Choose how BusGo looks on your device.
+              </p>
+
+            </div>
+
+
+            <div className="theme-options">
+
+              <button
+                className={`theme-option ${
+                  theme === "light"
+                    ? "active"
+                    : ""
+                }`}
+                type="button"
+                onClick={() =>
+                  handleThemeChange(
+                    "light"
+                  )
+                }
+                aria-pressed={
+                  theme === "light"
+                }
+              >
+
+                <span className="theme-icon">
+                  ☀️
+                </span>
+
+
+                <div>
+
+                  <strong>
+                    Light Mode
+                  </strong>
+
+
+                  <small>
+                    Bright BusGo appearance
+                  </small>
+
+                </div>
 
               </button>
 
 
               <button
-                className="save-profile-btn"
+                className={`theme-option ${
+                  theme === "dark"
+                    ? "active"
+                    : ""
+                }`}
                 type="button"
-                disabled={saving}
-                onClick={
-                  handleSaveProfile
+                onClick={() =>
+                  handleThemeChange(
+                    "dark"
+                  )
+                }
+                aria-pressed={
+                  theme === "dark"
                 }
               >
 
-                {saving
-                  ? "Saving..."
-                  : "Save Changes"}
+                <span className="theme-icon">
+                  🌙
+                </span>
+
+
+                <div>
+
+                  <strong>
+                    Dark Mode
+                  </strong>
+
+
+                  <small>
+                    Easier on the eyes at night
+                  </small>
+
+                </div>
 
               </button>
 
             </div>
 
-          )}
-
-        </div>
-
-
-        {/* =================================================
-            SETTINGS / APPEARANCE
-        ================================================= */}
-
-        <div
-          id="busgo-settings-section"
-          className="profile-card"
-        >
-
-          <div className="profile-card-title">
-
-            <span>
-              SETTINGS
-            </span>
-
-
-            <h2>
-              Light & Dark Mode
-            </h2>
-
-
-            <p>
-              Choose how BusGo looks on your device.
-            </p>
-
           </div>
 
 
-          <div className="theme-options">
-
-
-            {/* =============================================
-                LIGHT MODE
-            ============================================= */}
-
-            <button
-              className={`theme-option ${
-                theme === "light"
-                  ? "active"
-                  : ""
-              }`}
-              type="button"
-              onClick={() =>
-                handleThemeChange(
-                  "light"
-                )
-              }
-              aria-pressed={
-                theme === "light"
-              }
-            >
-
-              <span className="theme-icon">
-                ☀️
-              </span>
-
-
-              <div>
-
-                <strong>
-                  Light Mode
-                </strong>
-
-
-                <small>
-                  Bright BusGo appearance
-                </small>
-
-              </div>
-
-            </button>
-
-
-            {/* =============================================
-                DARK MODE
-            ============================================= */}
-
-            <button
-              className={`theme-option ${
-                theme === "dark"
-                  ? "active"
-                  : ""
-              }`}
-              type="button"
-              onClick={() =>
-                handleThemeChange(
-                  "dark"
-                )
-              }
-              aria-pressed={
-                theme === "dark"
-              }
-            >
-
-              <span className="theme-icon">
-                🌙
-              </span>
-
-
-              <div>
-
-                <strong>
-                  Dark Mode
-                </strong>
-
-
-                <small>
-                  Easier on the eyes at night
-                </small>
-
-              </div>
-
-            </button>
-
-          </div>
-
-        </div>
-
-
-        {/* =================================================
-            REPORT TO ADMIN
-        ================================================= */}
-
-        <div
-          id="busgo-report-section"
-          className="profile-card"
-        >
-
-          <div className="profile-card-title">
-
-            <span>
-              SUPPORT
-            </span>
-
-
-            <h2>
-              Report to Admin
-            </h2>
-
-
-            <p>
-              Have a problem or something you want
-              the BusGo team to know about?
-            </p>
-
-          </div>
-
-
-          {/* ===============================================
-              REPORT SUCCESS
-          =============================================== */}
-
-          {reportStatus && (
-
-            <div className="profile-success">
-
-              {reportStatus}
-
-            </div>
-
-          )}
-
-
-          {/* ===============================================
-              REPORT ERROR
-          =============================================== */}
-
-          {reportError && (
-
-            <div className="profile-error">
-
-              {reportError}
-
-            </div>
-
-          )}
-
-
-          {/* ===============================================
-              REPORT MESSAGE
-          =============================================== */}
-
-          <textarea
-            className="report-textarea"
-            value={
-              reportMessage
-            }
-            onChange={(e) => {
-
-              setReportMessage(
-                e.target.value
-              );
-
-
-              if (reportError) {
-
-                setReportError("");
-
-              }
-
-
-              if (reportStatus) {
-
-                setReportStatus("");
-
-              }
-
-            }}
-            placeholder="Write your message to the BusGo administrator..."
-            rows="6"
-            disabled={
-              sendingReport
-            }
-          />
-
-
-          {/* ===============================================
-              SEND REPORT
-          =============================================== */}
-
-          <button
-            className="report-btn"
-            type="button"
-            onClick={
-              handleSendReport
-            }
-            disabled={
-              sendingReport
-            }
-            style={{
-              opacity:
-                sendingReport
-                  ? 0.6
-                  : 1,
-
-              cursor:
-                sendingReport
-                  ? "not-allowed"
-                  : "pointer"
-            }}
+          {/* =================================================
+              REPORT TO ADMIN
+          ================================================= */}
+
+          <div
+            id="busgo-report-section"
+            className="profile-card"
           >
 
-            {sendingReport
-              ? "Sending Report..."
-              : "Send Report"}
+            <div className="profile-card-title">
 
-          </button>
-
-        </div>
+              <span>
+                SUPPORT
+              </span>
 
 
-        {/* =================================================
-            APP INFORMATION
-        ================================================= */}
-
-        <div className="profile-card">
-
-          <div className="profile-card-title">
-
-            <span>
-              APPLICATION
-            </span>
+              <h2>
+                Report to Admin
+              </h2>
 
 
-            <h2>
-              App Information
-            </h2>
+              <p>
+                Have a problem or something you want
+                the BusGo team to know about?
+              </p>
+
+            </div>
+
+
+            {reportStatus && (
+
+              <div className="profile-success">
+
+                {reportStatus}
+
+              </div>
+
+            )}
+
+
+            {reportError && (
+
+              <div className="profile-error">
+
+                {reportError}
+
+              </div>
+
+            )}
+
+
+            <textarea
+              className="report-textarea"
+              value={
+                reportMessage
+              }
+              onChange={(e) => {
+
+                setReportMessage(
+                  e.target.value
+                );
+
+
+                if (reportError) {
+
+                  setReportError("");
+
+                }
+
+
+                if (reportStatus) {
+
+                  setReportStatus("");
+
+                }
+
+              }}
+              placeholder="Write your message to the BusGo administrator..."
+              rows="6"
+              disabled={
+                sendingReport
+              }
+            />
+
+
+            <button
+              className="report-btn"
+              type="button"
+              onClick={
+                handleSendReport
+              }
+              disabled={
+                sendingReport
+              }
+              style={{
+                opacity:
+                  sendingReport
+                    ? 0.6
+                    : 1,
+
+                cursor:
+                  sendingReport
+                    ? "not-allowed"
+                    : "pointer"
+              }}
+            >
+
+              {sendingReport
+                ? "Sending Report..."
+                : "Send Report"}
+
+            </button>
 
           </div>
 
 
-          <div className="app-info-row">
+          {/* =================================================
+              APP INFORMATION
+          ================================================= */}
+
+          <div className="profile-card">
+
+            <div className="profile-card-title">
+
+              <span>
+                APPLICATION
+              </span>
+
+
+              <h2>
+                App Information
+              </h2>
+
+            </div>
+
+
+            <div className="app-info-row">
+
+              <div>
+
+                <span>
+                  Current Version
+                </span>
+
+
+                <strong>
+                  BusGo v{APP_VERSION}
+                </strong>
+
+              </div>
+
+
+              <button
+                className="update-btn"
+                type="button"
+                onClick={() => {
+
+                  setMessage(
+                    `You are using the latest displayed BusGo version, v${APP_VERSION}.`
+                  );
+
+                }}
+              >
+
+                Check for Updates
+
+              </button>
+
+            </div>
+
+          </div>
+
+
+          {/* =================================================
+              LOGOUT
+          ================================================= */}
+
+          <div className="profile-logout-card">
 
             <div>
 
               <span>
-                Current Version
+                ACCOUNT
               </span>
 
 
-              <strong>
-                BusGo v{APP_VERSION}
-              </strong>
+              <h2>
+                Sign out of BusGo
+              </h2>
+
+
+              <p>
+                You can sign back in anytime using
+                your BusGo account.
+              </p>
 
             </div>
 
 
             <button
-              className="update-btn"
+              className="logout-profile-btn"
               type="button"
-              onClick={() => {
-
-                setMessage(
-                  `You are using the latest displayed BusGo version, v${APP_VERSION}.`
-                );
-
-              }}
+              onClick={
+                handleLogout
+              }
             >
 
-              Check for Updates
+              Logout
 
             </button>
 
           </div>
 
-        </div>
-
-
-        {/* =================================================
-            LOGOUT
-        ================================================= */}
-
-        <div className="profile-logout-card">
-
-          <div>
-
-            <span>
-              ACCOUNT
-            </span>
-
-
-            <h2>
-              Sign out of BusGo
-            </h2>
-
-
-            <p>
-              You can sign back in anytime using
-              your BusGo account.
-            </p>
-
-          </div>
-
-
-          <button
-            className="logout-profile-btn"
-            type="button"
-            onClick={
-              handleLogout
-            }
-          >
-
-            Logout
-
-          </button>
 
         </div>
 
+      </section>
 
-      </div>
-
-    </section>
+    </>
 
   );
 

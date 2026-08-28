@@ -2,7 +2,6 @@ import {
   BrowserRouter,
   Routes,
   Route,
-  useLocation,
   Navigate,
   Outlet
 } from "react-router-dom";
@@ -24,7 +23,6 @@ import Profile from "./pages/Profile/Profile";
 import Report from "./pages/Report/Report";
 import Community from "./pages/Community/Community";
 
-import BackButton from "./components/BackButton/BackButton";
 import AdminRoute from "./components/AdminRoute/AdminRoute";
 
 import {
@@ -90,53 +88,6 @@ function ClientRoute() {
 
 
 // =========================================
-// GLOBAL BACK BUTTON
-// =========================================
-
-function MobileBackButton() {
-  const location = useLocation();
-
-  const hiddenPages = [
-    "/",
-    "/admin",
-    "/login",
-    "/register",
-    "/verify-otp"
-  ];
-
-  if (
-    hiddenPages.includes(
-      location.pathname
-    )
-  ) {
-    return null;
-  }
-
-  return (
-    <div
-      className="global-mobile-back"
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100%",
-        zIndex: 10000,
-        pointerEvents: "none"
-      }}
-    >
-      <div
-        style={{
-          pointerEvents: "auto"
-        }}
-      >
-        <BackButton />
-      </div>
-    </div>
-  );
-}
-
-
-// =========================================
 // APP CONTENT
 // =========================================
 
@@ -149,8 +100,6 @@ function AppContent() {
         key={language}
         className="app-root"
       >
-
-        <MobileBackButton />
 
         <div className="app-page-wrapper">
 
