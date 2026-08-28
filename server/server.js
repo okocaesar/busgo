@@ -293,6 +293,15 @@ const io = new Server(
   }
 );
 
+
+// =========================================
+// MAKE SOCKET.IO AVAILABLE TO CONTROLLERS
+// =========================================
+
+app.set("io", io);
+
+console.log("Socket.IO instance attached to Express.");
+
 // =========================================
 // COMMUNITY DATA
 // =========================================
@@ -410,6 +419,25 @@ io.on(
       decodedUser.id ||
       decodedUser.userId ||
       decodedUser.user_id;
+
+      // =======================================
+// PRIVATE USER NOTIFICATION ROOM
+// =======================================
+
+if (userId) {
+
+  const notificationRoom =
+    `user_${userId}`;
+
+  socket.join(
+    notificationRoom
+  );
+
+  console.log(
+    "USER JOINED NOTIFICATION ROOM:",
+    notificationRoom
+  );
+}
 
     const userName =
       decodedUser.name ||

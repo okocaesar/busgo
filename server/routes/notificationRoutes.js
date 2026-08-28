@@ -10,13 +10,11 @@ const {
   requireAuth
 } = require("../middleware/authMiddleware");
 
-
 // =========================================
 // ALL NOTIFICATION ROUTES REQUIRE LOGIN
 // =========================================
 
 router.use(requireAuth);
-
 
 // =========================================
 // TEST
@@ -26,18 +24,13 @@ router.use(requireAuth);
 router.get(
   "/test",
   (req, res) => {
-
     res.json({
-      message:
-        "Notification routes are working",
-
-      userId:
-        req.user.id
+      success: true,
+      message: "Notification routes are working",
+      userId: req.user?.id
     });
-
   }
 );
-
 
 // =========================================
 // GET USER NOTIFICATIONS
@@ -49,7 +42,6 @@ router.get(
   notificationController.getUserNotifications
 );
 
-
 // =========================================
 // CREATE NOTIFICATION
 // POST /api/notifications
@@ -60,6 +52,37 @@ router.post(
   notificationController.createNotification
 );
 
+// =========================================
+// SAVE PUSH SUBSCRIPTION
+// POST /api/notifications/subscribe
+// =========================================
+//
+// Browser sends:
+//
+// {
+//   endpoint: "...",
+//   keys: {
+//     p256dh: "...",
+//     auth: "..."
+//   }
+// }
+//
+// =========================================
+
+router.post(
+  "/subscribe",
+  notificationController.savePushSubscription
+);
+
+// =========================================
+// REMOVE PUSH SUBSCRIPTION
+// DELETE /api/notifications/subscribe
+// =========================================
+
+router.delete(
+  "/subscribe",
+  notificationController.removePushSubscription
+);
 
 // =========================================
 // MARK ONE AS READ
@@ -71,7 +94,6 @@ router.patch(
   notificationController.markAsRead
 );
 
-
 // =========================================
 // MARK ALL AS READ
 // PATCH /api/notifications/read-all
@@ -81,6 +103,5 @@ router.patch(
   "/read-all",
   notificationController.markAllAsRead
 );
-
 
 module.exports = router;
