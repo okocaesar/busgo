@@ -176,7 +176,8 @@ function getFlutterwaveNetwork(
 
 function buildPaymentMethod({
   paymentMethod,
-  phoneNumber
+  phoneNumber,
+  card
 }) {
   const method =
     String(
@@ -211,6 +212,7 @@ function buildPaymentMethod({
     };
   }
 
+
   // ==========================================================
   // ORANGE MONEY
   // ==========================================================
@@ -236,8 +238,9 @@ function buildPaymentMethod({
     };
   }
 
+
   // ==========================================================
-  // CARD
+  // BANK CARD
   // ==========================================================
 
   if (
@@ -246,9 +249,13 @@ function buildPaymentMethod({
     method.includes("card")
   ) {
     return {
-      type: "card"
+      type: "card",
+
+      card:
+        card || null
     };
   }
+
 
   return null;
 }
@@ -270,8 +277,10 @@ exports.createPayment = async (
       amount,
       currency,
       paymentMethod,
-      phoneNumber
+      phoneNumber,
+      card
     } = req.body || {};
+
 
     // ========================================================
     // AUTHENTICATION
@@ -287,6 +296,7 @@ exports.createPayment = async (
           "Please login first."
       });
     }
+
 
     // ========================================================
     // USER OWNERSHIP
@@ -307,8 +317,9 @@ exports.createPayment = async (
       });
     }
 
+
     // ========================================================
-    // VALIDATION
+    // BASIC VALIDATION
     // ========================================================
 
     if (!bookingId) {
@@ -341,6 +352,7 @@ exports.createPayment = async (
       });
     }
 
+
     const paymentAmount =
       Number(amount);
 
@@ -348,6 +360,7 @@ exports.createPayment = async (
       String(
         currency || "XAF"
       ).toUpperCase();
+
 
     // ========================================================
     // BUSGO CURRENCY
@@ -363,6 +376,7 @@ exports.createPayment = async (
       });
     }
 
+
     // ========================================================
     // BUILD PAYMENT METHOD
     // ========================================================
@@ -370,7 +384,8 @@ exports.createPayment = async (
     const paymentMethodObject =
       buildPaymentMethod({
         paymentMethod,
-        phoneNumber
+        phoneNumber,
+        card
       });
 
     if (!paymentMethodObject) {
@@ -380,6 +395,54 @@ exports.createPayment = async (
           "Unsupported payment method."
       });
     }
+
+
+    // ========================================================
+    // CARD VALIDATION
+    // ========================================================
+
+    if (
+      paymentMethodObject.type ===
+      "card"
+    ) {
+      const cardDetails =
+        paymentMethodObject.card;
+
+      if (
+        !cardDetails ||
+        typeof cardDetails !==
+          "object"
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Card details are required."
+        });
+      }
+
+      const requiredCardFields = [
+        "encrypted_card_number",
+        "encrypted_expiry_month",
+        "encrypted_expiry_year",
+        "encrypted_cvv",
+        "nonce"
+      ];
+
+      const missingCardField =
+        requiredCardFields.find(
+          (field) =>
+            !cardDetails[field]
+        );
+
+      if (missingCardField) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Incomplete card payment information."
+        });
+      }
+    }
+
 
     // ========================================================
     // MOBILE MONEY VALIDATION
@@ -412,6 +475,7 @@ exports.createPayment = async (
         normalizedPhone;
     }
 
+
     // ========================================================
     // VERIFY BOOKING
     // ========================================================
@@ -439,6 +503,7 @@ exports.createPayment = async (
         bookingError,
         bookings
       ) => {
+
         if (bookingError) {
           console.error(
             "VERIFY BOOKING FOR PAYMENT ERROR:",
@@ -452,6 +517,7 @@ exports.createPayment = async (
           });
         }
 
+
         if (
           !bookings ||
           bookings.length === 0
@@ -463,8 +529,10 @@ exports.createPayment = async (
           });
         }
 
+
         const booking =
           bookings[0];
+
 
         // ====================================================
         // CHECK BOOKING AMOUNT
@@ -490,6 +558,25 @@ exports.createPayment = async (
               "Payment amount does not match the booking total."
           });
         }
+
+
+        // ====================================================
+        // CHECK BOOKING STATUS
+        // ====================================================
+
+        if (
+          booking.booking_status ===
+            "Cancelled" ||
+          booking.booking_status ===
+            "Completed"
+        ) {
+          return res.status(400).json({
+            success: false,
+            message:
+              "This booking cannot receive a payment."
+          });
+        }
+
 
         // ====================================================
         // PREVENT DUPLICATE PAYMENTS
@@ -522,6 +609,7 @@ exports.createPayment = async (
             existingError,
             existingPayments
           ) => {
+
             if (existingError) {
               console.error(
                 "CHECK EXISTING PAYMENT ERROR:",
@@ -535,12 +623,15 @@ exports.createPayment = async (
               });
             }
 
+
             if (
               existingPayments &&
               existingPayments.length > 0
             ) {
+
               const existingPayment =
                 existingPayments[0];
+
 
               if (
                 existingPayment.status ===
@@ -554,6 +645,7 @@ exports.createPayment = async (
                     existingPayment
                 });
               }
+
 
               if (
                 existingPayment.status ===
@@ -569,6 +661,7 @@ exports.createPayment = async (
               }
             }
 
+
             // ==================================================
             // GET USER
             // ==================================================
@@ -579,6 +672,7 @@ exports.createPayment = async (
                 userError,
                 user
               ) => {
+
                 if (userError) {
                   return res.status(500).json({
                     success: false,
@@ -587,6 +681,7 @@ exports.createPayment = async (
                   });
                 }
 
+
                 if (!user) {
                   return res.status(404).json({
                     success: false,
@@ -594,6 +689,7 @@ exports.createPayment = async (
                       "User account not found."
                   });
                 }
+
 
                 // ==================================================
                 // CUSTOMER DETAILS
@@ -611,10 +707,12 @@ exports.createPayment = async (
                   });
                 }
 
+
                 const customerName =
                   user.name ||
                   req.user?.name ||
                   "BusGo Customer";
+
 
                 const customerPhone =
                   normalizeCameroonPhone(
@@ -623,6 +721,7 @@ exports.createPayment = async (
                       req.user?.phone
                   );
 
+
                 // ==================================================
                 // TRANSACTION REFERENCE
                 // ==================================================
@@ -630,7 +729,9 @@ exports.createPayment = async (
                 const transactionId =
                   createTransactionReference();
 
+
                 try {
+
                   // ==============================================
                   // CREATE FLUTTERWAVE CUSTOMER
                   // ==============================================
@@ -645,21 +746,28 @@ exports.createPayment = async (
 
                       phone:
                         customerPhone ||
-                        undefined
+                        undefined,
+
+                      idempotencyKey:
+                        `BUSGO-CUSTOMER-${transactionId}`
                     });
+
 
                   const customer =
                     customerResponse?.data ||
                     customerResponse;
 
+
                   const customerId =
                     customer?.id;
+
 
                   if (!customerId) {
                     throw new Error(
                       "Flutterwave customer creation did not return a customer ID."
                     );
                   }
+
 
                   // ==============================================
                   // CREATE PAYMENT METHOD
@@ -673,15 +781,21 @@ exports.createPayment = async (
                       details:
                         paymentMethodObject,
 
-                      customerId
+                      customerId,
+
+                      idempotencyKey:
+                        `BUSGO-PM-${transactionId}`
                     });
+
 
                   const createdPaymentMethod =
                     paymentMethodResponse?.data ||
                     paymentMethodResponse;
 
+
                   const paymentMethodId =
                     createdPaymentMethod?.id;
+
 
                   if (!paymentMethodId) {
                     throw new Error(
@@ -689,16 +803,29 @@ exports.createPayment = async (
                     );
                   }
 
+
                   // ==============================================
                   // REDIRECT URL
                   // ==============================================
 
+                  const frontendUrl =
+                    String(
+                      process.env.FRONTEND_URL ||
+                        ""
+                    ).replace(
+                      /\/+$/,
+                      ""
+                    );
+
+
                   const redirectUrl =
                     process.env.FLW_REDIRECT_URL ||
-                    `${
-                      process.env.FRONTEND_URL ||
-                      ""
-                    }/payment/callback`;
+                    (
+                      frontendUrl
+                        ? `${frontendUrl}/payment/callback`
+                        : undefined
+                    );
+
 
                   // ==============================================
                   // CREATE CHARGE
@@ -721,6 +848,9 @@ exports.createPayment = async (
 
                       redirectUrl,
 
+                      idempotencyKey:
+                        `BUSGO-CHARGE-${transactionId}`,
+
                       meta: {
                         busgo_booking_id:
                           String(
@@ -738,13 +868,16 @@ exports.createPayment = async (
                       }
                     });
 
+
                   const charge =
                     chargeResponse?.data ||
                     chargeResponse;
 
+
                   const chargeId =
                     charge?.id ||
                     null;
+
 
                   const chargeStatus =
                     String(
@@ -753,19 +886,9 @@ exports.createPayment = async (
                         "pending"
                     ).toLowerCase();
 
+
                   // ==================================================
                   // SAVE PAYMENT AS PENDING
-                  // ==================================================
-                  //
-                  // We intentionally store the BusGo transaction
-                  // reference in transaction_id.
-                  //
-                  // Flutterwave also returns the charge ID, but
-                  // BusGo can retrieve the charge by reference using
-                  // GET /charges?reference=...
-                  //
-                  // Therefore no database migration is required
-                  // just for charge_id.
                   // ==================================================
 
                   const insertPaymentSql = `
@@ -797,6 +920,7 @@ exports.createPayment = async (
                     )
                   `;
 
+
                   db.query(
                     insertPaymentSql,
                     [
@@ -819,6 +943,7 @@ exports.createPayment = async (
                       insertError,
                       result
                     ) => {
+
                       if (insertError) {
                         console.error(
                           "SAVE PENDING PAYMENT ERROR:",
@@ -831,6 +956,7 @@ exports.createPayment = async (
                             "Flutterwave payment was created, but BusGo could not save the payment."
                         });
                       }
+
 
                       // ==========================================
                       // RESPONSE
@@ -881,9 +1007,11 @@ exports.createPayment = async (
                       });
                     }
                   );
+
                 } catch (
                   flutterwaveError
                 ) {
+
                   console.error(
                     "FLUTTERWAVE PAYMENT ERROR:",
                     flutterwaveError.response?.data ||
@@ -891,20 +1019,30 @@ exports.createPayment = async (
                       flutterwaveError
                   );
 
+
                   const flutterwaveMessage =
                     flutterwaveError
-                      .response
+                      ?.response
                       ?.data
                       ?.message ||
-                    flutterwaveError.message ||
+                    flutterwaveError?.message ||
                     "Unable to initialize Flutterwave payment.";
+
 
                   return res.status(502).json({
                     success: false,
+
                     message:
                       "Unable to initialize Flutterwave payment.",
+
                     error:
-                      flutterwaveMessage
+                      flutterwaveMessage,
+
+                    flutterwave:
+                      flutterwaveError
+                        ?.response
+                        ?.data ||
+                      null
                   });
                 }
               }
@@ -913,7 +1051,9 @@ exports.createPayment = async (
         );
       }
     );
+
   } catch (error) {
+
     console.error(
       "CREATE PAYMENT UNEXPECTED ERROR:",
       error
@@ -955,13 +1095,17 @@ exports.verifyPayment = async (
   req,
   res
 ) => {
+
   try {
+
     const {
       transactionId
     } = req.body || {};
 
+
     const userId =
       req.user?.id;
+
 
     if (!userId) {
       return res.status(401).json({
@@ -971,6 +1115,7 @@ exports.verifyPayment = async (
       });
     }
 
+
     if (!transactionId) {
       return res.status(400).json({
         success: false,
@@ -978,6 +1123,7 @@ exports.verifyPayment = async (
           "Transaction ID is required."
       });
     }
+
 
     // ========================================================
     // FIND BUSGO PAYMENT
@@ -1000,6 +1146,7 @@ exports.verifyPayment = async (
       LIMIT 1
     `;
 
+
     db.query(
       findPaymentSql,
       [
@@ -1010,6 +1157,7 @@ exports.verifyPayment = async (
         findError,
         payments
       ) => {
+
         if (findError) {
           console.error(
             "FIND PAYMENT FOR VERIFICATION ERROR:",
@@ -1023,6 +1171,7 @@ exports.verifyPayment = async (
           });
         }
 
+
         if (
           !payments ||
           payments.length === 0
@@ -1034,8 +1183,10 @@ exports.verifyPayment = async (
           });
         }
 
+
         const payment =
           payments[0];
+
 
         // ======================================================
         // ALREADY SUCCESSFUL
@@ -1047,33 +1198,35 @@ exports.verifyPayment = async (
         ) {
           return res.status(200).json({
             success: true,
+
             message:
               "Payment has already been verified successfully.",
+
             status:
               "Successful",
+
             paymentId:
               payment.id,
+
             bookingId:
               payment.booking_id,
+
             transactionId:
               payment.transaction_id,
+
             amount:
               payment.amount,
+
             currency:
               payment.currency
           });
         }
 
+
         try {
+
           // ====================================================
           // GET FLUTTERWAVE CHARGE BY REFERENCE
-          // ====================================================
-          //
-          // V4 supports:
-          //
-          // GET /charges?reference=<reference>
-          //
-          // We use BusGo's transaction_id as the reference.
           // ====================================================
 
           const verifyResponse =
@@ -1081,14 +1234,17 @@ exports.verifyPayment = async (
               transactionId
             );
 
+
           const flutterwaveData =
             verifyResponse?.data;
+
 
           let flutterwaveCharge =
             null;
 
+
           // ----------------------------------------------------
-          // The list endpoint normally returns an array.
+          // API returns an array
           // ----------------------------------------------------
 
           if (
@@ -1096,6 +1252,7 @@ exports.verifyPayment = async (
               flutterwaveData
             )
           ) {
+
             if (
               flutterwaveData.length >
               0
@@ -1105,8 +1262,9 @@ exports.verifyPayment = async (
             }
           }
 
+
           // ----------------------------------------------------
-          // Be tolerant if API returns a single object.
+          // API returns an object
           // ----------------------------------------------------
 
           else if (
@@ -1114,9 +1272,11 @@ exports.verifyPayment = async (
             typeof flutterwaveData ===
               "object"
           ) {
+
             flutterwaveCharge =
               flutterwaveData;
           }
+
 
           // ----------------------------------------------------
           // Fallback
@@ -1131,18 +1291,23 @@ exports.verifyPayment = async (
               verifyResponse;
           }
 
+
           if (
             !flutterwaveCharge
           ) {
             return res.status(404).json({
               success: false,
+
               message:
                 "Flutterwave charge could not be found yet.",
+
               status:
                 "Pending",
+
               transactionId
             });
           }
+
 
           // ====================================================
           // VERIFY REFERENCE
@@ -1154,10 +1319,12 @@ exports.verifyPayment = async (
                 ""
             );
 
+
           if (
             flutterwaveReference !==
             String(transactionId)
           ) {
+
             console.error(
               "FLUTTERWAVE REFERENCE MISMATCH:",
               {
@@ -1171,10 +1338,12 @@ exports.verifyPayment = async (
 
             return res.status(400).json({
               success: false,
+
               message:
                 "Flutterwave transaction reference does not match the BusGo payment."
             });
           }
+
 
           // ====================================================
           // VERIFY AMOUNT
@@ -1185,10 +1354,12 @@ exports.verifyPayment = async (
               flutterwaveCharge.amount
             );
 
+
           const busgoAmount =
             Number(
               payment.amount
             );
+
 
           if (
             !Number.isFinite(
@@ -1201,10 +1372,12 @@ exports.verifyPayment = async (
           ) {
             return res.status(400).json({
               success: false,
+
               message:
                 "Flutterwave payment amount does not match the BusGo payment amount."
             });
           }
+
 
           // ====================================================
           // VERIFY CURRENCY
@@ -1216,11 +1389,13 @@ exports.verifyPayment = async (
                 ""
             ).toUpperCase();
 
+
           const busgoCurrency =
             String(
               payment.currency ||
                 "XAF"
             ).toUpperCase();
+
 
           if (
             flutterwaveCurrency !==
@@ -1228,10 +1403,12 @@ exports.verifyPayment = async (
           ) {
             return res.status(400).json({
               success: false,
+
               message:
                 "Flutterwave payment currency does not match the BusGo payment."
             });
           }
+
 
           // ====================================================
           // GET FLUTTERWAVE STATUS
@@ -1242,6 +1419,7 @@ exports.verifyPayment = async (
               flutterwaveCharge.status ||
                 ""
             ).toLowerCase();
+
 
           // ====================================================
           // SUCCESS
@@ -1255,12 +1433,16 @@ exports.verifyPayment = async (
             flutterwaveStatus ===
               "completed"
           ) {
+
             return markPaymentSuccessful({
               payment,
+
               flutterwaveCharge,
+
               res
             });
           }
+
 
           // ====================================================
           // FAILED
@@ -1274,6 +1456,7 @@ exports.verifyPayment = async (
             flutterwaveStatus ===
               "voided"
           ) {
+
             const updateSql = `
               UPDATE payments
               SET
@@ -1284,6 +1467,7 @@ exports.verifyPayment = async (
               AND status = 'Pending'
             `;
 
+
             db.query(
               updateSql,
               [
@@ -1293,6 +1477,7 @@ exports.verifyPayment = async (
               (
                 updateError
               ) => {
+
                 if (updateError) {
                   console.error(
                     "UPDATE FAILED PAYMENT ERROR:",
@@ -1301,17 +1486,22 @@ exports.verifyPayment = async (
 
                   return res.status(500).json({
                     success: false,
+
                     message:
                       "Flutterwave payment failed, but BusGo could not update the payment."
                   });
                 }
 
+
                 return res.status(200).json({
                   success: false,
+
                   message:
                     "Flutterwave payment failed.",
+
                   status:
                     "Failed",
+
                   transactionId
                 });
               }
@@ -1319,6 +1509,7 @@ exports.verifyPayment = async (
 
             return;
           }
+
 
           // ====================================================
           // STILL PROCESSING
@@ -1339,11 +1530,14 @@ exports.verifyPayment = async (
 
             nextAction:
               flutterwaveCharge.next_action ||
+              flutterwaveCharge.nextAction ||
               null
           });
+
         } catch (
           verificationError
         ) {
+
           console.error(
             "FLUTTERWAVE VERIFICATION ERROR:",
             verificationError.response?.data ||
@@ -1353,13 +1547,22 @@ exports.verifyPayment = async (
 
           return res.status(502).json({
             success: false,
+
             message:
-              "Unable to verify the Flutterwave payment."
+              "Unable to verify the Flutterwave payment.",
+
+            error:
+              verificationError
+                ?.response
+                ?.data ||
+              null
           });
         }
       }
     );
+
   } catch (error) {
+
     console.error(
       "VERIFY PAYMENT ERROR:",
       error
@@ -1367,6 +1570,7 @@ exports.verifyPayment = async (
 
     return res.status(500).json({
       success: false,
+
       message:
         "Unable to verify payment."
     });
@@ -1378,27 +1582,31 @@ exports.verifyPayment = async (
 // FIND CHARGE BY REFERENCE
 // ============================================================
 //
-// Flutterwave V4 list charges endpoint:
+// Flutterwave V4:
 //
 // GET /charges?reference=<reference>
 //
-// This is different from retrieving a specific charge:
-//
-// GET /charges/:chargeId
-//
-// Since BusGo stores its unique Flutterwave reference in
-// payments.transaction_id, we can safely query by reference.
+// BusGo stores the Flutterwave reference in
+// payments.transaction_id.
 // ============================================================
 
 async function getChargeByReference(
   reference
 ) {
+
   const token =
     await getAccessToken();
 
+
   const baseUrl =
-    process.env.FLW_BASE_URL ||
-    "https://developersandbox-api.flutterwave.com";
+    String(
+      process.env.FLW_BASE_URL ||
+        "https://developersandbox-api.flutterwave.com"
+    ).replace(
+      /\/+$/,
+      ""
+    );
+
 
   const response =
     await axios.get(
@@ -1426,6 +1634,7 @@ async function getChargeByReference(
       }
     );
 
+
   return response.data;
 }
 
@@ -1443,6 +1652,7 @@ function markPaymentSuccessful({
   flutterwaveCharge,
   res
 }) {
+
   const updatePaymentSql = `
     UPDATE payments
     SET
@@ -1454,6 +1664,7 @@ function markPaymentSuccessful({
     AND status <> 'Successful'
   `;
 
+
   db.query(
     updatePaymentSql,
     [
@@ -1464,6 +1675,7 @@ function markPaymentSuccessful({
       updateError,
       updateResult
     ) => {
+
       if (updateError) {
         console.error(
           "MARK PAYMENT SUCCESSFUL ERROR:",
@@ -1472,10 +1684,12 @@ function markPaymentSuccessful({
 
         return res.status(500).json({
           success: false,
+
           message:
             "Payment was verified but BusGo could not update the payment."
         });
       }
+
 
       // ======================================================
       // UPDATE BOOKING
@@ -1489,6 +1703,7 @@ function markPaymentSuccessful({
         AND user_id = ?
       `;
 
+
       db.query(
         updateBookingSql,
         [
@@ -1498,6 +1713,7 @@ function markPaymentSuccessful({
         (
           bookingError
         ) => {
+
           if (bookingError) {
             console.error(
               "UPDATE BOOKING AFTER PAYMENT ERROR:",
@@ -1505,15 +1721,19 @@ function markPaymentSuccessful({
             );
           }
 
+
           // ==================================================
           // SOCKET NOTIFICATION
           // ==================================================
 
           try {
+
             const io =
               res.app.get("io");
 
+
             if (io) {
+
               io.to(
                 `user_${payment.user_id}`
               ).emit(
@@ -1539,16 +1759,20 @@ function markPaymentSuccessful({
                 }
               );
             }
+
           } catch (
             socketError
           ) {
+
             console.error(
               "PAYMENT SOCKET NOTIFICATION ERROR:",
               socketError
             );
           }
 
+
           return res.status(200).json({
+
             success: true,
 
             message:
@@ -1591,16 +1815,20 @@ exports.getMyPayments = (
   req,
   res
 ) => {
+
   const userId =
     req.user?.id;
+
 
   if (!userId) {
     return res.status(401).json({
       success: false,
+
       message:
         "Please login first."
     });
   }
+
 
   const sql = `
     SELECT
@@ -1644,6 +1872,7 @@ exports.getMyPayments = (
       payments.created_at DESC
   `;
 
+
   db.query(
     sql,
     [userId],
@@ -1651,6 +1880,7 @@ exports.getMyPayments = (
       err,
       results
     ) => {
+
       if (err) {
         console.error(
           "GET MY PAYMENTS ERROR:",
@@ -1659,13 +1889,16 @@ exports.getMyPayments = (
 
         return res.status(500).json({
           success: false,
+
           message:
             "Unable to load your payment history."
         });
       }
 
+
       return res.status(200).json({
         success: true,
+
         payments:
           results || []
       });
@@ -1683,28 +1916,35 @@ exports.requestPaymentReversal = (
   req,
   res
 ) => {
+
   const {
     paymentId
   } = req.params;
 
+
   const userId =
     req.user?.id;
+
 
   if (!userId) {
     return res.status(401).json({
       success: false,
+
       message:
         "Please login first."
     });
   }
 
+
   if (!paymentId) {
     return res.status(400).json({
       success: false,
+
       message:
         "Payment ID is required."
     });
   }
+
 
   const findPaymentSql = `
     SELECT
@@ -1725,6 +1965,7 @@ exports.requestPaymentReversal = (
     LIMIT 1
   `;
 
+
   db.query(
     findPaymentSql,
     [
@@ -1735,6 +1976,7 @@ exports.requestPaymentReversal = (
       findError,
       payments
     ) => {
+
       if (findError) {
         console.error(
           "FIND PAYMENT FOR REVERSAL ERROR:",
@@ -1743,10 +1985,12 @@ exports.requestPaymentReversal = (
 
         return res.status(500).json({
           success: false,
+
           message:
             "Unable to find the payment."
         });
       }
+
 
       if (
         !payments ||
@@ -1754,13 +1998,16 @@ exports.requestPaymentReversal = (
       ) {
         return res.status(404).json({
           success: false,
+
           message:
             "Payment not found."
         });
       }
 
+
       const payment =
         payments[0];
+
 
       // ======================================================
       // ALREADY REVERSED
@@ -1772,10 +2019,12 @@ exports.requestPaymentReversal = (
       ) {
         return res.status(400).json({
           success: false,
+
           message:
             "This payment has already been reversed."
         });
       }
+
 
       // ======================================================
       // ALREADY REQUESTED
@@ -1787,10 +2036,12 @@ exports.requestPaymentReversal = (
       ) {
         return res.status(400).json({
           success: false,
+
           message:
             "A reversal request has already been submitted for this payment."
         });
       }
+
 
       // ======================================================
       // ONLY SUCCESSFUL PAYMENTS
@@ -1802,10 +2053,12 @@ exports.requestPaymentReversal = (
       ) {
         return res.status(400).json({
           success: false,
+
           message:
             "Only successful payments can be submitted for reversal."
         });
       }
+
 
       // ======================================================
       // REQUEST REVERSAL
@@ -1828,6 +2081,7 @@ exports.requestPaymentReversal = (
         AND status = 'Successful'
       `;
 
+
       db.query(
         reversalSql,
         [
@@ -1838,6 +2092,7 @@ exports.requestPaymentReversal = (
           updateError,
           result
         ) => {
+
           if (updateError) {
             console.error(
               "REQUEST PAYMENT REVERSAL ERROR:",
@@ -1846,22 +2101,28 @@ exports.requestPaymentReversal = (
 
             return res.status(500).json({
               success: false,
+
               message:
                 "Unable to submit the reversal request."
             });
           }
 
+
           if (
-            result.affectedRows === 0
+            result.affectedRows ===
+            0
           ) {
             return res.status(400).json({
               success: false,
+
               message:
                 "The payment could not be submitted for reversal. It may have already been processed."
             });
           }
 
+
           return res.status(200).json({
+
             success: true,
 
             message:

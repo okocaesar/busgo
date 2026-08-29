@@ -1,389 +1,1232 @@
-/* =========================================
+/* =========================================================
    BUSGO PAYMENT PAGE
-========================================= */
+========================================================= */
 
 .payment-page {
   min-height: 70vh;
-
   padding: 80px 20px;
-
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
-  background: #f6f9f7;
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(11, 125, 69, 0.06),
+      transparent 35%
+    ),
+    #f6f9f7;
+  box-sizing: border-box;
 }
 
 
-/* =========================================
+/* =========================================================
    PAYMENT CARD
-========================================= */
+========================================================= */
 
 .payment-card {
   width: 100%;
-
-  max-width: 560px;
-
+  max-width: 600px;
   padding: 40px;
-
-  background: #fff;
-
-  border-radius: 20px;
-
+  background: #ffffff;
+  border-radius: 22px;
   border: 1px solid #e3ebe6;
-
   box-shadow:
-    0 15px 45px rgba(0, 0, 0, 0.08);
+    0 15px 45px rgba(0, 0, 0, 0.08),
+    0 4px 12px rgba(11, 125, 69, 0.03);
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 
-/* =========================================
+/* =========================================================
    HEADER
-========================================= */
+========================================================= */
 
 .payment-header {
   display: flex;
-
   align-items: center;
-
   gap: 15px;
-
   margin-bottom: 30px;
 }
 
-
 .payment-icon {
-  width: 55px;
-
-  height: 55px;
-
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
-  border-radius: 15px;
-
-  background: #eaf7ef;
-
-  font-size: 25px;
+  border-radius: 16px;
+  background: linear-gradient(
+    135deg,
+    #eaf7ef,
+    #dff2e7
+  );
+  border: 1px solid #cfe8d9;
+  font-size: 26px;
+  box-shadow:
+    0 7px 18px rgba(11, 125, 69, 0.08);
 }
-
 
 .payment-header h1 {
   margin: 0 0 5px;
-
   color: #17221b;
-
   font-size: 28px;
+  line-height: 1.2;
+  font-weight: 800;
 }
-
 
 .payment-header p {
   margin: 0;
-
   color: #727b75;
-
   font-size: 14px;
+  line-height: 1.5;
 }
 
 
-/* =========================================
+/* =========================================================
+   ERROR MESSAGE
+========================================================= */
+
+.payment-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #fff4f4;
+  border: 1px solid #f2cccc;
+  color: #b42318;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
+  animation: paymentMessageIn 0.3s ease;
+}
+
+
+/* =========================================================
+   SUCCESS MESSAGE
+========================================================= */
+
+.payment-success {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 15px 16px;
+  border-radius: 12px;
+  background: #eefaf3;
+  border: 1px solid #bfe4cc;
+  color: #087443;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
+  animation: paymentMessageIn 0.3s ease;
+}
+
+
+/* =========================================================
+   PENDING MESSAGE
+========================================================= */
+
+.payment-pending {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 15px 16px;
+  border-radius: 12px;
+  background: #fff9ed;
+  border: 1px solid #f1ddb1;
+  color: #8a5b00;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
+  animation: paymentMessageIn 0.3s ease;
+}
+
+
+/* =========================================================
+   BOOKING INFORMATION
+========================================================= */
+
+.payment-booking-info {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 25px;
+  padding: 18px;
+  border-radius: 15px;
+  background: #f8faf9;
+  border: 1px solid #e3ebe6;
+}
+
+.payment-booking-info > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px;
+  border-radius: 9px;
+}
+
+.payment-booking-info span {
+  color: #8a938d;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+}
+
+.payment-booking-info strong {
+  color: #202922;
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
    OFFER
-========================================= */
+========================================================= */
 
 .payment-offer {
   display: flex;
-
   align-items: center;
-
   gap: 13px;
-
   padding: 15px;
-
   margin-bottom: 25px;
-
-  border-radius: 12px;
-
+  border-radius: 13px;
   background: #eef8f2;
-
   border: 1px solid #cfe5d8;
 }
 
-
 .payment-offer > span {
   width: 43px;
-
   height: 43px;
-
+  flex: 0 0 43px;
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
   border-radius: 10px;
-
   background: #0b7d45;
-
   font-size: 20px;
+  box-shadow:
+    0 5px 12px rgba(11, 125, 69, 0.15);
 }
-
 
 .payment-offer div {
   display: flex;
-
   flex-direction: column;
-
   gap: 3px;
+  min-width: 0;
 }
-
 
 .payment-offer small {
   color: #0b7d45;
-
   font-size: 9px;
-
   font-weight: 800;
-
   letter-spacing: 1px;
+  text-transform: uppercase;
 }
-
 
 .payment-offer strong {
   color: #1e2822;
-
   font-size: 14px;
+  line-height: 1.3;
 }
-
 
 .payment-offer b {
   color: #0b7d45;
-
   font-size: 12px;
 }
 
 
-/* =========================================
+/* =========================================================
    PAYMENT SUMMARY
-========================================= */
+========================================================= */
 
 .payment-summary {
   padding: 22px;
-
   border-radius: 15px;
-
   background: #f8faf9;
-
   border: 1px solid #e3ebe6;
 }
 
-
 .payment-summary h3 {
   margin: 0 0 15px;
-
   color: #17221b;
-
   font-size: 16px;
+  font-weight: 800;
 }
-
 
 .payment-row {
   display: flex;
-
   align-items: center;
-
   justify-content: space-between;
-
+  gap: 20px;
   padding: 9px 0;
-
   color: #68716c;
-
   font-size: 14px;
 }
 
+.payment-row span {
+  min-width: 0;
+}
 
 .payment-row strong {
   color: #202722;
+  white-space: nowrap;
 }
-
 
 .discount-payment-row strong {
   color: #0b7d45;
 }
 
-
 .payment-divider {
   height: 1px;
-
   margin: 12px 0;
-
   background: #dce5df;
 }
 
-
 .payment-total {
   display: flex;
-
   align-items: center;
-
   justify-content: space-between;
+  gap: 20px;
 }
-
 
 .payment-total span {
   color: #17221b;
-
   font-size: 16px;
-
   font-weight: 800;
 }
-
 
 .payment-total strong {
   color: #0b7d45;
-
   font-size: 24px;
-
   font-weight: 800;
+  white-space: nowrap;
 }
 
 
-/* =========================================
+/* =========================================================
    PAYMENT METHOD
-========================================= */
+========================================================= */
 
 .payment-method-section {
   margin-top: 28px;
 }
 
-
 .payment-method-section label {
   display: block;
-
   margin-bottom: 9px;
-
   color: #303832;
-
   font-size: 14px;
-
-  font-weight: 600;
+  font-weight: 700;
 }
-
 
 .payment-method-section select {
   width: 100%;
-
-  height: 52px;
-
-  padding: 0 15px;
-
+  height: 54px;
+  padding: 0 16px;
   border: 1px solid #d8e1dc;
-
-  border-radius: 10px;
-
-  background: #fff;
-
+  border-radius: 11px;
+  background: #ffffff;
   color: #252d28;
-
   font-size: 14px;
-
+  font-weight: 600;
   outline: none;
-
   cursor: pointer;
+  appearance: auto;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+  box-sizing: border-box;
 }
 
+.payment-method-section select:hover {
+  border-color: #aebdb4;
+}
 
 .payment-method-section select:focus {
   border-color: #0b7d45;
-
   box-shadow:
-    0 0 0 3px rgba(11, 125, 69, .08);
+    0 0 0 3px rgba(11, 125, 69, 0.09);
+}
+
+.payment-method-section select:disabled {
+  background: #f3f6f4;
+  color: #929b96;
+  cursor: not-allowed;
 }
 
 
-/* =========================================
+/* =========================================================
+   MOBILE MONEY PAYMENT
+========================================================= */
+
+.mobile-money-payment-section {
+  margin-top: 18px;
+  padding: 20px;
+  border-radius: 15px;
+  background:
+    linear-gradient(
+      145deg,
+      #f8fbf9,
+      #f1f7f3
+    );
+  border: 1px solid #dce9e1;
+  animation: paymentSectionIn 0.3s ease;
+}
+
+.mobile-money-payment-section label {
+  display: block;
+  margin-bottom: 9px;
+  color: #263129;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mobile-money-payment-section input {
+  width: 100%;
+  height: 52px;
+  padding: 0 15px;
+  border: 1px solid #d3dfd7;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #202722;
+  font-size: 15px;
+  font-weight: 600;
+  outline: none;
+  box-sizing: border-box;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.mobile-money-payment-section input::placeholder {
+  color: #a5aea8;
+  font-weight: 400;
+}
+
+.mobile-money-payment-section input:focus {
+  border-color: #0b7d45;
+  box-shadow:
+    0 0 0 3px rgba(11, 125, 69, 0.08);
+}
+
+.mobile-money-payment-section input:disabled {
+  background: #f2f5f3;
+  color: #929b96;
+  cursor: not-allowed;
+}
+
+.mobile-money-payment-section small {
+  display: block;
+  margin-top: 9px;
+  color: #7c8780;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   CARD PAYMENT SECTION
+========================================================= */
+
+.card-payment-section {
+  margin-top: 18px;
+  padding: 20px;
+  border-radius: 15px;
+  background:
+    linear-gradient(
+      145deg,
+      #fbfdfc,
+      #f4f8f6
+    );
+  border: 1px solid #dce7e0;
+  animation: paymentSectionIn 0.3s ease;
+}
+
+
+/* =========================================================
+   CARD SECURITY NOTICE
+========================================================= */
+
+.payment-card-notice {
+  position: relative;
+  margin-bottom: 20px;
+  padding: 15px 16px 15px 18px;
+  border-radius: 12px;
+  background: #eef8f2;
+  border: 1px solid #cfe5d8;
+  color: #0b7d45;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.payment-card-notice::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 5px;
+  background: #0b7d45;
+}
+
+.payment-card-notice p {
+  margin: 7px 0 0;
+  color: #66756c;
+  font-size: 11px;
+  line-height: 1.55;
+  font-weight: 500;
+}
+
+
+/* =========================================================
+   FORM GROUP
+========================================================= */
+
+.form-group {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #303832;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.form-group input {
+  width: 100%;
+  height: 52px;
+  padding: 0 14px;
+  border: 1px solid #d3dfd7;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #202722;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  outline: none;
+  box-sizing: border-box;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.2s ease;
+}
+
+.form-group input::placeholder {
+  color: #a4ada7;
+  font-weight: 400;
+}
+
+.form-group input:hover:not(:disabled) {
+  border-color: #aebdb4;
+}
+
+.form-group input:focus {
+  border-color: #0b7d45;
+  box-shadow:
+    0 0 0 3px rgba(11, 125, 69, 0.08);
+}
+
+.form-group input:disabled {
+  background: #f1f4f2;
+  color: #929b96;
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   CARD NUMBER
+========================================================= */
+
+#busgo-card-number {
+  letter-spacing: 1.3px;
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* =========================================================
+   CARD EXPIRY + CVV ROW
+========================================================= */
+
+.card-fields-row {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr)
+    minmax(0, 1fr);
+  gap: 12px;
+}
+
+
+/* =========================================================
+   EXPIRY FIELDS
+========================================================= */
+
+#busgo-card-expiry-month,
+#busgo-card-expiry-year {
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+
+/* =========================================================
+   CVV
+========================================================= */
+
+#busgo-card-cvv {
+  text-align: center;
+  letter-spacing: 2px;
+}
+
+
+/* =========================================================
+   CARD SECURITY HELP
+========================================================= */
+
+.card-security-help {
+  display: block;
+  margin-top: 15px;
+  padding-top: 14px;
+  border-top: 1px solid #e0e8e3;
+  color: #7c8780;
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   FLUTTERWAVE NEXT ACTION
+========================================================= */
+
+.flutterwave-next-action {
+  margin-top: 18px;
+  padding: 17px;
+  border-radius: 13px;
+  background: #fff9ed;
+  border: 1px solid #f0ddb4;
+  animation: paymentMessageIn 0.3s ease;
+}
+
+.flutterwave-next-action h3 {
+  margin: 0 0 7px;
+  color: #765000;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.flutterwave-next-action p {
+  margin: 0;
+  color: #856a31;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+
+/* =========================================================
+   TRANSACTION REFERENCE
+========================================================= */
+
+.payment-transaction {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 18px;
+  padding: 13px 15px;
+  border-radius: 11px;
+  background: #f7f9f8;
+  border: 1px dashed #ccd9d1;
+}
+
+.payment-transaction small {
+  color: #89938d;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.payment-transaction strong {
+  color: #303a33;
+  font-size: 11px;
+  font-family:
+    "Courier New",
+    monospace;
+  word-break: break-all;
+}
+
+
+/* =========================================================
    PAYMENT BUTTON
-========================================= */
+========================================================= */
 
 .payment-btn {
+  position: relative;
   width: 100%;
-
   height: 55px;
-
   margin-top: 25px;
-
+  padding: 0 20px;
   border: none;
-
-  border-radius: 10px;
-
-  background: #0b7d45;
-
-  color: #fff;
-
-  font-size: 16px;
-
-  font-weight: 700;
-
+  border-radius: 11px;
+  background:
+    linear-gradient(
+      135deg,
+      #0b7d45,
+      #096b3b
+    );
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.1px;
   cursor: pointer;
-
-  transition: .3s ease;
+  overflow: hidden;
+  transition:
+    background 0.3s ease,
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    opacity 0.3s ease;
 }
 
+.payment-btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.18),
+      transparent
+    );
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+}
 
-.payment-btn:hover {
-  background: #086237;
+.payment-btn:hover:not(:disabled)::after {
+  left: 140%;
+}
 
+.payment-btn:hover:not(:disabled) {
+  background:
+    linear-gradient(
+      135deg,
+      #086f3d,
+      #075b33
+    );
   transform: translateY(-2px);
-
   box-shadow:
-    0 8px 20px rgba(11, 125, 69, .2);
+    0 10px 24px rgba(11, 125, 69, 0.22);
+}
+
+.payment-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow:
+    0 5px 12px rgba(11, 125, 69, 0.15);
+}
+
+.payment-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px #ffffff,
+    0 0 0 6px rgba(11, 125, 69, 0.35);
+}
+
+.payment-btn:disabled {
+  background: #a7b5ad;
+  cursor: not-allowed;
+  opacity: 0.85;
+  transform: none;
+  box-shadow: none;
 }
 
 
-/* =========================================
-   NOTE
-========================================= */
+/* =========================================================
+   PAYMENT NOTE
+========================================================= */
 
 .payment-note {
   margin: 18px 0 0;
-
   text-align: center;
-
   color: #8a938d;
-
-  font-size: 11px;
+  font-size: 10.5px;
+  line-height: 1.5;
 }
 
 
-/* =========================================
+/* =========================================================
+   EMPTY BOOKING / NO BOOKING STATE
+========================================================= */
+
+.payment-card > h2 {
+  margin: 0 0 20px;
+  color: #17221b;
+  font-size: 21px;
+  line-height: 1.3;
+}
+
+.payment-card > button {
+  width: 100%;
+  min-height: 50px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  background: #0b7d45;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease;
+}
+
+.payment-card > button:hover {
+  background: #086237;
+  transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   CARD INPUT AUTOFILL
+========================================================= */
+
+.form-group input:-webkit-autofill,
+.mobile-money-payment-section input:-webkit-autofill {
+  -webkit-box-shadow:
+    0 0 0 1000px #ffffff inset;
+  -webkit-text-fill-color: #202722;
+  transition:
+    background-color 9999s ease-in-out 0s;
+}
+
+
+/* =========================================================
+   ANIMATIONS
+========================================================= */
+
+@keyframes paymentSectionIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes paymentMessageIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 768px) {
+
+  .payment-page {
+    padding: 60px 18px;
+  }
+
+  .payment-card {
+    max-width: 580px;
+    padding: 32px;
+  }
+
+}
+
+
+/* =========================================================
    MOBILE
-========================================= */
+========================================================= */
 
 @media (max-width: 600px) {
 
   .payment-page {
-    padding: 50px 15px;
+    min-height: auto;
+    padding: 35px 12px 50px;
+    align-items: flex-start;
   }
 
 
   .payment-card {
-    padding: 25px 20px;
+    width: 100%;
+    padding: 23px 17px;
+    border-radius: 17px;
+    box-shadow:
+      0 10px 30px rgba(0, 0, 0, 0.07);
+  }
 
-    border-radius: 15px;
+
+  /* -----------------------------------------
+     HEADER
+  ----------------------------------------- */
+
+  .payment-header {
+    gap: 12px;
+    margin-bottom: 23px;
+  }
+
+
+  .payment-icon {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+    border-radius: 13px;
+    font-size: 22px;
   }
 
 
   .payment-header h1 {
-    font-size: 23px;
+    font-size: 22px;
+  }
+
+
+  .payment-header p {
+    font-size: 12px;
+  }
+
+
+  /* -----------------------------------------
+     BOOKING INFO
+  ----------------------------------------- */
+
+  .payment-booking-info {
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+    padding: 13px;
+    margin-bottom: 20px;
+    border-radius: 13px;
+  }
+
+
+  .payment-booking-info > div {
+    padding: 7px 5px;
+  }
+
+
+  .payment-booking-info span {
+    font-size: 8px;
+  }
+
+
+  .payment-booking-info strong {
+    font-size: 11px;
+  }
+
+
+  /* -----------------------------------------
+     OFFER
+  ----------------------------------------- */
+
+  .payment-offer {
+    gap: 10px;
+    padding: 12px;
+    margin-bottom: 20px;
+  }
+
+
+  .payment-offer > span {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+    font-size: 17px;
+  }
+
+
+  .payment-offer strong {
+    font-size: 12px;
+  }
+
+
+  .payment-offer b {
+    font-size: 11px;
+  }
+
+
+  /* -----------------------------------------
+     SUMMARY
+  ----------------------------------------- */
+
+  .payment-summary {
+    padding: 17px;
+    border-radius: 13px;
+  }
+
+
+  .payment-summary h3 {
+    font-size: 14px;
+  }
+
+
+  .payment-row {
+    font-size: 12px;
+    padding: 8px 0;
+  }
+
+
+  .payment-total span {
+    font-size: 14px;
   }
 
 
   .payment-total strong {
     font-size: 20px;
+  }
+
+
+  /* -----------------------------------------
+     PAYMENT METHOD
+  ----------------------------------------- */
+
+  .payment-method-section {
+    margin-top: 22px;
+  }
+
+
+  .payment-method-section label {
+    font-size: 12px;
+  }
+
+
+  .payment-method-section select {
+    height: 51px;
+    font-size: 13px;
+  }
+
+
+  /* -----------------------------------------
+     MOBILE MONEY
+  ----------------------------------------- */
+
+  .mobile-money-payment-section {
+    padding: 16px;
+    border-radius: 13px;
+  }
+
+
+  .mobile-money-payment-section input {
+    height: 50px;
+    font-size: 14px;
+  }
+
+
+  /* -----------------------------------------
+     CARD
+  ----------------------------------------- */
+
+  .card-payment-section {
+    padding: 16px;
+    border-radius: 13px;
+  }
+
+
+  .payment-card-notice {
+    padding: 13px 14px 13px 16px;
+    margin-bottom: 17px;
+    font-size: 12px;
+  }
+
+
+  .payment-card-notice p {
+    font-size: 10px;
+  }
+
+
+  .form-group {
+    margin-bottom: 13px;
+  }
+
+
+  .form-group label {
+    font-size: 11px;
+    margin-bottom: 7px;
+  }
+
+
+  .form-group input {
+    height: 49px;
+    padding: 0 12px;
+    font-size: 14px;
+  }
+
+
+  .card-fields-row {
+    gap: 8px;
+  }
+
+
+  .card-security-help {
+    font-size: 9.5px;
+  }
+
+
+  /* -----------------------------------------
+     NEXT ACTION
+  ----------------------------------------- */
+
+  .flutterwave-next-action {
+    padding: 14px;
+  }
+
+
+  .flutterwave-next-action h3 {
+    font-size: 13px;
+  }
+
+
+  .flutterwave-next-action p {
+    font-size: 11px;
+  }
+
+
+  /* -----------------------------------------
+     TRANSACTION
+  ----------------------------------------- */
+
+  .payment-transaction {
+    padding: 11px 12px;
+  }
+
+
+  .payment-transaction strong {
+    font-size: 9px;
+  }
+
+
+  /* -----------------------------------------
+     BUTTON
+  ----------------------------------------- */
+
+  .payment-btn {
+    height: 53px;
+    margin-top: 20px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+
+
+  /* -----------------------------------------
+     NOTE
+  ----------------------------------------- */
+
+  .payment-note {
+    margin-top: 15px;
+    font-size: 9.5px;
+  }
+
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+========================================================= */
+
+@media (max-width: 380px) {
+
+  .payment-page {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+
+  .payment-card {
+    padding: 20px 13px;
+  }
+
+
+  .payment-header h1 {
+    font-size: 20px;
+  }
+
+
+  .payment-header p {
+    font-size: 11px;
+  }
+
+
+  .payment-booking-info {
+    padding: 10px;
+  }
+
+
+  .payment-booking-info strong {
+    font-size: 10px;
+  }
+
+
+  .card-payment-section,
+  .mobile-money-payment-section {
+    padding: 13px;
+  }
+
+
+  .card-fields-row {
+    gap: 6px;
+  }
+
+
+  .form-group input {
+    padding-left: 9px;
+    padding-right: 9px;
+    font-size: 13px;
+  }
+
+
+  .payment-total strong {
+    font-size: 18px;
+  }
+
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .payment-btn,
+  .payment-method-section select,
+  .form-group input,
+  .payment-section,
+  .payment-card-notice,
+  .payment-error,
+  .payment-success,
+  .payment-pending,
+  .flutterwave-next-action {
+    animation: none !important;
+    transition: none !important;
   }
 
 }

@@ -714,7 +714,7 @@ exports.createBooking = async (
       return res.status(409).json({
 
         message:
-          "One or more selected seats are already booked.",
+          "Some seats have already been booked.",
 
         bookedSeats:
           unavailableSeats
@@ -997,7 +997,7 @@ exports.createBooking = async (
       return res.status(409).json({
 
         message:
-          "One or more selected seats were just booked by another user.",
+          "Some seats have already been booked.",
 
         bookedSeats:
           error.bookedSeats || []
@@ -1063,7 +1063,7 @@ exports.createBooking = async (
       return res.status(409).json({
 
         message:
-          "One or more selected seats are already booked.",
+          "Some seats have already been booked.",
 
         bookedSeats: []
 

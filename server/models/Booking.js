@@ -588,7 +588,7 @@ const Booking = {
 
                               const error =
                                 new Error(
-                                  "One or more selected seats are already booked."
+                                  "Some seats have already been booked."
                                 );
 
                               error.code =

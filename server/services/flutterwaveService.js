@@ -25,7 +25,7 @@ const crypto = require("crypto");
 // IMPORTANT:
 // - Never expose FLW_CLIENT_SECRET to the frontend.
 // - Never expose Flutterwave credentials in React/Vite code.
-// - All Flutterwave requests must happen from the backend.
+// - All Flutterwave requests happen from the backend.
 // ============================================================
 
 
@@ -33,19 +33,27 @@ const crypto = require("crypto");
 // CONFIGURATION
 // ============================================================
 
-const FLW_CLIENT_ID =
-  process.env.FLW_CLIENT_ID;
+function getConfig() {
+  return {
+    clientId:
+      String(process.env.FLW_CLIENT_ID || "").trim(),
 
-const FLW_CLIENT_SECRET =
-  process.env.FLW_CLIENT_SECRET;
+    clientSecret:
+      String(process.env.FLW_CLIENT_SECRET || "").trim(),
 
-const FLW_BASE_URL =
-  process.env.FLW_BASE_URL ||
-  "https://developersandbox-api.flutterwave.com";
+    baseUrl:
+      String(
+        process.env.FLW_BASE_URL ||
+          "https://developersandbox-api.flutterwave.com"
+      ).replace(/\/+$/, ""),
 
-const FLW_TOKEN_URL =
-  process.env.FLW_TOKEN_URL ||
-  "https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token";
+    tokenUrl:
+      String(
+        process.env.FLW_TOKEN_URL ||
+          "https://idp.flutterwave.com/realms/flutterwave/protocol/openid-connect/token"
+      ).trim()
+  };
+}
 
 
 // ============================================================
@@ -53,17 +61,31 @@ const FLW_TOKEN_URL =
 // ============================================================
 
 function validateCredentials() {
-  if (!FLW_CLIENT_ID) {
+  const {
+    clientId,
+    clientSecret,
+    baseUrl,
+    tokenUrl
+  } = getConfig();
+
+  if (!clientId) {
     throw new Error(
       "FLW_CLIENT_ID is not configured."
     );
   }
 
-  if (!FLW_CLIENT_SECRET) {
+  if (!clientSecret) {
     throw new Error(
       "FLW_CLIENT_SECRET is not configured."
     );
   }
+
+  return {
+    clientId,
+    clientSecret,
+    baseUrl,
+    tokenUrl
+  };
 }
 
 
@@ -106,18 +128,21 @@ function createIdempotencyKey(
 // GET ACCESS TOKEN
 // ============================================================
 //
-// Flutterwave V4 uses OAuth 2.0 client credentials.
+// Flutterwave V4 uses OAuth 2.0 client credentials:
 //
-// Token request:
-//   client_id
-//   client_secret
-//   grant_type=client_credentials
+// client_id
+// client_secret
+// grant_type=client_credentials
 //
-// Tokens are cached and refreshed shortly before expiration.
+// Access tokens are cached and refreshed before expiry.
 // ============================================================
 
 async function getAccessToken() {
-  validateCredentials();
+  const {
+    clientId,
+    clientSecret,
+    tokenUrl
+  } = validateCredentials();
 
   const now = Date.now();
 
@@ -135,11 +160,12 @@ async function getAccessToken() {
 
   try {
     const response = await axios.post(
-      FLW_TOKEN_URL,
+      tokenUrl,
       new URLSearchParams({
-        client_id: FLW_CLIENT_ID,
-        client_secret: FLW_CLIENT_SECRET,
-        grant_type: "client_credentials"
+        client_id: clientId,
+        client_secret: clientSecret,
+        grant_type:
+          "client_credentials"
       }).toString(),
       {
         headers: {
@@ -181,6 +207,7 @@ async function getAccessToken() {
       expiresIn * 1000;
 
     return accessToken;
+
   } catch (error) {
     console.error(
       "FLUTTERWAVE ACCESS TOKEN ERROR:",
@@ -240,21 +267,6 @@ async function getHeaders({
 // ============================================================
 // NORMALIZE CAMEROON PHONE
 // ============================================================
-//
-// Accepted examples:
-//
-//   681234567
-//   237681234567
-//   +237681234567
-//
-// Returns:
-//
-//   {
-//     country_code: "237",
-//     number: "681234567"
-//   }
-//
-// ============================================================
 
 function normalizeCameroonPhone(phone) {
   if (!phone) {
@@ -269,7 +281,9 @@ function normalizeCameroonPhone(phone) {
       .replace(/\(/g, "")
       .replace(/\)/g, "");
 
-  if (normalized.startsWith("+")) {
+  if (
+    normalized.startsWith("+")
+  ) {
     normalized =
       normalized.substring(1);
   }
@@ -306,12 +320,6 @@ function normalizeCameroonPhone(phone) {
 // ============================================================
 // CREATE CUSTOMER
 // ============================================================
-//
-// POST /customers
-//
-// Creates a Flutterwave customer.
-//
-// ============================================================
 
 async function createCustomer({
   email,
@@ -337,8 +345,7 @@ async function createCustomer({
 
   const payload = {
     email:
-      String(email)
-        .trim()
+      String(email).trim()
   };
 
   // ----------------------------------------------------------
@@ -390,9 +397,13 @@ async function createCustomer({
   }
 
   try {
+    const {
+      baseUrl
+    } = validateCredentials();
+
     const response =
       await axios.post(
-        `${FLW_BASE_URL}/customers`,
+        `${baseUrl}/customers`,
         payload,
         {
           headers,
@@ -401,6 +412,7 @@ async function createCustomer({
       );
 
     return response.data;
+
   } catch (error) {
     console.error(
       "FLUTTERWAVE CREATE CUSTOMER ERROR:",
@@ -418,13 +430,14 @@ async function createCustomer({
 // CREATE PAYMENT METHOD
 // ============================================================
 //
-// POST /payment-methods
-//
 // Supported BusGo methods:
 //
 //   mobile_money
 //   card
 //
+// Flutterwave V4:
+//
+// POST /payment-methods
 // ============================================================
 
 async function createPaymentMethod({
@@ -526,12 +539,15 @@ async function createPaymentMethod({
       mobile_money: {
         country_code:
           mobileMoney.country_code ||
+          mobilePhone.country_code ||
           "237",
 
         network:
           String(
             mobileMoney.network
-          ).trim().toUpperCase(),
+          )
+            .trim()
+            .toUpperCase(),
 
         phone_number:
           mobilePhone.number
@@ -553,6 +569,18 @@ async function createPaymentMethod({
       details ||
       {};
 
+    if (
+      !cardDetails.encrypted_card_number ||
+      !cardDetails.encrypted_expiry_month ||
+      !cardDetails.encrypted_expiry_year ||
+      !cardDetails.encrypted_cvv ||
+      !cardDetails.nonce
+    ) {
+      throw new Error(
+        "Encrypted card details are required."
+      );
+    }
+
     payload = {
       type:
         "card",
@@ -560,14 +588,28 @@ async function createPaymentMethod({
       customer_id:
         customerId,
 
-      card:
-        cardDetails
+      card: {
+        encrypted_card_number:
+          cardDetails.encrypted_card_number,
+
+        encrypted_expiry_month:
+          cardDetails.encrypted_expiry_month,
+
+        encrypted_expiry_year:
+          cardDetails.encrypted_expiry_year,
+
+        encrypted_cvv:
+          cardDetails.encrypted_cvv,
+
+        nonce:
+          cardDetails.nonce
+      }
     };
   }
 
 
   // ==========================================================
-  // OTHER METHODS
+  // OTHER PAYMENT METHODS
   // ==========================================================
 
   else {
@@ -584,9 +626,13 @@ async function createPaymentMethod({
 
 
   try {
+    const {
+      baseUrl
+    } = validateCredentials();
+
     const response =
       await axios.post(
-        `${FLW_BASE_URL}/payment-methods`,
+        `${baseUrl}/payment-methods`,
         payload,
         {
           headers,
@@ -595,6 +641,7 @@ async function createPaymentMethod({
       );
 
     return response.data;
+
   } catch (error) {
     console.error(
       "FLUTTERWAVE CREATE PAYMENT METHOD ERROR:",
@@ -611,18 +658,6 @@ async function createPaymentMethod({
 // ============================================================
 // CREATE CHARGE
 // ============================================================
-//
-// POST /charges
-//
-// Required:
-//
-//   amount
-//   currency
-//   reference
-//   customer_id
-//   payment_method_id
-//
-// ============================================================
 
 async function createCharge({
   amount,
@@ -632,7 +667,8 @@ async function createCharge({
   paymentMethodId,
   redirectUrl,
   meta,
-  idempotencyKey
+  idempotencyKey,
+  scenarioKey
 }) {
   const numericAmount =
     Number(amount);
@@ -664,9 +700,6 @@ async function createCharge({
     String(reference)
       .trim();
 
-  // Flutterwave V4 reference:
-  // 6 - 42 characters
-  // letters, numbers and hyphens only
   if (
     cleanReference.length < 6 ||
     cleanReference.length > 42
@@ -708,6 +741,16 @@ async function createCharge({
         "BUSGOCHARGE"
     });
 
+  // ----------------------------------------------------------
+  // OPTIONAL SANDBOX SCENARIO
+  // ----------------------------------------------------------
+
+  if (scenarioKey) {
+    headers[
+      "X-Scenario-Key"
+    ] = scenarioKey;
+  }
+
   const payload = {
     amount:
       numericAmount,
@@ -727,7 +770,6 @@ async function createCharge({
       paymentMethodId
   };
 
-
   // ----------------------------------------------------------
   // REDIRECT URL
   // ----------------------------------------------------------
@@ -737,7 +779,6 @@ async function createCharge({
       String(redirectUrl)
         .trim();
   }
-
 
   // ----------------------------------------------------------
   // METADATA
@@ -753,11 +794,14 @@ async function createCharge({
       meta;
   }
 
-
   try {
+    const {
+      baseUrl
+    } = validateCredentials();
+
     const response =
       await axios.post(
-        `${FLW_BASE_URL}/charges`,
+        `${baseUrl}/charges`,
         payload,
         {
           headers,
@@ -766,6 +810,7 @@ async function createCharge({
       );
 
     return response.data;
+
   } catch (error) {
     console.error(
       "FLUTTERWAVE CREATE CHARGE ERROR:",
@@ -782,10 +827,6 @@ async function createCharge({
 // ============================================================
 // GET CHARGE BY ID
 // ============================================================
-//
-// GET /charges/:id
-//
-// ============================================================
 
 async function getCharge(
   chargeId
@@ -800,9 +841,13 @@ async function getCharge(
     await getHeaders();
 
   try {
+    const {
+      baseUrl
+    } = validateCredentials();
+
     const response =
       await axios.get(
-        `${FLW_BASE_URL}/charges/${encodeURIComponent(
+        `${baseUrl}/charges/${encodeURIComponent(
           chargeId
         )}`,
         {
@@ -812,6 +857,7 @@ async function getCharge(
       );
 
     return response.data;
+
   } catch (error) {
     console.error(
       "FLUTTERWAVE GET CHARGE ERROR:",
@@ -828,12 +874,6 @@ async function getCharge(
 // ============================================================
 // GET CHARGES BY REFERENCE
 // ============================================================
-//
-// GET /charges?reference=...
-//
-// Flutterwave V4 supports filtering charges by reference.
-//
-// ============================================================
 
 async function getChargesByReference(
   reference
@@ -848,9 +888,13 @@ async function getChargesByReference(
     await getHeaders();
 
   try {
+    const {
+      baseUrl
+    } = validateCredentials();
+
     const response =
       await axios.get(
-        `${FLW_BASE_URL}/charges`,
+        `${baseUrl}/charges`,
         {
           params: {
             reference:
@@ -865,6 +909,7 @@ async function getChargesByReference(
       );
 
     return response.data;
+
   } catch (error) {
     console.error(
       "FLUTTERWAVE GET CHARGES BY REFERENCE ERROR:",
@@ -880,16 +925,6 @@ async function getChargesByReference(
 
 // ============================================================
 // NORMALIZE FLUTTERWAVE RESPONSE
-// ============================================================
-//
-// Flutterwave responses normally look like:
-//
-// {
-//   status: "success",
-//   message: "...",
-//   data: {...}
-// }
-//
 // ============================================================
 
 function extractResponseData(
@@ -910,16 +945,7 @@ function extractResponseData(
 
 
 // ============================================================
-// CHECK WHETHER A CHARGE IS SUCCESSFUL
-// ============================================================
-//
-// Flutterwave V4 charge statuses include:
-//
-//   succeeded
-//   pending
-//   failed
-//   voided
-//
+// CHECK WHETHER CHARGE IS SUCCESSFUL
 // ============================================================
 
 function isChargeSuccessful(
@@ -931,14 +957,16 @@ function isChargeSuccessful(
     );
 
   return (
-    data?.status ===
+    String(
+      data?.status || ""
+    ).toLowerCase() ===
     "succeeded"
   );
 }
 
 
 // ============================================================
-// CHECK WHETHER A CHARGE IS PENDING
+// CHECK WHETHER CHARGE IS PENDING
 // ============================================================
 
 function isChargePending(
@@ -950,7 +978,9 @@ function isChargePending(
     );
 
   return (
-    data?.status ===
+    String(
+      data?.status || ""
+    ).toLowerCase() ===
     "pending"
   );
 }
@@ -961,7 +991,37 @@ function isChargePending(
 // ============================================================
 
 function getBaseUrl() {
-  return FLW_BASE_URL;
+  return getConfig().baseUrl;
+}
+
+
+// ============================================================
+// GET CONFIGURATION STATUS
+// ============================================================
+//
+// Does NOT expose secrets.
+// Useful for debugging the backend.
+// ============================================================
+
+function getConfigurationStatus() {
+  const {
+    clientId,
+    clientSecret,
+    baseUrl,
+    tokenUrl
+  } = getConfig();
+
+  return {
+    clientIdConfigured:
+      Boolean(clientId),
+
+    clientSecretConfigured:
+      Boolean(clientSecret),
+
+    baseUrl,
+
+    tokenUrl
+  };
 }
 
 
@@ -989,6 +1049,8 @@ module.exports = {
   isChargePending,
 
   getBaseUrl,
+
+  getConfigurationStatus,
 
   createIdempotencyKey
 };

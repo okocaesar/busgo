@@ -127,12 +127,10 @@ function Booking() {
   // =========================================
   //
   // useTranslation() returns a new `t` function
-  // identity on every render (it isn't memoized
-  // upstream). Effects below used to list `t` in
-  // their dependency arrays, which meant every
-  // render made those effects look "stale" and
-  // re-run them - triggering setState - triggering
-  // a re-render - triggering the effect again,
+  // identity on every render. Effects below used to list `t` in
+  // their dependency arrays, which meant every render made those
+  // effects look "stale" and re-run them - triggering setState -
+  // triggering a re-render - triggering the effect again,
   // forever ("Maximum update depth exceeded").
   //
   // Reading translations through a ref instead lets
@@ -176,7 +174,6 @@ function Booking() {
 
     date:
       searchData.date || ""
-
   });
 
 
@@ -232,21 +229,18 @@ function Booking() {
                 seat.seatNumber ??
                 seat.number
               );
-
             }
 
             return Number(seat);
-
           })
+
           .filter(
             (seat) =>
               Number.isInteger(seat) &&
               seat > 0
           )
-
       )
     ];
-
   };
 
 
@@ -274,7 +268,6 @@ function Booking() {
         setBookedSeats([]);
 
         return [];
-
       }
 
 
@@ -325,12 +318,18 @@ function Booking() {
         ) {
 
           return null;
-
         }
 
 
+        // =========================================
+        // ACCEPT DIFFERENT BACKEND RESPONSE SHAPES
+        // =========================================
+
         const serverSeats =
-          response.data?.bookedSeats ||
+          response.data?.bookedSeats ??
+          response.data?.booked_seats ??
+          response.data?.data?.bookedSeats ??
+          response.data?.data?.booked_seats ??
           [];
 
 
@@ -385,7 +384,6 @@ function Booking() {
                     : tRef.current("wasJustBooked")
                 }`
               );
-
             }
 
 
@@ -395,7 +393,6 @@ function Booking() {
                   Number(seat)
                 )
             );
-
           }
         );
 
@@ -410,13 +407,24 @@ function Booking() {
         );
 
 
-        // Do not destroy the seat layout.
-        // Just show the error message.
+        // =========================================
+        // KEEP EXISTING TRANSLATION IF AVAILABLE
+        // =========================================
 
-        setAvailabilityError(
+        const translatedError =
           tRef.current(
             "unableCheckAvailability"
-          )
+          );
+
+
+        setAvailabilityError(
+          translatedError &&
+          translatedError !==
+            "unableCheckAvailability"
+
+            ? translatedError
+
+            : "Unable to check seat availability. Please check your connection and try again."
         );
 
 
@@ -430,11 +438,8 @@ function Booking() {
         ) {
 
           setCheckingSeats(false);
-
         }
-
       }
-
     },
     [
       selectedBus?.id,
@@ -475,7 +480,6 @@ function Booking() {
         setCheckingSeats(false);
 
         return;
-
       }
 
 
@@ -527,12 +531,18 @@ function Booking() {
         ) {
 
           return;
-
         }
 
 
+        // =========================================
+        // ACCEPT DIFFERENT BACKEND RESPONSE SHAPES
+        // =========================================
+
         const serverSeats =
-          response.data?.bookedSeats ||
+          response.data?.bookedSeats ??
+          response.data?.booked_seats ??
+          response.data?.data?.bookedSeats ??
+          response.data?.data?.booked_seats ??
           [];
 
 
@@ -574,10 +584,20 @@ function Booking() {
         );
 
 
-        setAvailabilityError(
+        const translatedError =
           tRef.current(
             "unableCheckAvailability"
-          )
+          );
+
+
+        setAvailabilityError(
+          translatedError &&
+          translatedError !==
+            "unableCheckAvailability"
+
+            ? translatedError
+
+            : "Unable to check seat availability. Please check your connection and try again."
         );
 
 
@@ -587,17 +607,13 @@ function Booking() {
         //
         // We simply keep whatever data we already have.
 
-
       } finally {
 
         if (!cancelled) {
 
           setCheckingSeats(false);
-
         }
-
       }
-
     };
 
 
@@ -636,7 +652,6 @@ function Booking() {
     ) {
 
       return;
-
     }
 
 
@@ -646,7 +661,6 @@ function Booking() {
         false,
         true
       );
-
     };
 
 
@@ -660,7 +674,6 @@ function Booking() {
     return () => {
 
       clearInterval(interval);
-
     };
 
 
@@ -706,7 +719,6 @@ function Booking() {
       setAvailabilityError("");
 
     }
-
   };
 
 
@@ -722,7 +734,6 @@ function Booking() {
     ) {
 
       return 0;
-
     }
 
 
@@ -741,7 +752,6 @@ function Booking() {
         booking.passengers || 1
       )
     );
-
   };
 
 
@@ -756,7 +766,6 @@ function Booking() {
     ) {
 
       return 0;
-
     }
 
 
@@ -767,7 +776,6 @@ function Booking() {
         ).replace("%", "")
       ) || 0
     );
-
   };
 
 
@@ -791,7 +799,6 @@ function Booking() {
     ) {
 
       return 0;
-
     }
 
 
@@ -801,7 +808,6 @@ function Booking() {
         discountPercentage / 100
       )
     );
-
   };
 
 
@@ -823,7 +829,6 @@ function Booking() {
       0,
       totalPrice - discount
     );
-
   };
 
 
@@ -873,7 +878,6 @@ function Booking() {
         navigate("/login");
 
         return;
-
       }
 
 
@@ -893,7 +897,6 @@ function Booking() {
         );
 
         return;
-
       }
 
 
@@ -904,7 +907,6 @@ function Booking() {
         );
 
         return;
-
       }
 
 
@@ -919,7 +921,6 @@ function Booking() {
         );
 
         return;
-
       }
 
 
@@ -930,7 +931,6 @@ function Booking() {
         );
 
         return;
-
       }
 
 
@@ -945,7 +945,6 @@ function Booking() {
         );
 
         return;
-
       }
 
 
@@ -962,7 +961,6 @@ function Booking() {
         );
 
         return;
-
       }
 
 
@@ -977,16 +975,30 @@ function Booking() {
         );
 
 
+      // =========================================
+      // IMPORTANT FIX
+      //
+      // Previously this used:
+      //
+      // t("unableVerifySeats")
+      //
+      // If that translation key did not exist,
+      // the user literally saw:
+      //
+      // unableVerifySeats
+      //
+      // Now we always display a proper message.
+      // =========================================
+
       if (
         freshBookedSeats === null
       ) {
 
         alert(
-          t("unableVerifySeats")
+          "Unable to verify seat availability. Please check your connection and try again."
         );
 
         return;
-
       }
 
 
@@ -1035,7 +1047,6 @@ function Booking() {
 
 
         return;
-
       }
 
 
@@ -1065,7 +1076,6 @@ function Booking() {
         );
 
         return;
-
       }
 
 
@@ -1082,7 +1092,6 @@ function Booking() {
         );
 
         return;
-
       }
 
 
@@ -1099,7 +1108,6 @@ function Booking() {
         );
 
         return;
-
       }
 
 
@@ -1116,7 +1124,6 @@ function Booking() {
         );
 
         return;
-
       }
 
 
@@ -1186,9 +1193,7 @@ function Booking() {
 
             total:
               totalPayment
-
           }
-
         }
       );
 
@@ -1196,9 +1201,7 @@ function Booking() {
     } finally {
 
       setIsProcessing(false);
-
     }
-
   };
 
 
@@ -1207,14 +1210,11 @@ function Booking() {
   // =========================================
 
   return (
-
     <>
-
       <Navbar />
 
 
       <section className="booking-page">
-
 
         <div className="booking-header">
 
@@ -1294,7 +1294,6 @@ function Booking() {
                 </div>
 
               </div>
-
             )}
 
 
@@ -1446,7 +1445,6 @@ function Booking() {
                   </button>
 
                 </div>
-
               )}
 
 
@@ -1485,6 +1483,7 @@ function Booking() {
                   ) : (
 
                     <div className="seat-selection-wrapper">
+
 
                       {/* =================================
                           SMALL BACKGROUND CHECK INDICATOR
@@ -1534,11 +1533,9 @@ function Booking() {
                       />
 
                     </div>
-
                   )}
 
                 </>
-
               )}
 
             </div>
@@ -1875,6 +1872,7 @@ function Booking() {
               onClick={handleContinue}
               disabled={isProcessing}
               style={{
+
                 opacity:
                   isProcessing
                     ? 0.6
@@ -1884,6 +1882,7 @@ function Booking() {
                   isProcessing
                     ? "not-allowed"
                     : "pointer"
+
               }}
             >
 
@@ -1897,6 +1896,7 @@ function Booking() {
 
             </button>
 
+
           </div>
 
         </div>
@@ -1907,9 +1907,7 @@ function Booking() {
       <Footer />
 
     </>
-
   );
-
 }
 
 
