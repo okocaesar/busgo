@@ -31,25 +31,15 @@ import {
 } from "./context/LanguageContext";
 
 
-// =========================================
+// ============================================================
 // PAGE NOT FOUND
-// =========================================
+// ============================================================
 
 function PageNotFound() {
   const { t } = useLanguage();
 
   return (
-    <div
-      style={{
-        minHeight: "60vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "40px 20px",
-        textAlign: "center"
-      }}
-    >
+    <div className="page-not-found">
       <h1>
         {t("pageNotFound")}
       </h1>
@@ -62,9 +52,9 @@ function PageNotFound() {
 }
 
 
-// =========================================
+// ============================================================
 // CHECK MOBILE DEVICE
-// =========================================
+// ============================================================
 
 function isMobileDevice() {
   if (typeof window === "undefined") {
@@ -77,22 +67,31 @@ function isMobileDevice() {
 }
 
 
-// =========================================
+// ============================================================
 // MOBILE START ROUTE
-// =========================================
+// ============================================================
 //
 // Mobile:
 // - No logged-in user -> Login
 // - Logged-in user -> Home
 //
 // Desktop:
-// - Always behaves normally -> Home
-// =========================================
+// - Home
+// ============================================================
 
 function MobileStartRoute() {
-  const currentUser = JSON.parse(
-    localStorage.getItem("currentUser") || "null"
-  );
+  let currentUser = null;
+
+  try {
+    currentUser = JSON.parse(
+      localStorage.getItem("currentUser") || "null"
+    );
+  } catch (error) {
+    console.error(
+      "Unable to read currentUser:",
+      error
+    );
+  }
 
   const isMobile = isMobileDevice();
 
@@ -109,14 +108,23 @@ function MobileStartRoute() {
 }
 
 
-// =========================================
+// ============================================================
 // CLIENT ROUTE
-// =========================================
+// ============================================================
 
 function ClientRoute() {
-  const currentUser = JSON.parse(
-    localStorage.getItem("currentUser") || "null"
-  );
+  let currentUser = null;
+
+  try {
+    currentUser = JSON.parse(
+      localStorage.getItem("currentUser") || "null"
+    );
+  } catch (error) {
+    console.error(
+      "Unable to read currentUser:",
+      error
+    );
+  }
 
   if (
     currentUser &&
@@ -134,9 +142,9 @@ function ClientRoute() {
 }
 
 
-// =========================================
+// ============================================================
 // APP CONTENT
-// =========================================
+// ============================================================
 
 function AppContent() {
   const { language } = useLanguage();
@@ -148,128 +156,185 @@ function AppContent() {
         className="app-root"
       >
 
+        {/* ==================================================
+            APPLICATION SHELL
+            ==================================================
+            
+            Desktop:
+            Existing desktop layout remains untouched.
+
+            Mobile:
+            CSS will use this shell to create a safe area
+            between the fixed mobile header and bottom nav.
+        ================================================== */}
+
         <div className="app-page-wrapper">
 
-          <Routes>
+          <main className="app-main-content">
 
-            {/* ===================================
-                CLIENT / PUBLIC ROUTES
-            =================================== */}
+            <Routes>
 
-            <Route element={<ClientRoute />}>
+              {/* ============================================
+                  CLIENT / PUBLIC ROUTES
+              ============================================ */}
 
-              {/* =================================
-                  START PAGE
+              <Route element={<ClientRoute />}>
 
-                  MOBILE:
-                  Not logged in -> Login
-                  Logged in -> Home
+                {/* ==========================================
+                    START PAGE
+                ========================================== */}
 
-                  DESKTOP:
-                  Home as before
-              ================================= */}
+                <Route
+                  path="/"
+                  element={<MobileStartRoute />}
+                />
 
-              <Route
-                path="/"
-                element={<MobileStartRoute />}
-              />
+                {/* ==========================================
+                    ROUTES
+                ========================================== */}
 
-              <Route
-                path="/routes"
-                element={<RoutesPage />}
-              />
+                <Route
+                  path="/routes"
+                  element={<RoutesPage />}
+                />
 
-              <Route
-                path="/login"
-                element={<Login />}
-              />
+                {/* ==========================================
+                    AUTHENTICATION
+                ========================================== */}
 
-              <Route
-                path="/register"
-                element={<Register />}
-              />
+                <Route
+                  path="/login"
+                  element={<Login />}
+                />
 
-              <Route
-                path="/verify-otp"
-                element={<VerifyOTP />}
-              />
+                <Route
+                  path="/register"
+                  element={<Register />}
+                />
 
-              <Route
-                path="/booking"
-                element={<Booking />}
-              />
+                <Route
+                  path="/verify-otp"
+                  element={<VerifyOTP />}
+                />
 
-              <Route
-                path="/offers"
-                element={<Offers />}
-              />
+                {/* ==========================================
+                    BOOKING
+                ========================================== */}
 
-              <Route
-                path="/about"
-                element={<About />}
-              />
+                <Route
+                  path="/booking"
+                  element={<Booking />}
+                />
 
-              <Route
-                path="/confirmation"
-                element={<Confirmation />}
-              />
+                {/* ==========================================
+                    OFFERS
+                ========================================== */}
 
-              <Route
-                path="/dashboard"
-                element={<Dashboard />}
-              />
+                <Route
+                  path="/offers"
+                  element={<Offers />}
+                />
 
-              <Route
-                path="/payment"
-                element={<Payment />}
-              />
+                {/* ==========================================
+                    ABOUT
+                ========================================== */}
 
-              <Route
-                path="/notifications"
-                element={<Notifications />}
-              />
+                <Route
+                  path="/about"
+                  element={<About />}
+                />
 
-              <Route
-                path="/community"
-                element={<Community />}
-              />
+                {/* ==========================================
+                    CONFIRMATION
+                ========================================== */}
 
-              <Route
-                path="/profile"
-                element={<Profile />}
-              />
+                <Route
+                  path="/confirmation"
+                  element={<Confirmation />}
+                />
 
-              <Route
-                path="/report"
-                element={<Report />}
-              />
+                {/* ==========================================
+                    DASHBOARD
+                ========================================== */}
 
-              {/* =================================
-                  CLIENT CATCH-ALL
-              ================================= */}
+                <Route
+                  path="/dashboard"
+                  element={<Dashboard />}
+                />
 
-              <Route
-                path="*"
-                element={<PageNotFound />}
-              />
+                {/* ==========================================
+                    PAYMENT
+                ========================================== */}
 
-            </Route>
+                <Route
+                  path="/payment"
+                  element={<Payment />}
+                />
+
+                {/* ==========================================
+                    NOTIFICATIONS
+                ========================================== */}
+
+                <Route
+                  path="/notifications"
+                  element={<Notifications />}
+                />
+
+                {/* ==========================================
+                    COMMUNITY
+                ========================================== */}
+
+                <Route
+                  path="/community"
+                  element={<Community />}
+                />
+
+                {/* ==========================================
+                    PROFILE
+                ========================================== */}
+
+                <Route
+                  path="/profile"
+                  element={<Profile />}
+                />
+
+                {/* ==========================================
+                    REPORT
+                ========================================== */}
+
+                <Route
+                  path="/report"
+                  element={<Report />}
+                />
+
+                {/* ==========================================
+                    CLIENT CATCH-ALL
+                ========================================== */}
+
+                <Route
+                  path="*"
+                  element={<PageNotFound />}
+                />
+
+              </Route>
 
 
-            {/* ===================================
-                ADMIN
-            =================================== */}
+              {/* ============================================
+                  ADMIN
+              ============================================ */}
 
-            <Route element={<AdminRoute />}>
+              <Route element={<AdminRoute />}>
 
-              <Route
-                path="/admin"
-                element={<AdminDashboard />}
-              />
+                <Route
+                  path="/admin"
+                  element={<AdminDashboard />}
+                />
 
-            </Route>
+              </Route>
 
-          </Routes>
+            </Routes>
+
+          </main>
 
         </div>
 
@@ -279,9 +344,9 @@ function AppContent() {
 }
 
 
-// =========================================
+// ============================================================
 // APP
-// =========================================
+// ============================================================
 
 function App() {
   return (

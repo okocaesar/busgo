@@ -1,54 +1,49 @@
 /* eslint-disable no-restricted-globals */
 
-// =========================================
+// ============================================================
 // BUSGO SERVICE WORKER
-// =========================================
+// ============================================================
 //
 // Handles:
-//
 // 1. Offline/network caching
 // 2. Web Push notifications
 // 3. Notification clicks
+// 4. Automatic removal of old BusGo caches
+// 5. PWA update activation
 //
-// IMPORTANT
-// -----------------------------------------
-// - API requests are NEVER cached.
-// - External resources are NOT handled.
-// - Static resources use NETWORK FIRST.
-// - Old BusGo caches are automatically removed.
-// - Push notifications work even when the
-//   BusGo page is not currently open, provided
-//   browser/OS notification permission is allowed.
-// =========================================
+// ============================================================
 
 
-// =========================================
+// ============================================================
 // CACHE CONFIGURATION
-// =========================================
+// ============================================================
 
-const CACHE_NAME = "busgo-cache-v8";
+const CACHE_NAME = "busgo-cache-v11";
 
 const OFFLINE_PAGE = "/offline.html";
 
 
-// =========================================
+// ============================================================
 // INSTALL
-// =========================================
+// ============================================================
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
       .then((cache) => {
-        return cache.add(OFFLINE_PAGE).catch(() => {
-          // Offline page is optional.
-          // Do not fail service-worker installation
-          // if the page cannot be cached.
-          return undefined;
-        });
+        return cache
+          .add(OFFLINE_PAGE)
+          .catch(() => {
+            return undefined;
+          });
       })
       .then(() => {
+
+        // IMPORTANT:
+        // Install the new service worker immediately.
         return self.skipWaiting();
+
       })
       .catch((error) => {
         console.error(
@@ -60,109 +55,168 @@ self.addEventListener("install", (event) => {
 });
 
 
-// =========================================
+// ============================================================
 // ACTIVATE
-// =========================================
+// ============================================================
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
+
     caches
       .keys()
+
       .then((cacheNames) => {
-        const oldCaches = cacheNames.filter(
-          (cacheName) =>
-            cacheName.startsWith("busgo-") &&
-            cacheName !== CACHE_NAME
-        );
+
+        const oldCaches =
+          cacheNames.filter(
+            (cacheName) =>
+              cacheName.startsWith("busgo-") &&
+              cacheName !== CACHE_NAME
+          );
 
         return Promise.all(
-          oldCaches.map((cacheName) =>
-            caches.delete(cacheName)
-          )
+          oldCaches.map((cacheName) => {
+
+            console.log(
+              "BUSGO: Removing old cache:",
+              cacheName
+            );
+
+            return caches.delete(cacheName);
+
+          })
         );
+
       })
+
       .then(() => {
+
+        // Take control of all open BusGo pages.
         return self.clients.claim();
+
       })
+
       .catch((error) => {
+
         console.error(
           "BUSGO SERVICE WORKER ACTIVATION ERROR:",
           error
         );
+
       })
+
   );
 });
 
 
-// =========================================
+// ============================================================
+// MESSAGE HANDLER
+// ============================================================
+//
+// This is what allows the frontend's
+// "Update Now" button to tell the waiting
+// service worker to activate immediately.
+//
+// ============================================================
+
+self.addEventListener("message", (event) => {
+
+  if (!event.data) {
+    return;
+  }
+
+  if (
+    event.data.type === "SKIP_WAITING"
+  ) {
+
+    self.skipWaiting();
+
+  }
+
+});
+
+
+// ============================================================
 // PUSH NOTIFICATION
-// =========================================
-//
-// Backend payload example:
-//
-// {
-//   "id": 123,
-//   "title": "Booking Confirmed",
-//   "message": "Your BusGo booking has been confirmed.",
-//   "type": "booking",
-//   "url": "/notifications"
-// }
-//
-// =========================================
+// ============================================================
 
 self.addEventListener("push", (event) => {
+
   let notificationData = {
+
     id: null,
+
     title: "BusGo",
-    message: "You have a new notification.",
+
+    message:
+      "You have a new notification.",
+
     type: "general",
+
     url: "/notifications"
+
   };
 
 
-  // =======================================
+  // ==========================================================
   // READ PUSH PAYLOAD
-  // =======================================
+  // ==========================================================
 
   if (event.data) {
+
     try {
-      const data = event.data.json();
+
+      const data =
+        event.data.json();
 
       if (
         data &&
         typeof data === "object"
       ) {
+
         notificationData = {
           ...notificationData,
           ...data
         };
+
       }
+
     } catch (jsonError) {
+
       console.error(
         "BUSGO PUSH JSON PARSE ERROR:",
         jsonError
       );
 
       try {
+
         const text =
           event.data.text();
 
         if (text) {
-          notificationData.message = text;
+
+          notificationData.message =
+            text;
+
         }
+
       } catch (textError) {
+
         console.error(
           "BUSGO PUSH TEXT PARSE ERROR:",
           textError
         );
+
       }
+
     }
+
   }
 
 
-  // =======================================
+  // ==========================================================
   // CLEAN VALUES
-  // =======================================
+  // ==========================================================
 
   const title =
     String(
@@ -170,11 +224,13 @@ self.addEventListener("push", (event) => {
       "BusGo"
     ).trim();
 
+
   const message =
     String(
       notificationData.message ||
       "You have a new notification."
     ).trim();
+
 
   const type =
     String(
@@ -182,18 +238,21 @@ self.addEventListener("push", (event) => {
       "general"
     ).trim();
 
+
   const notificationId =
     notificationData.id || null;
 
 
-  // =======================================
+  // ==========================================================
   // SAFE NOTIFICATION URL
-  // =======================================
+  // ==========================================================
 
   let notificationUrl =
     "/notifications";
 
+
   try {
+
     const requestedUrl =
       new URL(
         String(
@@ -203,92 +262,103 @@ self.addEventListener("push", (event) => {
         self.location.origin
       );
 
-    // Only allow BusGo's own origin.
+
     if (
       requestedUrl.origin ===
       self.location.origin
     ) {
+
       notificationUrl =
         requestedUrl.pathname +
         requestedUrl.search +
         requestedUrl.hash;
+
     }
+
   } catch (urlError) {
+
     console.warn(
       "BUSGO INVALID NOTIFICATION URL:",
       urlError
     );
+
   }
 
 
-  // =======================================
+  // ==========================================================
   // NOTIFICATION OPTIONS
-  // =======================================
+  // ==========================================================
 
   const options = {
+
     body:
       message ||
       "You have a new notification.",
 
-    icon: "/logo192.png",
+    icon:
+      "/icons/icon-192.png",
 
-    badge: "/logo192.png",
+    badge:
+      "/icons/icon-192.png",
 
-    tag: notificationId
-      ? `busgo-notification-${notificationId}`
-      : "busgo-notification",
+    tag:
+      notificationId
+        ? `busgo-notification-${notificationId}`
+        : "busgo-notification",
 
-    renotify: Boolean(notificationId),
+    renotify:
+      Boolean(notificationId),
 
-    requireInteraction: false,
+    requireInteraction:
+      false,
 
     data: {
-      url: notificationUrl,
+
+      url:
+        notificationUrl,
 
       notificationId,
 
       type
+
     }
+
   };
 
 
-  // =======================================
+  // ==========================================================
   // DISPLAY NOTIFICATION
-  // =======================================
+  // ==========================================================
 
   event.waitUntil(
+
     self.registration
       .showNotification(
         title || "BusGo",
         options
       )
       .catch((error) => {
+
         console.error(
           "BUSGO SHOW NOTIFICATION ERROR:",
           error
         );
+
       })
+
   );
+
 });
 
 
-// =========================================
+// ============================================================
 // NOTIFICATION CLICK
-// =========================================
-//
-// When the user clicks a notification:
-//
-// 1. Close the notification.
-// 2. Find an existing BusGo tab.
-// 3. Focus that tab.
-// 4. Navigate it to the notification URL.
-// 5. If no BusGo tab exists, open a new one.
-//
-// =========================================
+// ============================================================
 
 self.addEventListener(
   "notificationclick",
   (event) => {
+
     event.notification.close();
 
 
@@ -300,11 +370,12 @@ self.addEventListener(
       "/notifications";
 
 
-    // =======================================
+    // ========================================================
     // VALIDATE TARGET URL
-    // =======================================
+    // ========================================================
 
     try {
+
       const requestedUrl =
         new URL(
           String(
@@ -314,20 +385,26 @@ self.addEventListener(
           self.location.origin
         );
 
+
       if (
         requestedUrl.origin ===
         self.location.origin
       ) {
+
         targetUrl =
           requestedUrl.pathname +
           requestedUrl.search +
           requestedUrl.hash;
+
       }
+
     } catch (error) {
+
       console.warn(
         "BUSGO NOTIFICATION CLICK URL ERROR:",
         error
       );
+
     }
 
 
@@ -338,113 +415,119 @@ self.addEventListener(
       ).href;
 
 
-    // =======================================
+    // ========================================================
     // HANDLE WINDOW
-    // =======================================
+    // ========================================================
 
     event.waitUntil(
+
       self.clients
         .matchAll({
           type: "window",
           includeUncontrolled: true
         })
+
         .then((clientList) => {
 
-          // ---------------------------------
+          // ==================================================
           // FIND EXISTING BUSGO WINDOW
-          // ---------------------------------
+          // ==================================================
 
           for (
             const client of clientList
           ) {
+
             try {
+
               const clientUrl =
                 new URL(client.url);
+
 
               if (
                 clientUrl.origin !==
                 self.location.origin
               ) {
+
                 continue;
+
               }
 
 
-              // -------------------------------
-              // NAVIGATE EXISTING BUSGO TAB
-              // -------------------------------
+              // ==============================================
+              // NAVIGATE EXISTING BUSGO WINDOW
+              // ==============================================
 
               if (
                 "navigate" in client &&
                 "focus" in client
               ) {
+
                 return client
                   .navigate(
                     absoluteTargetUrl
                   )
                   .then(() => {
+
                     return client.focus();
+
                   })
                   .catch(() => {
+
                     return client.focus();
+
                   });
+
               }
 
             } catch (error) {
+
               console.warn(
                 "BUSGO CLIENT URL ERROR:",
                 error
               );
+
             }
+
           }
 
 
-          // ---------------------------------
+          // ==================================================
           // OPEN NEW BUSGO WINDOW
-          // ---------------------------------
+          // ==================================================
 
           if (
             "openWindow" in self.clients
           ) {
+
             return self.clients.openWindow(
               absoluteTargetUrl
             );
+
           }
 
 
           return undefined;
+
         })
+
         .catch((error) => {
+
           console.error(
             "BUSGO NOTIFICATION CLICK ERROR:",
             error
           );
+
         })
+
     );
+
   }
 );
 
 
-// =========================================
+// ============================================================
 // FETCH
-// =========================================
-//
-// Strategy:
-//
-// API
-// ------
-// Network only.
-//
-// Navigation
-// ------
-// Network first.
-// Offline page if network fails.
-//
-// Static resources
-// ------
-// Network first.
-// Cached resource if network fails.
-//
-// =========================================
+// ============================================================
 
 self.addEventListener(
   "fetch",
@@ -454,33 +537,40 @@ self.addEventListener(
       event.request;
 
 
-    // =======================================
+    // ========================================================
     // ONLY GET REQUESTS
-    // =======================================
+    // ========================================================
 
     if (
       request.method !== "GET"
     ) {
+
       return;
+
     }
 
 
-    // =======================================
+    // ========================================================
     // ONLY HTTP / HTTPS
-    // =======================================
+    // ========================================================
 
     let url;
 
+
     try {
+
       url =
         new URL(request.url);
+
     } catch (error) {
+
       console.warn(
         "BUSGO INVALID REQUEST URL:",
         error
       );
 
       return;
+
     }
 
 
@@ -488,99 +578,197 @@ self.addEventListener(
       url.protocol !== "http:" &&
       url.protocol !== "https:"
     ) {
+
       return;
+
     }
 
 
-    // =======================================
+    // ========================================================
     // IGNORE EXTERNAL REQUESTS
-    // =======================================
+    // ========================================================
 
     if (
       url.origin !==
       self.location.origin
     ) {
+
       return;
+
     }
 
 
-    // =======================================
+    // ========================================================
     // NEVER CACHE API REQUESTS
-    // =======================================
+    // ========================================================
 
     if (
       url.pathname.startsWith("/api/")
     ) {
 
       event.respondWith(
-        fetch(request).catch(() => {
-          return new Response(
-            JSON.stringify({
-              success: false,
-              message:
-                "BusGo API is currently unavailable."
-            }),
-            {
-              status: 503,
 
-              headers: {
-                "Content-Type":
-                  "application/json"
+        fetch(request)
+          .catch(() => {
+
+            return new Response(
+
+              JSON.stringify({
+
+                success: false,
+
+                message:
+                  "BusGo API is currently unavailable."
+
+              }),
+
+              {
+
+                status: 503,
+
+                headers: {
+
+                  "Content-Type":
+                    "application/json"
+
+                }
+
               }
-            }
-          );
-        })
+
+            );
+
+          })
+
       );
 
       return;
+
     }
 
 
-    // =======================================
+    // ========================================================
+    // VERSION FILE
+    // ========================================================
+
+    if (
+      url.pathname === "/version.json"
+    ) {
+
+      event.respondWith(
+
+        fetch(
+          `${url.pathname}?t=${Date.now()}`,
+          {
+            cache: "no-store"
+          }
+        )
+
+      );
+
+      return;
+
+    }
+
+
+    // ========================================================
+    // MANIFEST
+    // ========================================================
+
+    if (
+      url.pathname === "/manifest.json"
+    ) {
+
+      event.respondWith(
+
+        fetch(
+          `${url.pathname}?t=${Date.now()}`,
+          {
+            cache: "no-store"
+          }
+        )
+
+      );
+
+      return;
+
+    }
+
+
+    // ========================================================
+    // SERVICE WORKER ITSELF
+    // ========================================================
+    //
+    // Always fetch the newest service-worker.js.
+    //
+    // ========================================================
+
+    if (
+      url.pathname ===
+      "/service-worker.js"
+    ) {
+
+      event.respondWith(
+
+        fetch(
+          `${url.pathname}?t=${Date.now()}`,
+          {
+            cache: "no-store"
+          }
+        )
+
+      );
+
+      return;
+
+    }
+
+
+    // ========================================================
     // NAVIGATION REQUESTS
-    // =======================================
+    // ========================================================
 
     if (
       request.mode === "navigate"
     ) {
 
       event.respondWith(
+
         fetch(request)
+
           .then((response) => {
+
             return response;
+
           })
+
           .catch(() => {
+
             return caches.match(
               OFFLINE_PAGE
             );
+
           })
+
       );
 
       return;
+
     }
 
 
-    // =======================================
+    // ========================================================
     // STATIC RESOURCES
-    // =======================================
+    // ========================================================
     //
     // NETWORK FIRST
     //
-    // This ensures users normally receive
-    // the newest BusGo files.
-    //
-    // If the network fails, cached resources
-    // are used instead.
-    // =======================================
+    // ========================================================
 
     event.respondWith(
-      fetch(request)
-        .then((response) => {
 
-          // -------------------------------
-          // CACHE SUCCESSFUL SAME-ORIGIN
-          // RESPONSES
-          // -------------------------------
+      fetch(request)
+
+        .then((response) => {
 
           if (
             response &&
@@ -594,38 +782,46 @@ self.addEventListener(
 
             caches
               .open(CACHE_NAME)
+
               .then((cache) => {
+
                 return cache.put(
                   request,
                   responseClone
                 );
+
               })
+
               .catch((error) => {
+
                 console.warn(
                   "BUSGO CACHE WRITE ERROR:",
                   error
                 );
+
               });
+
           }
 
 
           return response;
-        })
-        .catch(() => {
 
-          // -------------------------------
-          // NETWORK FAILED
-          // -------------------------------
+        })
+
+        .catch(() => {
 
           return caches
             .match(request)
+
             .then(
               (cachedResponse) => {
 
                 if (
                   cachedResponse
                 ) {
+
                   return cachedResponse;
+
                 }
 
 
@@ -637,9 +833,13 @@ self.addEventListener(
                       "BusGo is offline"
                   }
                 );
+
               }
             );
+
         })
+
     );
+
   }
 );

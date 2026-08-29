@@ -2365,15 +2365,88 @@ body.dark-mode
 
 }
 
-/* Remove unwanted top spacing around Community page */
-html,
-body,
-#root {
-  margin: 0;
-  padding: 0;
+/* =========================================================
+   MOBILE TOP-SPACE FIX
+   Removes unwanted white space above Community
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  html,
+  body,
+  #root {
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 100%;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  .community-page {
+    width: 100% !important;
+    min-height: 100dvh !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    position: relative !important;
+    top: 0 !important;
+
+    transform: none !important;
+  }
+
+  .community-header {
+    margin-top: 0 !important;
+    padding-top: 8px;
+  }
+
+  .community-messages {
+    margin-top: 0 !important;
+  }
 }
 
-.community-page {
-  margin-top: 0 !important;
-  padding-top: 0 !important;
+/* =========================================================
+   BUSGO COMMUNITY - FORCE MOBILE TO START AT TOP
+   ========================================================= */
+
+@media screen and (max-width: 600px) {
+
+  html,
+  body,
+  #root {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Remove any spacing inherited from common page wrappers */
+  main,
+  .main-content,
+  .page-content,
+  .content,
+  .app-content {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  /* Community itself */
+  .community-page {
+    position: relative !important;
+
+    top: 0 !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+
+    transform: none !important;
+
+    width: 100% !important;
+    min-height: 100dvh !important;
+  }
+
+  /* Community header must touch the top */
+  .community-header {
+    margin-top: 0 !important;
+    padding-top: 8px !important;
+  }
 }

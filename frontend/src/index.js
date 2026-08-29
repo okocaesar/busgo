@@ -1,6 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 
+import {
+  registerBusGoServiceWorker
+} from "./utils/pwaUpdate";
+
 import "./index.css";
 
 import App from "./App";
@@ -22,6 +26,10 @@ root.render(
     </AppUpdate>
   </React.StrictMode>
 );
+
+
+  registerBusGoServiceWorker();
+
 
 // =========================================
 // HIDE BUSGO SPLASH SCREEN
