@@ -1,5 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import React, {
+  useCallback,
+  useEffect,
+  useState
+} from "react";
+
+import {
+  NavLink,
+  useLocation,
+  useNavigate
+} from "react-router-dom";
 
 import {
   FiHome,
@@ -25,20 +34,42 @@ import {
 
 import "./Navbar.css";
 import logo from "../../assets/logo.png";
+import packageJson from "../../../package.json";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [desktopMenuOpen, setDesktopMenuOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileNavbarVisible, setMobileNavbarVisible] = useState(true);
+  /* ============================================================
+     STATE
+     ============================================================ */
 
-  const [appVersion, setAppVersion] = useState("Loading...");
-  const [checkingUpdate, setCheckingUpdate] = useState(false);
-  const [updateMessage, setUpdateMessage] = useState("");
-  const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const [desktopMenuOpen, setDesktopMenuOpen] =
+    useState(false);
+
+  const [mobileMenuOpen, setMobileMenuOpen] =
+    useState(false);
+
+  const [mobileNavbarVisible, setMobileNavbarVisible] =
+    useState(true);
+
+  const [unreadNotifications, setUnreadNotifications] =
+    useState(0);
+
+  const [appVersion] = useState(
+    String(packageJson?.version || "1.0.0")
+  );
+
+  const [checkingUpdate, setCheckingUpdate] =
+    useState(false);
+
+  const [updateMessage, setUpdateMessage] =
+    useState("");
+
+  const [updateAvailable, setUpdateAvailable] =
+    useState(false);
 
   /* ============================================================
      AUTHENTICATION
@@ -62,12 +93,26 @@ const Navbar = () => {
 
     checkAuth();
 
-    window.addEventListener("storage", checkAuth);
-    window.addEventListener("authChanged", checkAuth);
+    window.addEventListener(
+      "storage",
+      checkAuth
+    );
+
+    window.addEventListener(
+      "authChanged",
+      checkAuth
+    );
 
     return () => {
-      window.removeEventListener("storage", checkAuth);
-      window.removeEventListener("authChanged", checkAuth);
+      window.removeEventListener(
+        "storage",
+        checkAuth
+      );
+
+      window.removeEventListener(
+        "authChanged",
+        checkAuth
+      );
     };
   }, []);
 
@@ -110,12 +155,19 @@ const Navbar = () => {
       lastScrollY = currentScrollY;
     };
 
-    window.addEventListener("scroll", handleScroll, {
-      passive: true
-    });
+    window.addEventListener(
+      "scroll",
+      handleScroll,
+      {
+        passive: true
+      }
+    );
 
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener(
+        "scroll",
+        handleScroll
+      );
     };
   }, []);
 
@@ -125,73 +177,174 @@ const Navbar = () => {
 
   useEffect(() => {
     if (mobileMenuOpen) {
-      document.body.classList.add("navbar-menu-open");
+      document.body.classList.add(
+        "navbar-menu-open"
+      );
     } else {
-      document.body.classList.remove("navbar-menu-open");
+      document.body.classList.remove(
+        "navbar-menu-open"
+      );
     }
 
     return () => {
-      document.body.classList.remove("navbar-menu-open");
+      document.body.classList.remove(
+        "navbar-menu-open"
+      );
     };
   }, [mobileMenuOpen]);
 
   /* ============================================================
-     GET CURRENT APP VERSION
+     LOAD UNREAD NOTIFICATIONS
 
-     Reads /version.json from the deployed application.
+     useCallback is important here because this function
+     is used inside another useEffect.
+
+     This prevents:
+
+     React Hook useEffect has a missing dependency:
+     'loadUnreadNotifications'
      ============================================================ */
 
-  const getAppVersion = async () => {
-    try {
-      const response = await fetch(
-        `/version.json?t=${Date.now()}`,
-        {
-          cache: "no-store"
+  const loadUnreadNotifications = useCallback(
+    async () => {
+      try {
+        const token =
+          localStorage.getItem("token") ||
+          localStorage.getItem("authToken") ||
+          localStorage.getItem("accessToken") ||
+          localStorage.getItem("userToken");
+
+        if (!token) {
+          setUnreadNotifications(0);
+          return;
         }
-      );
 
-      if (!response.ok) {
-        throw new Error("Version file unavailable");
+        const response = await fetch(
+          "/api/notifications",
+          {
+            method: "GET",
+
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json"
+            },
+
+            cache: "no-store"
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            "Unable to load notifications"
+          );
+        }
+
+        const data =
+          await response.json();
+
+        const notifications =
+          Array.isArray(data)
+            ? data
+            : Array.isArray(
+                data?.notifications
+              )
+            ? data.notifications
+            : [];
+
+        const unreadCount =
+          notifications.filter(
+            (notification) => {
+              return (
+                Number(
+                  notification?.is_read
+                ) === 0 ||
+                notification?.is_read ===
+                  false ||
+                Number(
+                  notification?.isRead
+                ) === 0 ||
+                notification?.isRead ===
+                  false
+              );
+            }
+          ).length;
+
+        setUnreadNotifications(
+          unreadCount
+        );
+      } catch (error) {
+        console.error(
+          "Unable to load notification count:",
+          error
+        );
+
+        setUnreadNotifications(0);
       }
-
-      const data = await response.json();
-
-      const version =
-        data?.version ||
-        data?.appVersion ||
-        data?.latestVersion;
-
-      if (!version) {
-        throw new Error("Version not found");
-      }
-
-      const cleanVersion = String(version);
-
-      setAppVersion(cleanVersion);
-
-      return cleanVersion;
-    } catch (error) {
-      console.error("Unable to get app version:", error);
-
-      setAppVersion("Unknown");
-
-      return "Unknown";
-    }
-  };
+    },
+    []
+  );
 
   /* ============================================================
-     LOAD APP VERSION
+     NOTIFICATION REFRESH
+
+     Initial load
+     Every 10 seconds
+     Browser/app focus
+     Custom notification update event
      ============================================================ */
 
   useEffect(() => {
-    getAppVersion();
-  }, []);
+    loadUnreadNotifications();
+
+    const interval = setInterval(
+      () => {
+        loadUnreadNotifications();
+      },
+      10000
+    );
+
+    const handleFocus = () => {
+      loadUnreadNotifications();
+    };
+
+    const handleNotificationUpdate =
+      () => {
+        loadUnreadNotifications();
+      };
+
+    window.addEventListener(
+      "focus",
+      handleFocus
+    );
+
+    window.addEventListener(
+      "notificationsUpdated",
+      handleNotificationUpdate
+    );
+
+    return () => {
+      clearInterval(interval);
+
+      window.removeEventListener(
+        "focus",
+        handleFocus
+      );
+
+      window.removeEventListener(
+        "notificationsUpdated",
+        handleNotificationUpdate
+      );
+    };
+  }, [loadUnreadNotifications]);
 
   /* ============================================================
      COMPARE VERSION NUMBERS
      ============================================================ */
 
-  const compareVersions = (version1, version2) => {
+  const compareVersions = (
+    version1,
+    version2
+  ) => {
     const first = String(version1)
       .replace(/^v/i, "")
       .split(".")
@@ -207,15 +360,28 @@ const Navbar = () => {
       second.length
     );
 
-    for (let i = 0; i < length; i += 1) {
-      const firstNumber = first[i] || 0;
-      const secondNumber = second[i] || 0;
+    for (
+      let i = 0;
+      i < length;
+      i += 1
+    ) {
+      const firstNumber =
+        first[i] || 0;
 
-      if (firstNumber > secondNumber) {
+      const secondNumber =
+        second[i] || 0;
+
+      if (
+        firstNumber >
+        secondNumber
+      ) {
         return 1;
       }
 
-      if (firstNumber < secondNumber) {
+      if (
+        firstNumber <
+        secondNumber
+      ) {
         return -1;
       }
     }
@@ -237,38 +403,96 @@ const Navbar = () => {
     setUpdateAvailable(false);
 
     try {
+      /* ========================================================
+         INSTALLED VERSION
+         ======================================================== */
+
+      const currentVersion =
+        String(
+          packageJson?.version ||
+            "1.0.0"
+        );
+
+      /* ========================================================
+         GET LATEST VERSION FROM SERVER
+         ======================================================== */
+
       const response = await fetch(
         `/version.json?t=${Date.now()}`,
         {
-          cache: "no-store"
+          method: "GET",
+
+          cache: "no-store",
+
+          headers: {
+            Accept:
+              "application/json"
+          }
         }
       );
 
       if (!response.ok) {
         throw new Error(
-          "Unable to check application version."
+          "Unable to retrieve the latest BusGo version."
         );
       }
 
-      const data = await response.json();
+      const data =
+        await response.json();
 
       const latestVersion =
-        data?.version ||
-        data?.appVersion ||
-        data?.latestVersion;
+        String(
+          data?.version ||
+            data?.appVersion ||
+            data?.latestVersion ||
+            ""
+        ).trim();
 
       if (!latestVersion) {
         throw new Error(
-          "Latest application version was not found."
+          "Latest BusGo version was not found."
         );
       }
 
-      const currentVersion = await getAppVersion();
+      /* ========================================================
+         DEBUG
+         ======================================================== */
 
-      const comparison = compareVersions(
-        latestVersion,
+      console.log(
+        "========================================="
+      );
+
+      console.log(
+        "BUSGO UPDATE CHECK"
+      );
+
+      console.log(
+        "Installed version:",
         currentVersion
       );
+
+      console.log(
+        "Latest server version:",
+        latestVersion
+      );
+
+      console.log(
+        "========================================="
+      );
+
+      /* ========================================================
+         COMPARE
+         ======================================================== */
+
+      const comparison =
+        compareVersions(
+          latestVersion,
+          currentVersion
+        );
+
+      /* ========================================================
+         UPDATE AVAILABLE
+         ======================================================== */
 
       if (comparison > 0) {
         setUpdateAvailable(true);
@@ -277,27 +501,122 @@ const Navbar = () => {
           `A new version (v${latestVersion}) is available. Updating...`
         );
 
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
-      } else {
+        setTimeout(
+          async () => {
+            try {
+              /* ================================================
+                 REMOVE SERVICE WORKERS
+                 ================================================ */
+
+              if (
+                "serviceWorker" in
+                navigator
+              ) {
+                const registrations =
+                  await navigator.serviceWorker.getRegistrations();
+
+                await Promise.all(
+                  registrations.map(
+                    (
+                      registration
+                    ) =>
+                      registration.unregister()
+                  )
+                );
+              }
+
+              /* ================================================
+                 CLEAR CACHE STORAGE
+                 ================================================ */
+
+              if (
+                "caches" in window
+              ) {
+                const cacheNames =
+                  await window.caches.keys();
+
+                await Promise.all(
+                  cacheNames.map(
+                    (cacheName) =>
+                      window.caches.delete(
+                        cacheName
+                      )
+                  )
+                );
+              }
+            } catch (
+              cleanupError
+            ) {
+              console.warn(
+                "BusGo update cleanup warning:",
+                cleanupError?.message ||
+                  cleanupError
+              );
+            }
+
+            /* ================================================
+               FORCE FRESH APPLICATION LOAD
+               ================================================ */
+
+            const freshUrl =
+              new URL(
+                window.location.href
+              );
+
+            freshUrl.searchParams.set(
+              "busgo_update",
+              Date.now().toString()
+            );
+
+            window.location.replace(
+              freshUrl.toString()
+            );
+          },
+          1500
+        );
+      } else if (
+        comparison === 0
+      ) {
+        /* ======================================================
+           UP TO DATE
+           ====================================================== */
+
+        setUpdateAvailable(false);
+
         setUpdateMessage(
-          `Your app is up to date (v${currentVersion}).`
+          `Your BusGo app is up to date (v${currentVersion}).`
+        );
+      } else {
+        /* ======================================================
+           LOCAL BUILD NEWER THAN SERVER
+           ====================================================== */
+
+        setUpdateAvailable(false);
+
+        setUpdateMessage(
+          `Your BusGo app is up to date (v${currentVersion}).`
         );
       }
     } catch (error) {
       console.error(
-        "Update check failed:",
+        "BusGo update check failed:",
         error
       );
+
+      setUpdateAvailable(false);
 
       setUpdateMessage(
         "Unable to check for updates. Please try again."
       );
     } finally {
-      setTimeout(() => {
-        setCheckingUpdate(false);
-      }, 1500);
+      setTimeout(
+        () => {
+          setCheckingUpdate(
+            false
+          );
+        },
+        1500
+      );
     }
   };
 
@@ -305,14 +624,12 @@ const Navbar = () => {
      SHOW APP VERSION
      ============================================================ */
 
-  const showAppVersion = async () => {
+  const showAppVersion = () => {
     setDesktopMenuOpen(false);
     setMobileMenuOpen(false);
 
-    const currentVersion = await getAppVersion();
-
     alert(
-      `Current App Version\n\nVersion: v${currentVersion}`
+      `Current BusGo App Version\n\nVersion: v${appVersion}`
     );
   };
 
@@ -321,14 +638,33 @@ const Navbar = () => {
      ============================================================ */
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("userToken");
+    localStorage.removeItem(
+      "token"
+    );
 
-    localStorage.removeItem("user");
-    localStorage.removeItem("currentUser");
-    localStorage.removeItem("busgo_user");
+    localStorage.removeItem(
+      "authToken"
+    );
+
+    localStorage.removeItem(
+      "accessToken"
+    );
+
+    localStorage.removeItem(
+      "userToken"
+    );
+
+    localStorage.removeItem(
+      "user"
+    );
+
+    localStorage.removeItem(
+      "currentUser"
+    );
+
+    localStorage.removeItem(
+      "busgo_user"
+    );
 
     setDesktopMenuOpen(false);
     setMobileMenuOpen(false);
@@ -345,7 +681,9 @@ const Navbar = () => {
      MOBILE NAVIGATION
      ============================================================ */
 
-  const mobileNavigate = (path) => {
+  const mobileNavigate = (
+    path
+  ) => {
     setMobileMenuOpen(false);
     navigate(path);
   };
@@ -354,7 +692,9 @@ const Navbar = () => {
      DESKTOP MENU NAVIGATION
      ============================================================ */
 
-  const desktopNavigate = (path) => {
+  const desktopNavigate = (
+    path
+  ) => {
     setDesktopMenuOpen(false);
     navigate(path);
   };
@@ -363,7 +703,9 @@ const Navbar = () => {
      DESKTOP NAV LINK CLASS
      ============================================================ */
 
-  const desktopLinkClass = ({ isActive }) =>
+  const desktopLinkClass = ({
+    isActive
+  }) =>
     `desktop-nav-link ${
       isActive ? "active" : ""
     }`;
@@ -372,10 +714,25 @@ const Navbar = () => {
      MOBILE BOTTOM NAV LINK CLASS
      ============================================================ */
 
-  const mobileBottomClass = ({ isActive }) =>
+  const mobileBottomClass = ({
+    isActive
+  }) =>
     `mobile-bottom-item ${
       isActive ? "active" : ""
     }`;
+
+  /* ============================================================
+     NOTIFICATION BADGE VALUE
+     ============================================================ */
+
+  const notificationBadge =
+    unreadNotifications > 9
+      ? "9+"
+      : unreadNotifications;
+
+  /* ============================================================
+     RENDER
+     ============================================================ */
 
   return (
     <>
@@ -409,57 +766,88 @@ const Navbar = () => {
 
           <NavLink
             to="/"
-            className={desktopLinkClass}
+            className={
+              desktopLinkClass
+            }
           >
             <FiHome />
-            <span>Home</span>
+
+            <span>
+              Home
+            </span>
           </NavLink>
 
           {/* ROUTE */}
 
           <NavLink
             to="/routes"
-            className={desktopLinkClass}
+            className={
+              desktopLinkClass
+            }
           >
             <FiMap />
-            <span>Route</span>
+
+            <span>
+              Route
+            </span>
           </NavLink>
 
           {/* OFFER */}
 
           <NavLink
             to="/offers"
-            className={desktopLinkClass}
+            className={
+              desktopLinkClass
+            }
           >
             <FiTag />
-            <span>Offer</span>
+
+            <span>
+              Offer
+            </span>
           </NavLink>
 
           {/* ABOUT */}
 
           <NavLink
             to="/about"
-            className={desktopLinkClass}
+            className={
+              desktopLinkClass
+            }
           >
             <FiInfo />
-            <span>About</span>
+
+            <span>
+              About
+            </span>
           </NavLink>
 
           {/* NOTIFICATION */}
 
           <NavLink
             to="/notifications"
-            className={desktopLinkClass}
+            className={
+              desktopLinkClass
+            }
           >
             <span className="desktop-notification-icon">
+
               <FiBell />
 
-              <span className="desktop-notification-badge">
-                0
-              </span>
+              {unreadNotifications >
+                0 && (
+                <span className="desktop-notification-badge">
+                  {
+                    notificationBadge
+                  }
+                </span>
+              )}
+
             </span>
 
-            <span>Notification</span>
+            <span>
+              Notification
+            </span>
           </NavLink>
 
           {/* ==================================================
@@ -474,11 +862,14 @@ const Navbar = () => {
                 className="get-started-button"
                 onClick={() =>
                   setDesktopMenuOpen(
-                    (previous) => !previous
+                    (previous) =>
+                      !previous
                   )
                 }
               >
-                <span>Get Started</span>
+                <span>
+                  Get Started
+                </span>
 
                 <FiChevronDown
                   className={
@@ -492,24 +883,38 @@ const Navbar = () => {
               {desktopMenuOpen && (
                 <div className="desktop-dropdown">
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      desktopNavigate("/login")
-                    }
-                  >
-                    <FiLogIn />
-                    <span>Login</span>
-                  </button>
+                  {/* LOGIN */}
 
                   <button
                     type="button"
                     onClick={() =>
-                      desktopNavigate("/register")
+                      desktopNavigate(
+                        "/login"
+                      )
+                    }
+                  >
+                    <FiLogIn />
+
+                    <span>
+                      Login
+                    </span>
+                  </button>
+
+                  {/* REGISTER */}
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      desktopNavigate(
+                        "/register"
+                      )
                     }
                   >
                     <FiUserPlus />
-                    <span>Register</span>
+
+                    <span>
+                      Register
+                    </span>
                   </button>
 
                 </div>
@@ -524,11 +929,14 @@ const Navbar = () => {
                 className="settings-button"
                 onClick={() =>
                   setDesktopMenuOpen(
-                    (previous) => !previous
+                    (previous) =>
+                      !previous
                   )
                 }
               >
-                <span>Settings</span>
+                <span>
+                  Settings
+                </span>
 
                 <FiChevronDown
                   className={
@@ -547,11 +955,16 @@ const Navbar = () => {
                   <button
                     type="button"
                     onClick={() =>
-                      desktopNavigate("/profile")
+                      desktopNavigate(
+                        "/profile"
+                      )
                     }
                   >
                     <FiUser />
-                    <span>Profile</span>
+
+                    <span>
+                      Profile
+                    </span>
                   </button>
 
                   {/* DASHBOARD */}
@@ -559,22 +972,31 @@ const Navbar = () => {
                   <button
                     type="button"
                     onClick={() =>
-                      desktopNavigate("/dashboard")
+                      desktopNavigate(
+                        "/dashboard"
+                      )
                     }
                   >
                     <FiGrid />
-                    <span>Dashboard</span>
+
+                    <span>
+                      Dashboard
+                    </span>
                   </button>
 
                   {/* APP VERSION */}
 
                   <button
                     type="button"
-                    onClick={showAppVersion}
+                    onClick={
+                      showAppVersion
+                    }
                   >
                     <FiPackage />
 
-                    <span>App Version</span>
+                    <span>
+                      App Version
+                    </span>
 
                     <small>
                       v{appVersion}
@@ -586,11 +1008,16 @@ const Navbar = () => {
                   <button
                     type="button"
                     onClick={() =>
-                      desktopNavigate("/report")
+                      desktopNavigate(
+                        "/report"
+                      )
                     }
                   >
                     <FiFileText />
-                    <span>Report</span>
+
+                    <span>
+                      Report
+                    </span>
                   </button>
 
                   {/* COMMUNITY */}
@@ -598,11 +1025,16 @@ const Navbar = () => {
                   <button
                     type="button"
                     onClick={() =>
-                      desktopNavigate("/community")
+                      desktopNavigate(
+                        "/community"
+                      )
                     }
                   >
                     <FiUsers />
-                    <span>Community</span>
+
+                    <span>
+                      Community
+                    </span>
                   </button>
 
                   {/* LOGOUT */}
@@ -610,10 +1042,15 @@ const Navbar = () => {
                   <button
                     type="button"
                     className="dropdown-logout"
-                    onClick={handleLogout}
+                    onClick={
+                      handleLogout
+                    }
                   >
                     <FiLogOut />
-                    <span>Logout</span>
+
+                    <span>
+                      Logout
+                    </span>
                   </button>
 
                 </div>
@@ -626,6 +1063,7 @@ const Navbar = () => {
 
         {/* ======================================================
             MOBILE TOP BAR
+
             LOGO LEFT + HAMBURGER RIGHT
             ====================================================== */}
 
@@ -647,7 +1085,8 @@ const Navbar = () => {
             }
             onClick={() =>
               setMobileMenuOpen(
-                (previous) => !previous
+                (previous) =>
+                  !previous
               )
             }
           >
@@ -671,7 +1110,9 @@ const Navbar = () => {
           <div
             className="mobile-menu-overlay"
             onClick={() =>
-              setMobileMenuOpen(false)
+              setMobileMenuOpen(
+                false
+              )
             }
           />
 
@@ -688,7 +1129,9 @@ const Navbar = () => {
               <button
                 type="button"
                 onClick={() =>
-                  setMobileMenuOpen(false)
+                  setMobileMenuOpen(
+                    false
+                  )
                 }
                 aria-label="Close menu"
               >
@@ -697,18 +1140,22 @@ const Navbar = () => {
 
             </div>
 
-            {/* ROUTE */}
+            {/* OFFERS */}
 
             <button
               type="button"
               className="mobile-menu-item"
               onClick={() =>
-                mobileNavigate("/routes")
+                mobileNavigate(
+                  "/offers"
+                )
               }
             >
               <FiMap />
 
-              <span>Route</span>
+              <span>
+                Offers
+              </span>
 
               <span className="menu-arrow">
                 ›
@@ -721,12 +1168,16 @@ const Navbar = () => {
               type="button"
               className="mobile-menu-item"
               onClick={() =>
-                mobileNavigate("/about")
+                mobileNavigate(
+                  "/about"
+                )
               }
             >
               <FiInfo />
 
-              <span>About</span>
+              <span>
+                About
+              </span>
 
               <span className="menu-arrow">
                 ›
@@ -739,12 +1190,16 @@ const Navbar = () => {
               type="button"
               className="mobile-menu-item"
               onClick={() =>
-                mobileNavigate("/report")
+                mobileNavigate(
+                  "/report"
+                )
               }
             >
               <FiFileText />
 
-              <span>Report</span>
+              <span>
+                Report
+              </span>
 
               <span className="menu-arrow">
                 ›
@@ -756,11 +1211,15 @@ const Navbar = () => {
             <button
               type="button"
               className="mobile-menu-item"
-              onClick={showAppVersion}
+              onClick={
+                showAppVersion
+              }
             >
               <FiPackage />
 
-              <span>App Version</span>
+              <span>
+                App Version
+              </span>
 
               <span className="version-badge">
                 v{appVersion}
@@ -772,8 +1231,12 @@ const Navbar = () => {
             <button
               type="button"
               className="mobile-menu-item update-menu-item"
-              onClick={checkForUpdate}
-              disabled={checkingUpdate}
+              onClick={
+                checkForUpdate
+              }
+              disabled={
+                checkingUpdate
+              }
             >
 
               {checkingUpdate ? (
@@ -814,7 +1277,9 @@ const Navbar = () => {
                 )}
 
                 <span>
-                  {updateMessage}
+                  {
+                    updateMessage
+                  }
                 </span>
 
               </div>
@@ -826,11 +1291,15 @@ const Navbar = () => {
               <button
                 type="button"
                 className="mobile-menu-item mobile-logout"
-                onClick={handleLogout}
+                onClick={
+                  handleLogout
+                }
               >
                 <FiLogOut />
 
-                <span>Logout</span>
+                <span>
+                  Logout
+                </span>
               </button>
             )}
 
@@ -841,10 +1310,15 @@ const Navbar = () => {
       {/* ========================================================
           MOBILE BOTTOM NAVIGATION
 
+          Dashboard
+          Route
+          Ticket
+          Community
+          Notification
+          Profile
+
           Icons only when inactive.
           Active item shows icon + name.
-
-          NO HAMBURGER HERE.
           ======================================================== */}
 
       <nav className="mobile-bottom-navigation">
@@ -853,67 +1327,103 @@ const Navbar = () => {
 
         <NavLink
           to="/"
-          className={mobileBottomClass}
+          className={
+            mobileBottomClass
+          }
         >
           <FiGrid />
-          <span>Dashboard</span>
+
+          <span>
+            Dashboard
+          </span>
         </NavLink>
 
         {/* ROUTE */}
 
         <NavLink
           to="/routes"
-          className={mobileBottomClass}
+          className={
+            mobileBottomClass
+          }
         >
           <FiMap />
-          <span>Route</span>
+
+          <span>
+            Route
+          </span>
         </NavLink>
 
         {/* TICKET */}
 
         <NavLink
           to="/dashboard"
-          className={mobileBottomClass}
+          className={
+            mobileBottomClass
+          }
         >
           <FiPackage />
-          <span>Ticket</span>
+
+          <span>
+            Ticket
+          </span>
         </NavLink>
 
         {/* COMMUNITY */}
 
         <NavLink
           to="/community"
-          className={mobileBottomClass}
+          className={
+            mobileBottomClass
+          }
         >
           <FiUsers />
-          <span>Community</span>
+
+          <span>
+            Community
+          </span>
         </NavLink>
 
         {/* NOTIFICATION */}
 
         <NavLink
           to="/notifications"
-          className={mobileBottomClass}
+          className={
+            mobileBottomClass
+          }
         >
           <span className="bottom-notification-icon">
+
             <FiBell />
 
-            <span className="mobile-notification-badge">
-              0
-            </span>
+            {unreadNotifications >
+              0 && (
+              <span className="mobile-notification-badge">
+                {
+                  notificationBadge
+                }
+              </span>
+            )}
+
           </span>
 
-          <span>Notification</span>
+          <span>
+            Notification
+          </span>
         </NavLink>
 
         {/* PROFILE */}
 
         <NavLink
           to="/profile"
-          className={mobileBottomClass}
+          className={
+            mobileBottomClass
+          }
         >
           <FiUser />
-          <span>Profile</span>
+
+          <span>
+            Profile
+          </span>
         </NavLink>
 
       </nav>

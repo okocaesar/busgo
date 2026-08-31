@@ -46,11 +46,11 @@ function Routes() {
         <div className="hero-overlay">
 
           <h1>
-            {t("availableBusRoutes")}
+            {t("Available Bus Routes")}
           </h1>
 
           <p>
-            {t("routesDescription")}
+            {t("Routes Description")}
           </p>
 
         </div>
@@ -73,7 +73,7 @@ function Routes() {
 
           <input
             type="text"
-            placeholder={t("searchRoutesPlaceholder")}
+            placeholder={t("Search Routes")}
             value={search}
             onChange={(e) =>
               setSearch(e.target.value)
@@ -143,7 +143,7 @@ function Routes() {
                 >
 
                   <button>
-                    {t("bookNow")}
+                    {t("Book Now")}
                   </button>
 
                 </NavLink>
@@ -164,7 +164,7 @@ function Routes() {
 
             <h2 className="no-results">
 
-              {t("noRoutesFound")}
+              {t("No Routes Found")}
 
             </h2>
 

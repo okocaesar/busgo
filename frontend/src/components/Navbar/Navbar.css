@@ -1738,3 +1738,51 @@ body.navbar-menu-open {
   max-height: none !important;
   object-fit: contain !important;
 }
+
+
+@media (max-width: 768px) {
+
+  .bottom-notification-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-notification-badge {
+    position: absolute;
+    top: -9px;
+    right: -12px;
+
+    min-width: 19px;
+    height: 19px;
+    padding: 0 5px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 999px;
+
+    background: #ef4444;
+    color: #ffffff;
+
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1;
+
+    border: 2px solid #ffffff;
+
+    z-index: 20;
+
+    box-sizing: border-box;
+
+    pointer-events: none;
+  }
+
+  .mobile-bottom-item.active
+    .mobile-notification-badge {
+    top: -8px;
+  }
+
+}

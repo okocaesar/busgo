@@ -9,7 +9,7 @@ import "./index.css";
 
 import App from "./App";
 
-import AppUpdate from "./components/AppUpdate/AppUpdate";
+
 
 // =========================================
 // RENDER BUSGO
@@ -21,9 +21,7 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <React.StrictMode>
-    <AppUpdate>
       <App />
-    </AppUpdate>
   </React.StrictMode>
 );
 
